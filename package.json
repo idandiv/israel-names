@@ -1,0 +1,8 @@
+{
+  "name": "names-of-israel",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": { "build": "node scripts/finalize.mjs" },
+  "engines": { "node": ">=18" }
+}
