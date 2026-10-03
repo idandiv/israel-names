@@ -966,23 +966,26 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .prlab{font-size:12px;font-weight:600;fill:var(--ink-2);font-family:inherit}
 .prlab.on{fill:var(--ink)}
 .prlab.prv{fill:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
-.prlab.prv.on{fill:var(--accent)}
+.prlab.prv.on{fill:var(--stamp)}
 .prleg{display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--muted);margin-top:2px}
 .prleg i{display:inline-block;width:16px;height:0;border-top:2px solid var(--accent);vertical-align:middle;margin-inline-end:6px}
 .prleg i.ty{border-top:1.5px dashed var(--muted)}
 .prrows{display:grid;gap:12px}
-.prrow{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) 30px;gap:12px;align-items:center}
+.prrow{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr);gap:14px;align-items:center}
 .prk{display:flex;flex-direction:column;line-height:1.25}.prk b{font-size:14px;color:var(--ink)}.prk small{font-size:12px;color:var(--muted)}
-.prrow.on .prk b{color:var(--accent)}
+
 .prbarw{display:flex;flex-direction:column;gap:4px}
 .prbar{position:relative;height:8px;background:var(--surface-2);border-radius:99px}
 .prbar i{position:absolute;inset-block:0;inset-inline-start:0;background:color-mix(in srgb,var(--accent) 70%,transparent);border-radius:99px}
-.prrow.on .prbar i{background:var(--accent)}
+.prrow.on .prbar i{background:var(--stamp)}
+.prsc{font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}.prrow.on .prk b,.prrow.on .prsc{color:var(--stamp)}
+.prrow.on .prlvl{color:var(--stamp)}
+.prdot.lead{fill:var(--stamp)}
 .prbar em{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink-2);border-radius:2px;opacity:.7}
 .prlvl{font-size:11px;font-weight:600;color:var(--muted)}.prlvl.hi2,.prlvl.hi{color:var(--ink-2)}.prlvl.hi2{color:var(--accent)}
 .prnum{text-align:left;font-variant-numeric:tabular-nums;font-size:15px;color:var(--ink)}
 .prnote{margin-top:12px}
-@media (max-width:520px){.prrow{grid-template-columns:minmax(0,120px) minmax(0,1fr) 28px;gap:10px}}
+@media (max-width:520px){.prrow{grid-template-columns:minmax(0,132px) minmax(0,1fr);gap:10px}}
 /* v20: comfortable touch targets on phones (min ~36px), same look */
 @media (pointer:coarse){
   .chips button,.seg button,.chips.sel button{min-height:36px;padding-block:6px}
@@ -1002,6 +1005,18 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* sector chips on the name file: scroll hint on narrow screens */
 /* the detail toggle is gone, so the sector chips can wrap instead of hiding behind a scroll */
 @media (max-width:700px){.nametools .sectors{flex-wrap:wrap;overflow:visible}}
+/* how many in a class: two rows (today / peak), each a grade of 5 classes */
+.crows{display:grid;gap:14px}
+.crow{display:grid;gap:6px;background:var(--surface-2);border-radius:14px;padding:12px 14px}
+.crow .ck{font-size:12px;font-weight:700;color:var(--muted)}
+.crow .cv{font-size:15px;color:var(--ink)}.crow .cv b{color:var(--accent);font-size:20px;font-variant-numeric:tabular-nums}
+.grade{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.gbox{min-height:28px;border:1px solid var(--line);border-radius:8px;padding:5px;display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start;justify-content:center}
+.gbox i{width:7px;height:7px;border-radius:50%;background:var(--girl)}
+.grade.boy .gbox i{background:var(--boy)}
+.gbox b{font-size:13px;color:var(--ink);align-self:center}
+.crow .cs{font-size:12px;color:var(--muted)}
+.cins{margin:12px 2px 0;font-size:13.5px;color:var(--ink-2)}
 
 /* static fallback content (visible until the app boots, and to crawlers) */
 .seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;line-height:1.7}

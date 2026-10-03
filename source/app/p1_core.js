@@ -1,5 +1,5 @@
 const Y0=DATA.y0, NY=DATA.T[0][0].length, Y1=Y0+NY-1, YEARS=Array.from({length:NY},(_,i)=>Y0+i);
-const NOW=2026;
+const NOW=new Date().getFullYear();   /* ages and 'X years ago' follow today's date */
 const LINKEDIN='https://www.linkedin.com/in/idan-diva/';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -93,7 +93,7 @@ function peakDesc(i){const st=stats(-1),c=comb(st,i);let tot=0;for(let y=0;y<NY;
 function share(st,i){const a=comb(st,i);for(let y=0;y<NY;y++){const d=st.DD[y];a[y]=d?a[y]/d*1000:0}return a}
 const T=(st,i)=>st.tot[0][i]+st.tot[1][i];
 function peakDec(st,i){const c=comb(st,i);const dec={};c.forEach((q,y)=>{const d=Math.floor((Y0+y)/10)*10;dec[d]=(dec[d]||0)+q});return +Object.entries(dec).sort((a,b)=>b[1]-a[1])[0][0]}
-const decLabel=d=>d===1940?'1949':t(`שנות ה-${String(d).slice(2)}`,`${d}s`);
+const decLabel=d=>d===1940?t(`שנות ה-40`,`1940s`):t(`שנות ה-${String(d).slice(2)}`,`${d}s`);
 function generation(y){if(y<1965)return t('דור הבייבי בום','Baby boomers');if(y<1981)return t('דור ה-X','Gen X');if(y<1997)return t('דור ה-Y','Millennials');if(y<2013)return t('דור ה-Z','Gen Z');return t('דור האלפא','Gen Alpha')}
 function ed1(a,b){if(a===b)return false;const la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;let i=0,j=0,e=0;
   while(i<la&&j<lb){if(a[i]===b[j]){i++;j++;continue}if(++e>1)return false;if(la>lb)i++;else if(lb>la)j++;else{i++;j++}}return e+(la-i)+(lb-j)<=1}
@@ -178,14 +178,14 @@ function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='funct
   TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
   if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
-  stopBlitz();stopRace();rerender();window.scrollTo({top:0});}
+  stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
 function renderNames(){const sec=$('#tab-names');
   sec.innerHTML=`<div class="subnav seg" role="tablist">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
     <div id="tab-name"></div><div id="tab-me"></div><div id="tab-compare"></div>`;
   sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();PUSH_ONCE=true;syncURL()}};
   ({file:renderName,me:renderMe,compare:renderCompare})[NSUB]();}
-function renderTrends(){$('#tab-trends').innerHTML=`<div class="pagehead"><h2>${t('מגמות ודאטה','Trends & data')}</h2><p>${t('76 שנים של שמות: מי הוביל בכל תקופה, מי עולה ומי יורד, ומה מאפיין כל מגזר.','76 years of names: who led each era, who\u2019s rising and falling, and what sets each community apart.')}</p>${secChips()}</div><div id="tab-explore"></div>`;renderExplore()}
+function renderTrends(){$('#tab-trends').innerHTML=`<div class="pagehead"><h2>${t('מגמות ודאטה','Trends & data')}</h2><p>${t(`${NY} שנים של שמות: מי הוביל בכל תקופה, מי עולה ומי יורד, ומה מאפיין כל מגזר.`,`${NY} years of names: who led each era, who\u2019s rising and falling, and what sets each community apart.`)}</p>${secChips()}</div><div id="tab-explore"></div>`;renderExplore()}
 function renderGames(){if(!$('#tab-game')){$('#tab-games').innerHTML=`<div class="pagehead"><h2>${t('משחקים','Games')}</h2><p>${t('השם הסודי של היום, ועוד משחקי טריוויה קצרים על שמות.','Today’s secret name, plus quick name trivia games.')}</p></div><div id="tab-game"></div>`;GAME_BUILT=null}renderGame()}
 
 /* ---------- search ---------- */
@@ -234,7 +234,7 @@ async function makeCard(i,extra){
   g.font=`700 92px Karantina, ${body}`;g.fillText(GEMS[i],0,28);g.font=`700 24px ${body}`;g.fillText(en?'GEMATRIA':'גימטריה',0,-45);g.restore();
   g.textAlign=en?'left':'right';
   // stats
-  const rows=[[fmt(f.tot),t('תינוקות מאז 1949','babies since 1949')],[String(Y0+f.pk),f.pk===0?t('שיא כבר בתחילת הרישום','peak at start of records'):t('שנת השיא','peak year')],[String(f.med),t('שנת לידה טיפוסית','typical birth year')]];
+  const rows=[[fmt(f.tot),t(`תינוקות מאז ${Y0}`,`babies since ${Y0}`)],[String(Y0+f.pk),f.pk===0?t('שיא כבר בתחילת הרישום','peak at start of records'):t('שנת השיא','peak year')],[String(f.med),t('שנת לידה טיפוסית','typical birth year')]];
   y+=40;rows.forEach(([v,l],k)=>{const xx=en?80+k*320:W-80-k*320;g.textAlign=en?'left':'right';g.fillStyle=C.acc;g.font=`700 92px Karantina, ${body}`;g.fillText(v,xx,y+80);g.fillStyle=C.mut;g.font=`500 28px ${body}`;g.fillText(l,xx,y+120)});
   y+=170;
   // chart
@@ -242,7 +242,7 @@ async function makeCard(i,extra){
   g.beginPath();g.moveTo(cx,cy);f.sh.forEach((v,k)=>g.lineTo(cx+k/(NY-1)*cw,cy-v/m*ch));g.lineTo(cx+cw,cy);g.closePath();
   const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(164,157,255,.55)');ag.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=ag;g.fill();
   g.beginPath();f.sh.forEach((v,k)=>{const px=cx+k/(NY-1)*cw,py=cy-v/m*ch;k?g.lineTo(px,py):g.moveTo(px,py)});g.strokeStyle=C.acc;g.lineWidth=6;g.lineJoin='round';g.stroke();
-  g.fillStyle=C.mut;g.font=`500 26px ${body}`;g.direction='ltr';g.textAlign='left';g.fillText('1949',cx,cy+40);g.textAlign='right';g.fillText('2024',cx+cw,cy+40);g.direction=en?'ltr':'rtl';
+  g.fillStyle=C.mut;g.font=`500 26px ${body}`;g.direction='ltr';g.textAlign='left';g.fillText(String(Y0),cx,cy+40);g.textAlign='right';g.fillText(String(Y1),cx+cw,cy+40);g.direction=en?'ltr':'rtl';
   y=cy+80;
   // gender bar
   const gw=cw*f.gp;g.fillStyle=C.girl;g.fillRect(cx+cw-gw,y,gw,22);g.fillStyle=C.boy;g.fillRect(cx,y,cw-gw-4,22);

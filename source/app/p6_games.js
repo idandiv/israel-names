@@ -2,13 +2,13 @@
    GAMES
    ========================================================= */
 let GAME_BUILT=null;
-const G={hl:null,streak:0,best:store.get('best',0),q:null,qs:0,qn:0,gg:null,ggs:0,ggn:0,sq:null,sqs:0,sqn:0};
+const G={hl:null,streak:0,best:store.get('best',0),q:null,qs:0,qn:0,gg:null,ggs:0,ggn:0,};
 let GSEC=store.get('gsec','all');if(!['all','jew','arab'].includes(GSEC))GSEC='all';
 function gOk(i){if(GSEC==='all')return true;const w=SECTOT[i],tt=w[0]+w[1]+w[2]+w[3];if(!tt)return false;return GSEC==='jew'?w[0]/tt>=.7:(w[1]+w[2]+w[3])/tt>=.7}
 const gMin=(v)=>GSEC==='arab'?Math.round(v/5):v;
 function gsecBar(){return `<div class="card wide gsecbar"><span class="nml">${t('השמות במשחקים הקצרים:','Names in the quick games:')}</span><div class="chips sel" id="gsec">${[['all',t('כל המגזרים','All communities')],['jew',t('שמות יהודיים','Jewish names')],['arab',t('שמות ערביים','Arab names')]].map(([k,l])=>`<button data-gs="${k}" aria-pressed="${GSEC===k}">${l}</button>`).join('')}</div></div>`}
 function renderGame(){if(GAME_BUILT!==LANG)YG.cur=null;const sec=$('#tab-game');const key=LANG;
-  if(GAME_BUILT!==key||!sec.firstChild){GAME_BUILT=key;G.hl=null;G.q=null;G.gg=null;G.sq=null;
+  if(GAME_BUILT!==key||!sec.firstChild){GAME_BUILT=key;G.hl=null;G.q=null;G.gg=null;
     sec.innerHTML=`<div class="gamegrid">
       <div class="card wide namle" id="g-namle"></div>
       ${gsecBar()}
@@ -25,7 +25,6 @@ function renderGame(){if(GAME_BUILT!==LANG)YG.cur=null;const sec=$('#tab-game');
 /* personal bests (this device only) */
 const LB={my:store.get('myscore',{})};
 function lbSave(p){Object.assign(LB.my,p);store.set('myscore',LB.my)}
-function drawLB(){}
 
 /* --- Secret name --- */
 
@@ -77,7 +76,7 @@ function renderNamle(){const el=$('#g-namle');
   const rows=s.guesses.map((i,ri)=>{const a=attr(i);const w=wordle(NAMES[i],NAMES[s.secret]);const fresh=NML.fresh&&ri===s.guesses.length-1;
     const tiles=`<div class="tiles">${w.L.map((c,k)=>`<i class="t-${w.res[k]}" style="animation-delay:${fresh?k*90:0}ms">${c}</i>`).join('')}</div>`;
     const tr=a.tot/A.tot,gd=Math.abs(a.gem-A.gem),dd=Math.abs(a.dec-A.dec);
-    const decL=a.dec===1940?'1949':(LANG==='en'?`${a.dec}s`:`ה-${String(a.dec).slice(2)}`);
+    const decL=a.dec===1940?(LANG==='en'?'1940s':'ה-40'):(LANG==='en'?`${a.dec}s`:`ה-${String(a.dec).slice(2)}`);
     return `<div class="nrow ${fresh?'fresh':''}"><div class="nmcell">${tiles}${LANG==='en'?`<small>${esc(rom(i))}</small>`:''}</div>
       ${cell(a.sex===A.sex?'ok':'',sexLab(a.sex))}${cell(a.sec===A.sec?'ok':'',sectName(a.sec))}${cell(a.cat&&a.cat===A.cat?'ok':'',catLab(a.cat))}
       ${dd===0?cell('ok',decL):cell(dd<=10?'near':'',decL,a.dec<A.dec?t('↑ מאוחר יותר','↑ later'):t('↓ מוקדם יותר','↓ earlier'))}
@@ -134,40 +133,6 @@ function onNamleClick(e){const o=e.target.closest('[data-ns],[data-nl]');if(o){i
   else if(a==='share')copy(namleShare());
 }
 
-/* --- Blitz --- */
-const BZ={run:false,score:0,miss:0,end:0,cur:null,timer:null,last:null};
-function bzPool(){const st=stats(-1);const p=[];for(let i=0;i<N;i++){const s=T(st,i);if(s<400)continue;const gp=st.tot[0][i]/s;if(gp>=.95||gp<=.05)p.push(i)}return p}
-function stopBlitz(){if(BZ.timer){clearInterval(BZ.timer);BZ.timer=null}BZ.run=false}
-function renderBlitz(){const el=$('#g-blitz');if(!el)return;const best=LB.my.blitz||0;
-  if(!BZ.run){el.innerHTML=`<div class="head"><div><h3>${t('בן או בת? בליץ','Boy or girl? Blitz')}</h3><div class="sub">${t('30 שניות. כמה שמות תספיקו לסווג? (אפשר גם עם החצים)','30 seconds. How many can you sort? (Arrow keys work too)')}</div></div></div>
-    <div class="blitz">${BZ.last!=null?`<div class="big1 tn">${BZ.last}</div><div class="sub">${t('נכונות','correct')} · ${BZ.miss} ${t('טעויות','misses')}</div>`:'<div class="nm2" style="color:var(--muted)">?</div>'}
-    <div class="score" style="justify-content:center"><span>${t('שיא','Best')}: <b class="tn">${best}</b></span></div><button class="next" id="bzgo">${BZ.last!=null?t('עוד פעם','Again'):t('התחילו','Start')}</button></div>`;
-    $('#bzgo').onclick=startBlitz;return}
-  const left=Math.max(0,BZ.end-Date.now());
-  el.innerHTML=`<div class="head"><div><h3>${t('בן או בת? בליץ','Boy or girl? Blitz')}</h3></div><span class="pill acc tn">${BZ.score} ${t('נכונות','correct')}</span></div>
-    <div class="blitz"><div class="timer"><i id="bzt" style="width:${left/300}%"></i></div><div class="nm2">${nmh(BZ.cur)}</div>
-    <div class="bb"><button style="background:var(--girl)" data-s="0">${t('בת','Girl')}</button><button style="background:var(--boy)" data-s="1">${t('בן','Boy')}</button></div></div>`;
-  el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>bzAnswer(+b.dataset.s));}
-function startBlitz(){const p=bzPool();if(!p.length)return;BZ.pool=p;BZ.run=true;BZ.score=0;BZ.miss=0;BZ.end=Date.now()+30000;BZ.cur=rand(p);renderBlitz();
-  BZ.timer=setInterval(()=>{const left=BZ.end-Date.now();const b=$('#bzt');if(b)b.style.width=Math.max(0,left/300)+'%';
-    if(left<=0){stopBlitz();BZ.last=BZ.score;if(BZ.score>(LB.my.blitz||0)){lbSave({blitz:BZ.score});toast(t('שיא חדש!','New record!'))}renderBlitz();drawLB()}},150)}
-function bzAnswer(s){if(!BZ.run)return;const st=stats(-1);const truth=st.tot[0][BZ.cur]>=st.tot[1][BZ.cur]?0:1;const el=$('#g-blitz');
-  el.classList.remove('flash-ok','flash-no');void el.offsetWidth;
-  if(s===truth){BZ.score++;el.classList.add('flash-ok')}else{BZ.miss++;el.classList.add('flash-no');toast(`${NM(BZ.cur)}: ${truth?t('שם של בנים','a boys’ name'):t('שם של בנות','a girls’ name')}`)}
-  let n;do{n=rand(BZ.pool)}while(n===BZ.cur);BZ.cur=n;renderBlitz()}
-addEventListener('keydown',e=>{if(!BZ.run||TAB!=='game')return;const rtl=LANG!=='en';if(e.key==='ArrowRight'){bzAnswer(rtl?0:1);e.preventDefault()}else if(e.key==='ArrowLeft'){bzAnswer(rtl?1:0);e.preventDefault()}});
-
-/* --- Community quiz --- */
-let SQP=null;
-function sqPools(){if(SQP)return SQP;SQP=[[],[],[],[]];for(let i=0;i<N;i++){const w=SECTOT[i],s=w[0]+w[1]+w[2]+w[3];const d=domSec(i);if(w[d]>=300&&w[d]/s>=.85)SQP[d].push(i)}return SQP}
-function newSQ(){const P=sqPools();const s=Math.floor(Math.random()*4);G.sq={i:rand(P[s]),ans:s,done:false,pick:null}}
-function renderSQ(){const el=$('#g-sec');if(!G.sq)newSQ();const q=G.sq;const w=SECTOT[q.i],s=w.reduce((a,b)=>a+b,0);
-  el.innerHTML=`<div class="head"><div><h3>${t('חידון מגזרים','Community quiz')}</h3><div class="sub">${t('באיזה מגזר השם הזה הכי נפוץ?','In which community is this name most common?')}</div></div><span class="pill acc tn">${G.sqs}/${G.sqn}</span></div>
-    <div class="nm2" style="font-family:var(--f-display);font-size:clamp(56px,12vw,84px);font-weight:700;line-height:.95;text-align:center;margin:8px 0">${nmh(q.i)}</div>
-    <div class="gopts">${SECT().map((n,k)=>`<button data-sq="${k}" class="${q.done?(k===q.ans?'win':(k===q.pick?'lose':'')):''}">${n}</button>`).join('')}</div>
-    ${q.done?`<div class="feedback">${q.pick===q.ans?t('נכון! ','Correct! '):t('לא הפעם. ','Not this time. ')}${SECT().map((n,k)=>w[k]?`${n} ${Math.round(w[k]/s*100)}%`:'').filter(Boolean).join(' · ')}</div><div class="actions"><button class="next" id="sqn">${t('הבא ←','Next →')}</button><button class="copybtn" data-i="${q.i}">${t('לתיק השם','Open name file')}</button></div>`:''}`;
-  el.querySelectorAll('[data-sq]').forEach(b=>b.onclick=()=>{if(q.done)return;q.done=true;q.pick=+b.dataset.sq;G.sqn++;if(q.pick===q.ans)G.sqs++;renderSQ()});
-  const n=$('#sqn');if(n)n.onclick=()=>{newSQ();renderSQ()};el.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>pick(+b.dataset.i));}
 
 /* --- Guess from graph --- */
 function newGG(){const st=stats(-1);const p=[];for(let i=0;i<N;i++)if(T(st,i)>=gMin(2500)&&gOk(i))p.push(i);const s=rand(p);const dom=st.tot[0][s]>=st.tot[1][s]?0:1;
@@ -217,7 +182,7 @@ function renderDec(){const el=$('#g-dec');if(!G.q)newQ();
   const qn=$('#qn');if(qn)qn.onclick=()=>{newQ();renderDec()};const qo=$('#qopen');if(qo)qo.onclick=()=>pick(G.q.i);}
 
 /* ---------- boot ---------- */
-(function boot(){const H0=(location.hash||'').slice(1);let t0=H0;if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0=store.get('tab','home');TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
+(function boot(){const H0=(location.hash||'').slice(1);let t0=H0;if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0='home';   /* a plain visit always opens the home page */TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
   const isSaved=/^saved\./.test(H0);if(isSaved){t0='home';TAB='home'}const miss=URL_MISS;if(miss){t0='home';TAB='home'}renderShell();setTab(t0);if(isSaved)checkSavedHash(H0);if(miss)notFound(miss);try{document.activeElement&&document.activeElement.blur()}catch(e){}
   const mq=matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',()=>{GAME_BUILT=null;rerender()});
   new MutationObserver(()=>{GAME_BUILT=null;rerender()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});})();

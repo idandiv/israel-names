@@ -108,12 +108,37 @@ function profileHTML(i){const p=profileOf(i);if(!p)return'';const T0=profTypical
   const spokes=ax.map((_,k)=>{const [x,y]=pt(k,100);return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="prspoke"/>`}).join('');
   const labels=ax.map(([k,l],j)=>{const [x,y]=pt(j,122);const anc=Math.abs(x-cx)<8?'middle':x<cx?'end':'start';const yy=y<cy-10?y-6:y>cy+10?y+8:y;
     return `<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${anc}" class="prlab ${k===lead?'on':''}">${l}</text><text x="${x.toFixed(1)}" y="${(yy+15).toFixed(1)}" text-anchor="${anc}" class="prlab prv ${k===lead?'on':''}">${p[k]}</text>`}).join('');
-  const dots=ax.map(([k,l],j)=>{const [x,y]=pt(j,p[k]);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="prdot"><title>${l}: ${p[k]} · ${FACT[k]}</title></circle>`}).join('');
-  const rows=ax.map(([k,l])=>{const [lt,lc]=lvl(k);return `<div class="prrow ${k===lead?'on':''}"><div class="prk"><b>${l}</b><small>${FACT[k]}</small></div>
-      <div class="prbarw"><span class="prbar"><i style="width:${p[k]}%"></i><em style="inset-inline-start:${T0[k]}%" title="${t('שם טיפוסי','Typical name')}"></em></span><span class="prlvl ${lc}">${lt}</span></div><b class="prnum">${p[k]}</b></div>`}).join('');
+  const dots=ax.map(([k,l],j)=>{const [x,y]=pt(j,p[k]);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="prdot ${k===lead?'lead':''}"><title>${l}: ${p[k]} · ${FACT[k]}</title></circle>`}).join('');
+  const rows=ax.map(([k,l])=>{const [lt,lc]=lvl(k);return `<div class="prrow ${k===lead?'on':''}"><div class="prk"><b>${l} <span class="prsc">· ${p[k]}</span></b><small>${FACT[k]}</small></div>
+      <div class="prbarw"><span class="prbar"><i style="width:${p[k]}%"></i><em style="inset-inline-start:${T0[k]}%" title="${t('שם טיפוסי','Typical name')}"></em></span><span class="prlvl ${lc}">${k===lead?t('זה מה שקבע את התגית','this set the tag'):lt}</span></div></div>`}).join('');
   return `<div class="prtop"><div class="prtag"><b>${tag[1]}</b><span>${tag[2]}</span></div></div>
     <div class="prgrid"><div class="prchart"><svg class="prsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('פרופיל אופי השם','Name character profile')}">${rings}${spokes}
       <polygon points="${poly(ax.map(([k])=>T0[k]))}" class="prtyp"/><polygon points="${poly(ax.map(([k])=>p[k]))}" class="prme"/>${dots}${labels}</svg>
       <div class="prleg"><span><i class="me"></i>${t(nm,esc(NM(i)))}</span><span><i class="ty"></i>${t('שם טיפוסי','Typical name')}</span></div></div>
       <div class="prrows">${rows}</div></div>
     <p class="sub prnote">${t('כל ציון בין 0 ל-100. הקו הקטן בכל פס מסמן שם טיפוסי, לפי החציון של השמות שניתנו לפחות ל-1,000 תינוקות.','Each score is 0–100. The small mark on each bar is a typical name: the median of names given to 1,000+ babies.')}</p>`}
+
+/* ---------- name file: how many in a class (today vs. the name's peak), shown as one school grade ---------- */
+function classHTML(nm,c,st,pk,gw,dom){const L=NY-1,sh=y=>st.DD[y]?c[y]/st.DD[y]:0;
+  const peakRow=pk!==L?[pk,atStart(pk)?t(`בתחילת הרישום · ${Y0}`,`When records began · ${Y0}`):t(`בשנת השיא · ${Y0+pk}`,`At its peak · ${Y0+pk}`)]
+    :[Math.max(0,L-20),t(`לפני 20 שנה · ${Y0+Math.max(0,L-20)}`,`20 years earlier · ${Y0+Math.max(0,L-20)}`)];
+  const rows=[[L,t(`היום · ילידי ${Y1}`,`Today · born ${Y1}`)],peakRow];
+  const one=gw('ילדה אחת','ילד אחד','ילד אחד'),kids=gw('ילדות','ילדים','ילדים');   /* mixed names: the usual generic masculine */
+  const row=([y,lab])=>{const s=sh(y),perClass=s*30,grade=Math.round(s*150);
+    const head=perClass>=1.5?t(`<b>${Math.round(perClass)}</b> ${kids} בשם ${esc(nm)} בכל כיתה`,`<b>${Math.round(perClass)}</b> per class`)
+      :perClass>=.5?t(`בערך <b>${one}</b> בכל כיתה`,`About <b>one</b> per class`)
+      :perClass>0?t(`${one} בכל <b>${fmt(Math.round(1/perClass))}</b> כיתות`,`One in every <b>${fmt(Math.round(1/perClass))}</b> classes`)
+      :t('כמעט אף אחד בשם הזה','Almost no one');
+    /* a grade = 5 classes of 30; each dot is one child with this name */
+    const per=[0,0,0,0,0];for(let k=0;k<Math.min(grade,60);k++)per[k%5]++;
+    const boxes=per.map(n=>`<span class="gbox">${n>12?`<b>${n}</b>`:Array.from({length:n},()=>'<i></i>').join('')}</span>`).join('');
+    return `<div class="crow"><div class="ck">${lab}</div><div class="cv">${head}</div>
+      <div class="grade ${dom?'boy':'girl'}" aria-hidden="true">${boxes}</div>
+      <div class="cs">${grade?t(`כ-${fmt(grade)} בשכבה של 150 ילדים (5 כיתות)`,`About ${fmt(grade)} in a grade of 150 (5 classes)`):t('פחות מאחד בשכבה של 150 ילדים','Fewer than one in a grade of 150')}</div></div>`};
+  const a=sh(L),b=sh(peakRow[0]);let ins='';
+  if(a&&b){const r=a>=b?a/b:b/a;const xs=r>=1.25?t(`פי ${r>=10?Math.round(r):r.toFixed(1).replace(/\.0$/,'')}`,`${r>=10?Math.round(r):r.toFixed(1)}×`):'';
+    ins=pk===L?t(`${Y1} היא שנת השיא של השם עד היום${xs&&a>b?`, ${xs} יותר מלפני 20 שנה`:''}.`,`${Y1} is its peak so far${xs&&a>b?`, ${xs} more than 20 years earlier`:''}.`)
+      :xs?t(`היום יש בכל כיתה ${xs} ${a<b?'פחות':'יותר'} ${esc(nm)} מאשר ב-${Y0+peakRow[0]}.`,`Today there are ${xs} ${a<b?'fewer':'more'} per class than in ${Y0+peakRow[0]}.`)
+      :t(`היום הוא נפוץ בכיתות בערך כמו ב-${Y0+peakRow[0]}.`,`About as common per class as in ${Y0+peakRow[0]}.`)}
+  else if(!a&&b)ins=t(`ב-${Y1} כמעט לא ניתן, לעומת ${Y0+peakRow[0]}.`,`Barely given in ${Y1}, unlike ${Y0+peakRow[0]}.`);
+  return `<div class="crows">${rows.map(row).join('')}</div>${ins?`<p class="cins">${ins}</p>`:''}`}

@@ -22,7 +22,7 @@ let URL_MISS=null;
 function notFound(raw){const m=$('#modal');if(!m)return;const near=suggest(raw.slice(0,2),6);m.hidden=false;
   m.innerHTML=`<div class="mbox" role="dialog" aria-label="${t('השם לא נמצא','Name not found')}"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>
     <h3>${t(`לא מצאנו את השם "${esc(raw)}"`,`We couldn’t find "${esc(raw)}"`)}</h3>
-    <p class="sub">${t('המאגר כולל כל שם שניתן לפחות ל-5 תינוקות באותה שנה, מאז 1949. ייתכן שהשם נדיר מדי, או שהוא כתוב אחרת.','The data includes every name given to at least 5 babies in a year since 1949. The name may be too rare, or spelled differently.')}</p>
+    <p class="sub">${t(`המאגר כולל כל שם שניתן לפחות ל-5 תינוקות באותה שנה, מאז ${Y0}. ייתכן שהשם נדיר מדי, או שהוא כתוב אחרת.`,'The data includes every name given to at least 5 babies in a year since 1949. The name may be too rare, or spelled differently.')}</p>
     ${near.length?`<div class="nml">${t('אולי חיפשתם:','Maybe you meant:')}</div><div class="chips" id="nfchips">${near.map(j=>`<button data-i="${j}">${nmh(j)}</button>`).join('')}</div>`:''}</div>`;
   const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};
   const ch=$('#nfchips');if(ch)ch.onclick=e=>{const b=e.target.closest('[data-i]');if(b)pick(+b.dataset.i)}}

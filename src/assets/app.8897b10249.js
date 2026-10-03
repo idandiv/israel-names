@@ -1252,7 +1252,7 @@ let URL_MISS=null;
 function notFound(raw){const m=$('#modal');if(!m)return;const near=suggest(raw.slice(0,2),6);m.hidden=false;
   m.innerHTML=`<div class="mbox" role="dialog" aria-label="${t('השם לא נמצא','Name not found')}"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>
     <h3>${t(`לא מצאנו את השם "${esc(raw)}"`,`We couldn’t find "${esc(raw)}"`)}</h3>
-    <p class="sub">${t('המאגר כולל כל שם שניתן לפחות ל-5 תינוקות באותה שנה, מאז 1949. ייתכן שהשם נדיר מדי, או שהוא כתוב אחרת.','The data includes every name given to at least 5 babies in a year since 1949. The name may be too rare, or spelled differently.')}</p>
+    <p class="sub">${t(`המאגר כולל כל שם שניתן לפחות ל-5 תינוקות באותה שנה, מאז ${Y0}. ייתכן שהשם נדיר מדי, או שהוא כתוב אחרת.`,'The data includes every name given to at least 5 babies in a year since 1949. The name may be too rare, or spelled differently.')}</p>
     ${near.length?`<div class="nml">${t('אולי חיפשתם:','Maybe you meant:')}</div><div class="chips" id="nfchips">${near.map(j=>`<button data-i="${j}">${nmh(j)}</button>`).join('')}</div>`:''}</div>`;
   const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};
   const ch=$('#nfchips');if(ch)ch.onclick=e=>{const b=e.target.closest('[data-i]');if(b)pick(+b.dataset.i)}}
@@ -1287,7 +1287,7 @@ function shareName(i){const url=nameURL(i);const title=nameMeta(i).title;
   copy(url)}
 
 const Y0=DATA.y0, NY=DATA.T[0][0].length, Y1=Y0+NY-1, YEARS=Array.from({length:NY},(_,i)=>Y0+i);
-const NOW=2026;
+const NOW=new Date().getFullYear();   /* ages and 'X years ago' follow today's date */
 const LINKEDIN='https://www.linkedin.com/in/idan-diva/';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1381,7 +1381,7 @@ function peakDesc(i){const st=stats(-1),c=comb(st,i);let tot=0;for(let y=0;y<NY;
 function share(st,i){const a=comb(st,i);for(let y=0;y<NY;y++){const d=st.DD[y];a[y]=d?a[y]/d*1000:0}return a}
 const T=(st,i)=>st.tot[0][i]+st.tot[1][i];
 function peakDec(st,i){const c=comb(st,i);const dec={};c.forEach((q,y)=>{const d=Math.floor((Y0+y)/10)*10;dec[d]=(dec[d]||0)+q});return +Object.entries(dec).sort((a,b)=>b[1]-a[1])[0][0]}
-const decLabel=d=>d===1940?'1949':t(`שנות ה-${String(d).slice(2)}`,`${d}s`);
+const decLabel=d=>d===1940?t(`שנות ה-40`,`1940s`):t(`שנות ה-${String(d).slice(2)}`,`${d}s`);
 function generation(y){if(y<1965)return t('דור הבייבי בום','Baby boomers');if(y<1981)return t('דור ה-X','Gen X');if(y<1997)return t('דור ה-Y','Millennials');if(y<2013)return t('דור ה-Z','Gen Z');return t('דור האלפא','Gen Alpha')}
 function ed1(a,b){if(a===b)return false;const la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;let i=0,j=0,e=0;
   while(i<la&&j<lb){if(a[i]===b[j]){i++;j++;continue}if(++e>1)return false;if(la>lb)i++;else if(lb>la)j++;else{i++;j++}}return e+(la-i)+(lb-j)<=1}
@@ -1466,14 +1466,14 @@ function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='funct
   TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
   if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
-  stopBlitz();stopRace();rerender();window.scrollTo({top:0});}
+  stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
 function renderNames(){const sec=$('#tab-names');
   sec.innerHTML=`<div class="subnav seg" role="tablist">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
     <div id="tab-name"></div><div id="tab-me"></div><div id="tab-compare"></div>`;
   sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();PUSH_ONCE=true;syncURL()}};
   ({file:renderName,me:renderMe,compare:renderCompare})[NSUB]();}
-function renderTrends(){$('#tab-trends').innerHTML=`<div class="pagehead"><h2>${t('מגמות ודאטה','Trends & data')}</h2><p>${t('76 שנים של שמות: מי הוביל בכל תקופה, מי עולה ומי יורד, ומה מאפיין כל מגזר.','76 years of names: who led each era, who\u2019s rising and falling, and what sets each community apart.')}</p>${secChips()}</div><div id="tab-explore"></div>`;renderExplore()}
+function renderTrends(){$('#tab-trends').innerHTML=`<div class="pagehead"><h2>${t('מגמות ודאטה','Trends & data')}</h2><p>${t(`${NY} שנים של שמות: מי הוביל בכל תקופה, מי עולה ומי יורד, ומה מאפיין כל מגזר.`,`${NY} years of names: who led each era, who\u2019s rising and falling, and what sets each community apart.`)}</p>${secChips()}</div><div id="tab-explore"></div>`;renderExplore()}
 function renderGames(){if(!$('#tab-game')){$('#tab-games').innerHTML=`<div class="pagehead"><h2>${t('משחקים','Games')}</h2><p>${t('השם הסודי של היום, ועוד משחקי טריוויה קצרים על שמות.','Today’s secret name, plus quick name trivia games.')}</p></div><div id="tab-game"></div>`;GAME_BUILT=null}renderGame()}
 
 /* ---------- search ---------- */
@@ -1522,7 +1522,7 @@ async function makeCard(i,extra){
   g.font=`700 92px Karantina, ${body}`;g.fillText(GEMS[i],0,28);g.font=`700 24px ${body}`;g.fillText(en?'GEMATRIA':'גימטריה',0,-45);g.restore();
   g.textAlign=en?'left':'right';
   // stats
-  const rows=[[fmt(f.tot),t('תינוקות מאז 1949','babies since 1949')],[String(Y0+f.pk),f.pk===0?t('שיא כבר בתחילת הרישום','peak at start of records'):t('שנת השיא','peak year')],[String(f.med),t('שנת לידה טיפוסית','typical birth year')]];
+  const rows=[[fmt(f.tot),t(`תינוקות מאז ${Y0}`,`babies since ${Y0}`)],[String(Y0+f.pk),f.pk===0?t('שיא כבר בתחילת הרישום','peak at start of records'):t('שנת השיא','peak year')],[String(f.med),t('שנת לידה טיפוסית','typical birth year')]];
   y+=40;rows.forEach(([v,l],k)=>{const xx=en?80+k*320:W-80-k*320;g.textAlign=en?'left':'right';g.fillStyle=C.acc;g.font=`700 92px Karantina, ${body}`;g.fillText(v,xx,y+80);g.fillStyle=C.mut;g.font=`500 28px ${body}`;g.fillText(l,xx,y+120)});
   y+=170;
   // chart
@@ -1530,7 +1530,7 @@ async function makeCard(i,extra){
   g.beginPath();g.moveTo(cx,cy);f.sh.forEach((v,k)=>g.lineTo(cx+k/(NY-1)*cw,cy-v/m*ch));g.lineTo(cx+cw,cy);g.closePath();
   const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(164,157,255,.55)');ag.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=ag;g.fill();
   g.beginPath();f.sh.forEach((v,k)=>{const px=cx+k/(NY-1)*cw,py=cy-v/m*ch;k?g.lineTo(px,py):g.moveTo(px,py)});g.strokeStyle=C.acc;g.lineWidth=6;g.lineJoin='round';g.stroke();
-  g.fillStyle=C.mut;g.font=`500 26px ${body}`;g.direction='ltr';g.textAlign='left';g.fillText('1949',cx,cy+40);g.textAlign='right';g.fillText('2024',cx+cw,cy+40);g.direction=en?'ltr':'rtl';
+  g.fillStyle=C.mut;g.font=`500 26px ${body}`;g.direction='ltr';g.textAlign='left';g.fillText(String(Y0),cx,cy+40);g.textAlign='right';g.fillText(String(Y1),cx+cw,cy+40);g.direction=en?'ltr':'rtl';
   y=cy+80;
   // gender bar
   const gw=cw*f.gp;g.fillStyle=C.girl;g.fillRect(cx+cw-gw,y,gw,22);g.fillStyle=C.boy;g.fillRect(cx,y,cw-gw-4,22);
@@ -1655,7 +1655,7 @@ let DECX=store.get('decx',0);
 function drawDecades(st){const box=$('#decgrid');if(!box)return;const x=DECX;
   const rows=[];for(let d=1950;d<=2020;d+=10){const ys=YEARS.map((y,k)=>k).filter(k=>Y0+k>=d&&Y0+k<d+10);const sc=[];
     for(let i=0;i<N;i++){let v=0;for(const k of ys)v+=st.Y[x][i*NY+k];if(v)sc.push([i,v])}sc.sort((a,b)=>b[1]-a[1]);rows.push([d,sc.slice(0,5)])}
-  box.innerHTML=`<div class="decgrid">${rows.map(([d,top])=>`<div class="decrow"><div class="declab">${d===2020?t('2020–2024','2020–24'):t(`שנות ה-${String(d).slice(2)}`,`${d}s`)}</div><div class="decnames">${top.map(([i,v],k)=>`<button data-di="${i}" class="${k===0?'first':''}"><em>${k+1}</em><b>${nmh(i)}</b><small>${kfmt(v)}</small></button>`).join('')}</div></div>`).join('')}</div>`;
+  box.innerHTML=`<div class="decgrid">${rows.map(([d,top])=>`<div class="decrow"><div class="declab">${d===2020?t(`2020–${Y1}`,`2020–${String(Y1).slice(2)}`):t(`שנות ה-${String(d).slice(2)}`,`${d}s`)}</div><div class="decnames">${top.map(([i,v],k)=>`<button data-di="${i}" class="${k===0?'first':''}"><em>${k+1}</em><b>${nmh(i)}</b><small>${kfmt(v)}</small></button>`).join('')}</div></div>`).join('')}</div>`;
   let sel=null;
   box.onclick=e=>{const b=e.target.closest('[data-di]');if(!b)return;const i=b.dataset.di;
     if(sel===i){pick(+i);return}sel=i;box.querySelectorAll('[data-di]').forEach(q=>q.classList.toggle('hl',q.dataset.di===i));box.classList.add('focus');
@@ -1760,9 +1760,9 @@ function renderName(){
       <div class="cw"><canvas id="cTime"></canvas></div>
       <div class="legend" id="tleg"></div></div>
     <div class="card"><div class="head"><div><h3>${t('ציר הדרך של השם','The name\u2019s journey')}</h3><div class="sub">${t('הרגעים החשובים בחיים של השם','Key moments in the name\u2019s life')}${F>=0?' · '+sectName(F):''}</div></div></div><ol class="journey" id="journey"></ol></div>
-    <div class="card"><div class="head"><div><h3>${t('כמה בכיתה?','How many per class?')}</h3><div class="sub">${t('לפי התינוקות שנולדו בשנה, בכיתה של 30 ילדים','Based on babies born that year, in a class of 30')}</div></div></div><div id="classbox"></div></div>
     <div class="card"><div class="head"><div><h3>${t('בני כמה הם היום?','How old are they today?')}</h3><div class="sub">${t(`כל מי שנקרא ${esc(nm)}, לפי שלב בחיים`,`Everyone named ${dn}, by life stage`)}</div></div></div><div id="lstage"></div></div>
     ${S?'':`<div class="card"><div class="head"><div><h3>${t('מקום בדירוג','Rank over time')}</h3><div class="sub">${dom?t('בין שמות הבנים','Among boys’ names'):t('בין שמות הבנות','Among girls’ names')} · ${t('למעלה זה טוב · קו מקווקו: מתחת לסף הרישום','higher is better · dashed: below the listing threshold')}</div></div></div><div class="cw sm"><canvas id="cRank"></canvas></div></div>
+    <div class="card"><div class="head"><div><h3>${t('כמה בכיתה?','How many per class?')}</h3><div class="sub">${t('היום מול שנת השיא, בכיתות של 30 ילדים','Today vs. its peak, in classes of 30')}</div></div></div><div id="classbox"></div></div>
     <div class="card"><div class="head"><div><h3>${t('באיזה מגזר?','Which community?')}</h3><div class="sub">${t('כל התינוקות בשם, בכל המגזרים','All babies with this name, all communities')}</div></div></div><div class="hb" id="secs"></div></div>`}
     <div class="card ${S?'wide':''}"><div class="head"><div><h3>${t('השנה שלך','Your year')}</h3><div class="sub">${t(`בחרו שנת לידה וגלו כמה ${esc(nm)} נולדו איתכם`,`Pick a birth year to see how many were born with you`)}</div></div></div>
       <div class="yr"><select id="ysel" aria-label="${t('שנת לידה','Birth year')}">${YEARS.slice().reverse().map(y=>`<option ${y===store.get('yr',1990)?'selected':''}>${y}</option>`).join('')}</select></div><div class="yrout" id="yout"></div></div>
@@ -1832,7 +1832,7 @@ function renderName(){
      else head=t('כמעט אף ילד בשם הזה','Almost no one');
      return `<div class="ctile"><div class="ck">${lab}</div><div class="cv">${head}</div>${viz}</div>`};
    {const pf=$('#prof');if(pf)pf.innerHTML=profileHTML(i);const ls=$('#lstage');if(ls)ls.innerHTML=lifeStagesHTML(nm,c);}
-   $('#classbox').innerHTML=`<div class="ctiles">${tile(t(`היום · ילידי ${Y1}`,`Today · born ${Y1}`),now)}${pk!==L?tile(atStart(pk)?t(`בתחילת הרישום · ${Y0}`,`When records began · ${Y0}`):t(`בשיא · ${Y0+pk}`,`At the peak · ${Y0+pk}`),then):''}</div>`;}
+   $('#classbox').innerHTML=classHTML(nm,c,st,pk,gw,dom);}
   {const q=[];let my=0;for(let y=1;y<NY;y++)if(c[y]>c[my])my=y;
    q.push([t(`באיזו שנה נולדו הכי הרבה ${esc(nm)}?`,`Which year had the most babies named ${dn}?`),my===pk?t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. זו גם שנת השיא שלו.`,`${Y0+my}, with ${fmt(c[my])} babies, also its peak year.`):t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. ${atStart(pk)?`אבל ביחס למספר התינוקות שנולדו, הוא היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא היא ${Y0+pk}, כי אז הוא היה הכי נפוץ ביחס למספר התינוקות שנולדו באותה שנה.`}`,`${Y0+my}, with ${fmt(c[my])} babies. Its peak year is ${Y0+pk}, when it was most common relative to all births that year.`)]);
    let k10=0,k100=0;for(let y=0;y<NY;y++){const r=st.rank[dom][i*NY+y];if(r&&r<=10)k10++;if(r&&r<=100)k100++}
@@ -1982,15 +1982,40 @@ function profileHTML(i){const p=profileOf(i);if(!p)return'';const T0=profTypical
   const spokes=ax.map((_,k)=>{const [x,y]=pt(k,100);return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="prspoke"/>`}).join('');
   const labels=ax.map(([k,l],j)=>{const [x,y]=pt(j,122);const anc=Math.abs(x-cx)<8?'middle':x<cx?'end':'start';const yy=y<cy-10?y-6:y>cy+10?y+8:y;
     return `<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${anc}" class="prlab ${k===lead?'on':''}">${l}</text><text x="${x.toFixed(1)}" y="${(yy+15).toFixed(1)}" text-anchor="${anc}" class="prlab prv ${k===lead?'on':''}">${p[k]}</text>`}).join('');
-  const dots=ax.map(([k,l],j)=>{const [x,y]=pt(j,p[k]);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="prdot"><title>${l}: ${p[k]} · ${FACT[k]}</title></circle>`}).join('');
-  const rows=ax.map(([k,l])=>{const [lt,lc]=lvl(k);return `<div class="prrow ${k===lead?'on':''}"><div class="prk"><b>${l}</b><small>${FACT[k]}</small></div>
-      <div class="prbarw"><span class="prbar"><i style="width:${p[k]}%"></i><em style="inset-inline-start:${T0[k]}%" title="${t('שם טיפוסי','Typical name')}"></em></span><span class="prlvl ${lc}">${lt}</span></div><b class="prnum">${p[k]}</b></div>`}).join('');
+  const dots=ax.map(([k,l],j)=>{const [x,y]=pt(j,p[k]);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="prdot ${k===lead?'lead':''}"><title>${l}: ${p[k]} · ${FACT[k]}</title></circle>`}).join('');
+  const rows=ax.map(([k,l])=>{const [lt,lc]=lvl(k);return `<div class="prrow ${k===lead?'on':''}"><div class="prk"><b>${l} <span class="prsc">· ${p[k]}</span></b><small>${FACT[k]}</small></div>
+      <div class="prbarw"><span class="prbar"><i style="width:${p[k]}%"></i><em style="inset-inline-start:${T0[k]}%" title="${t('שם טיפוסי','Typical name')}"></em></span><span class="prlvl ${lc}">${k===lead?t('זה מה שקבע את התגית','this set the tag'):lt}</span></div></div>`}).join('');
   return `<div class="prtop"><div class="prtag"><b>${tag[1]}</b><span>${tag[2]}</span></div></div>
     <div class="prgrid"><div class="prchart"><svg class="prsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('פרופיל אופי השם','Name character profile')}">${rings}${spokes}
       <polygon points="${poly(ax.map(([k])=>T0[k]))}" class="prtyp"/><polygon points="${poly(ax.map(([k])=>p[k]))}" class="prme"/>${dots}${labels}</svg>
       <div class="prleg"><span><i class="me"></i>${t(nm,esc(NM(i)))}</span><span><i class="ty"></i>${t('שם טיפוסי','Typical name')}</span></div></div>
       <div class="prrows">${rows}</div></div>
     <p class="sub prnote">${t('כל ציון בין 0 ל-100. הקו הקטן בכל פס מסמן שם טיפוסי, לפי החציון של השמות שניתנו לפחות ל-1,000 תינוקות.','Each score is 0–100. The small mark on each bar is a typical name: the median of names given to 1,000+ babies.')}</p>`}
+
+/* ---------- name file: how many in a class (today vs. the name's peak), shown as one school grade ---------- */
+function classHTML(nm,c,st,pk,gw,dom){const L=NY-1,sh=y=>st.DD[y]?c[y]/st.DD[y]:0;
+  const peakRow=pk!==L?[pk,atStart(pk)?t(`בתחילת הרישום · ${Y0}`,`When records began · ${Y0}`):t(`בשנת השיא · ${Y0+pk}`,`At its peak · ${Y0+pk}`)]
+    :[Math.max(0,L-20),t(`לפני 20 שנה · ${Y0+Math.max(0,L-20)}`,`20 years earlier · ${Y0+Math.max(0,L-20)}`)];
+  const rows=[[L,t(`היום · ילידי ${Y1}`,`Today · born ${Y1}`)],peakRow];
+  const one=gw('ילדה אחת','ילד אחד','ילד אחד'),kids=gw('ילדות','ילדים','ילדים');   /* mixed names: the usual generic masculine */
+  const row=([y,lab])=>{const s=sh(y),perClass=s*30,grade=Math.round(s*150);
+    const head=perClass>=1.5?t(`<b>${Math.round(perClass)}</b> ${kids} בשם ${esc(nm)} בכל כיתה`,`<b>${Math.round(perClass)}</b> per class`)
+      :perClass>=.5?t(`בערך <b>${one}</b> בכל כיתה`,`About <b>one</b> per class`)
+      :perClass>0?t(`${one} בכל <b>${fmt(Math.round(1/perClass))}</b> כיתות`,`One in every <b>${fmt(Math.round(1/perClass))}</b> classes`)
+      :t('כמעט אף אחד בשם הזה','Almost no one');
+    /* a grade = 5 classes of 30; each dot is one child with this name */
+    const per=[0,0,0,0,0];for(let k=0;k<Math.min(grade,60);k++)per[k%5]++;
+    const boxes=per.map(n=>`<span class="gbox">${n>12?`<b>${n}</b>`:Array.from({length:n},()=>'<i></i>').join('')}</span>`).join('');
+    return `<div class="crow"><div class="ck">${lab}</div><div class="cv">${head}</div>
+      <div class="grade ${dom?'boy':'girl'}" aria-hidden="true">${boxes}</div>
+      <div class="cs">${grade?t(`כ-${fmt(grade)} בשכבה של 150 ילדים (5 כיתות)`,`About ${fmt(grade)} in a grade of 150 (5 classes)`):t('פחות מאחד בשכבה של 150 ילדים','Fewer than one in a grade of 150')}</div></div>`};
+  const a=sh(L),b=sh(peakRow[0]);let ins='';
+  if(a&&b){const r=a>=b?a/b:b/a;const xs=r>=1.25?t(`פי ${r>=10?Math.round(r):r.toFixed(1).replace(/\.0$/,'')}`,`${r>=10?Math.round(r):r.toFixed(1)}×`):'';
+    ins=pk===L?t(`${Y1} היא שנת השיא של השם עד היום${xs&&a>b?`, ${xs} יותר מלפני 20 שנה`:''}.`,`${Y1} is its peak so far${xs&&a>b?`, ${xs} more than 20 years earlier`:''}.`)
+      :xs?t(`היום יש בכל כיתה ${xs} ${a<b?'פחות':'יותר'} ${esc(nm)} מאשר ב-${Y0+peakRow[0]}.`,`Today there are ${xs} ${a<b?'fewer':'more'} per class than in ${Y0+peakRow[0]}.`)
+      :t(`היום הוא נפוץ בכיתות בערך כמו ב-${Y0+peakRow[0]}.`,`About as common per class as in ${Y0+peakRow[0]}.`)}
+  else if(!a&&b)ins=t(`ב-${Y1} כמעט לא ניתן, לעומת ${Y0+peakRow[0]}.`,`Barely given in ${Y1}, unlike ${Y0+peakRow[0]}.`);
+  return `<div class="crows">${rows.map(row).join('')}</div>${ins?`<p class="cins">${ins}</p>`:''}`}
 
 /* =========================================================
    EXPLORE
@@ -2825,13 +2850,13 @@ if(window.SITE_CONFIG&&window.SITE_CONFIG.exportSEO)window.__bnilExport=()=>{con
    GAMES
    ========================================================= */
 let GAME_BUILT=null;
-const G={hl:null,streak:0,best:store.get('best',0),q:null,qs:0,qn:0,gg:null,ggs:0,ggn:0,sq:null,sqs:0,sqn:0};
+const G={hl:null,streak:0,best:store.get('best',0),q:null,qs:0,qn:0,gg:null,ggs:0,ggn:0,};
 let GSEC=store.get('gsec','all');if(!['all','jew','arab'].includes(GSEC))GSEC='all';
 function gOk(i){if(GSEC==='all')return true;const w=SECTOT[i],tt=w[0]+w[1]+w[2]+w[3];if(!tt)return false;return GSEC==='jew'?w[0]/tt>=.7:(w[1]+w[2]+w[3])/tt>=.7}
 const gMin=(v)=>GSEC==='arab'?Math.round(v/5):v;
 function gsecBar(){return `<div class="card wide gsecbar"><span class="nml">${t('השמות במשחקים הקצרים:','Names in the quick games:')}</span><div class="chips sel" id="gsec">${[['all',t('כל המגזרים','All communities')],['jew',t('שמות יהודיים','Jewish names')],['arab',t('שמות ערביים','Arab names')]].map(([k,l])=>`<button data-gs="${k}" aria-pressed="${GSEC===k}">${l}</button>`).join('')}</div></div>`}
 function renderGame(){if(GAME_BUILT!==LANG)YG.cur=null;const sec=$('#tab-game');const key=LANG;
-  if(GAME_BUILT!==key||!sec.firstChild){GAME_BUILT=key;G.hl=null;G.q=null;G.gg=null;G.sq=null;
+  if(GAME_BUILT!==key||!sec.firstChild){GAME_BUILT=key;G.hl=null;G.q=null;G.gg=null;
     sec.innerHTML=`<div class="gamegrid">
       <div class="card wide namle" id="g-namle"></div>
       ${gsecBar()}
@@ -2848,7 +2873,6 @@ function renderGame(){if(GAME_BUILT!==LANG)YG.cur=null;const sec=$('#tab-game');
 /* personal bests (this device only) */
 const LB={my:store.get('myscore',{})};
 function lbSave(p){Object.assign(LB.my,p);store.set('myscore',LB.my)}
-function drawLB(){}
 
 /* --- Secret name --- */
 
@@ -2900,7 +2924,7 @@ function renderNamle(){const el=$('#g-namle');
   const rows=s.guesses.map((i,ri)=>{const a=attr(i);const w=wordle(NAMES[i],NAMES[s.secret]);const fresh=NML.fresh&&ri===s.guesses.length-1;
     const tiles=`<div class="tiles">${w.L.map((c,k)=>`<i class="t-${w.res[k]}" style="animation-delay:${fresh?k*90:0}ms">${c}</i>`).join('')}</div>`;
     const tr=a.tot/A.tot,gd=Math.abs(a.gem-A.gem),dd=Math.abs(a.dec-A.dec);
-    const decL=a.dec===1940?'1949':(LANG==='en'?`${a.dec}s`:`ה-${String(a.dec).slice(2)}`);
+    const decL=a.dec===1940?(LANG==='en'?'1940s':'ה-40'):(LANG==='en'?`${a.dec}s`:`ה-${String(a.dec).slice(2)}`);
     return `<div class="nrow ${fresh?'fresh':''}"><div class="nmcell">${tiles}${LANG==='en'?`<small>${esc(rom(i))}</small>`:''}</div>
       ${cell(a.sex===A.sex?'ok':'',sexLab(a.sex))}${cell(a.sec===A.sec?'ok':'',sectName(a.sec))}${cell(a.cat&&a.cat===A.cat?'ok':'',catLab(a.cat))}
       ${dd===0?cell('ok',decL):cell(dd<=10?'near':'',decL,a.dec<A.dec?t('↑ מאוחר יותר','↑ later'):t('↓ מוקדם יותר','↓ earlier'))}
@@ -2957,40 +2981,6 @@ function onNamleClick(e){const o=e.target.closest('[data-ns],[data-nl]');if(o){i
   else if(a==='share')copy(namleShare());
 }
 
-/* --- Blitz --- */
-const BZ={run:false,score:0,miss:0,end:0,cur:null,timer:null,last:null};
-function bzPool(){const st=stats(-1);const p=[];for(let i=0;i<N;i++){const s=T(st,i);if(s<400)continue;const gp=st.tot[0][i]/s;if(gp>=.95||gp<=.05)p.push(i)}return p}
-function stopBlitz(){if(BZ.timer){clearInterval(BZ.timer);BZ.timer=null}BZ.run=false}
-function renderBlitz(){const el=$('#g-blitz');if(!el)return;const best=LB.my.blitz||0;
-  if(!BZ.run){el.innerHTML=`<div class="head"><div><h3>${t('בן או בת? בליץ','Boy or girl? Blitz')}</h3><div class="sub">${t('30 שניות. כמה שמות תספיקו לסווג? (אפשר גם עם החצים)','30 seconds. How many can you sort? (Arrow keys work too)')}</div></div></div>
-    <div class="blitz">${BZ.last!=null?`<div class="big1 tn">${BZ.last}</div><div class="sub">${t('נכונות','correct')} · ${BZ.miss} ${t('טעויות','misses')}</div>`:'<div class="nm2" style="color:var(--muted)">?</div>'}
-    <div class="score" style="justify-content:center"><span>${t('שיא','Best')}: <b class="tn">${best}</b></span></div><button class="next" id="bzgo">${BZ.last!=null?t('עוד פעם','Again'):t('התחילו','Start')}</button></div>`;
-    $('#bzgo').onclick=startBlitz;return}
-  const left=Math.max(0,BZ.end-Date.now());
-  el.innerHTML=`<div class="head"><div><h3>${t('בן או בת? בליץ','Boy or girl? Blitz')}</h3></div><span class="pill acc tn">${BZ.score} ${t('נכונות','correct')}</span></div>
-    <div class="blitz"><div class="timer"><i id="bzt" style="width:${left/300}%"></i></div><div class="nm2">${nmh(BZ.cur)}</div>
-    <div class="bb"><button style="background:var(--girl)" data-s="0">${t('בת','Girl')}</button><button style="background:var(--boy)" data-s="1">${t('בן','Boy')}</button></div></div>`;
-  el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>bzAnswer(+b.dataset.s));}
-function startBlitz(){const p=bzPool();if(!p.length)return;BZ.pool=p;BZ.run=true;BZ.score=0;BZ.miss=0;BZ.end=Date.now()+30000;BZ.cur=rand(p);renderBlitz();
-  BZ.timer=setInterval(()=>{const left=BZ.end-Date.now();const b=$('#bzt');if(b)b.style.width=Math.max(0,left/300)+'%';
-    if(left<=0){stopBlitz();BZ.last=BZ.score;if(BZ.score>(LB.my.blitz||0)){lbSave({blitz:BZ.score});toast(t('שיא חדש!','New record!'))}renderBlitz();drawLB()}},150)}
-function bzAnswer(s){if(!BZ.run)return;const st=stats(-1);const truth=st.tot[0][BZ.cur]>=st.tot[1][BZ.cur]?0:1;const el=$('#g-blitz');
-  el.classList.remove('flash-ok','flash-no');void el.offsetWidth;
-  if(s===truth){BZ.score++;el.classList.add('flash-ok')}else{BZ.miss++;el.classList.add('flash-no');toast(`${NM(BZ.cur)}: ${truth?t('שם של בנים','a boys’ name'):t('שם של בנות','a girls’ name')}`)}
-  let n;do{n=rand(BZ.pool)}while(n===BZ.cur);BZ.cur=n;renderBlitz()}
-addEventListener('keydown',e=>{if(!BZ.run||TAB!=='game')return;const rtl=LANG!=='en';if(e.key==='ArrowRight'){bzAnswer(rtl?0:1);e.preventDefault()}else if(e.key==='ArrowLeft'){bzAnswer(rtl?1:0);e.preventDefault()}});
-
-/* --- Community quiz --- */
-let SQP=null;
-function sqPools(){if(SQP)return SQP;SQP=[[],[],[],[]];for(let i=0;i<N;i++){const w=SECTOT[i],s=w[0]+w[1]+w[2]+w[3];const d=domSec(i);if(w[d]>=300&&w[d]/s>=.85)SQP[d].push(i)}return SQP}
-function newSQ(){const P=sqPools();const s=Math.floor(Math.random()*4);G.sq={i:rand(P[s]),ans:s,done:false,pick:null}}
-function renderSQ(){const el=$('#g-sec');if(!G.sq)newSQ();const q=G.sq;const w=SECTOT[q.i],s=w.reduce((a,b)=>a+b,0);
-  el.innerHTML=`<div class="head"><div><h3>${t('חידון מגזרים','Community quiz')}</h3><div class="sub">${t('באיזה מגזר השם הזה הכי נפוץ?','In which community is this name most common?')}</div></div><span class="pill acc tn">${G.sqs}/${G.sqn}</span></div>
-    <div class="nm2" style="font-family:var(--f-display);font-size:clamp(56px,12vw,84px);font-weight:700;line-height:.95;text-align:center;margin:8px 0">${nmh(q.i)}</div>
-    <div class="gopts">${SECT().map((n,k)=>`<button data-sq="${k}" class="${q.done?(k===q.ans?'win':(k===q.pick?'lose':'')):''}">${n}</button>`).join('')}</div>
-    ${q.done?`<div class="feedback">${q.pick===q.ans?t('נכון! ','Correct! '):t('לא הפעם. ','Not this time. ')}${SECT().map((n,k)=>w[k]?`${n} ${Math.round(w[k]/s*100)}%`:'').filter(Boolean).join(' · ')}</div><div class="actions"><button class="next" id="sqn">${t('הבא ←','Next →')}</button><button class="copybtn" data-i="${q.i}">${t('לתיק השם','Open name file')}</button></div>`:''}`;
-  el.querySelectorAll('[data-sq]').forEach(b=>b.onclick=()=>{if(q.done)return;q.done=true;q.pick=+b.dataset.sq;G.sqn++;if(q.pick===q.ans)G.sqs++;renderSQ()});
-  const n=$('#sqn');if(n)n.onclick=()=>{newSQ();renderSQ()};el.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>pick(+b.dataset.i));}
 
 /* --- Guess from graph --- */
 function newGG(){const st=stats(-1);const p=[];for(let i=0;i<N;i++)if(T(st,i)>=gMin(2500)&&gOk(i))p.push(i);const s=rand(p);const dom=st.tot[0][s]>=st.tot[1][s]?0:1;
@@ -3040,7 +3030,7 @@ function renderDec(){const el=$('#g-dec');if(!G.q)newQ();
   const qn=$('#qn');if(qn)qn.onclick=()=>{newQ();renderDec()};const qo=$('#qopen');if(qo)qo.onclick=()=>pick(G.q.i);}
 
 /* ---------- boot ---------- */
-(function boot(){const H0=(location.hash||'').slice(1);let t0=H0;if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0=store.get('tab','home');TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
+(function boot(){const H0=(location.hash||'').slice(1);let t0=H0;if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0='home';   /* a plain visit always opens the home page */TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
   const isSaved=/^saved\./.test(H0);if(isSaved){t0='home';TAB='home'}const miss=URL_MISS;if(miss){t0='home';TAB='home'}renderShell();setTab(t0);if(isSaved)checkSavedHash(H0);if(miss)notFound(miss);try{document.activeElement&&document.activeElement.blur()}catch(e){}
   const mq=matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',()=>{GAME_BUILT=null;rerender()});
   new MutationObserver(()=>{GAME_BUILT=null;rerender()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});})();

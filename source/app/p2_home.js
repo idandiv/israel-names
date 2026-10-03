@@ -93,7 +93,7 @@ let DECX=store.get('decx',0);
 function drawDecades(st){const box=$('#decgrid');if(!box)return;const x=DECX;
   const rows=[];for(let d=1950;d<=2020;d+=10){const ys=YEARS.map((y,k)=>k).filter(k=>Y0+k>=d&&Y0+k<d+10);const sc=[];
     for(let i=0;i<N;i++){let v=0;for(const k of ys)v+=st.Y[x][i*NY+k];if(v)sc.push([i,v])}sc.sort((a,b)=>b[1]-a[1]);rows.push([d,sc.slice(0,5)])}
-  box.innerHTML=`<div class="decgrid">${rows.map(([d,top])=>`<div class="decrow"><div class="declab">${d===2020?t('2020–2024','2020–24'):t(`שנות ה-${String(d).slice(2)}`,`${d}s`)}</div><div class="decnames">${top.map(([i,v],k)=>`<button data-di="${i}" class="${k===0?'first':''}"><em>${k+1}</em><b>${nmh(i)}</b><small>${kfmt(v)}</small></button>`).join('')}</div></div>`).join('')}</div>`;
+  box.innerHTML=`<div class="decgrid">${rows.map(([d,top])=>`<div class="decrow"><div class="declab">${d===2020?t(`2020–${Y1}`,`2020–${String(Y1).slice(2)}`):t(`שנות ה-${String(d).slice(2)}`,`${d}s`)}</div><div class="decnames">${top.map(([i,v],k)=>`<button data-di="${i}" class="${k===0?'first':''}"><em>${k+1}</em><b>${nmh(i)}</b><small>${kfmt(v)}</small></button>`).join('')}</div></div>`).join('')}</div>`;
   let sel=null;
   box.onclick=e=>{const b=e.target.closest('[data-di]');if(!b)return;const i=b.dataset.di;
     if(sel===i){pick(+i);return}sel=i;box.querySelectorAll('[data-di]').forEach(q=>q.classList.toggle('hl',q.dataset.di===i));box.classList.add('focus');
