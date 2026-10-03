@@ -100,7 +100,7 @@ def page(title, desc, path, body, noindex=False, jsonld=None):
 <div id="app" dir="rtl">{body}</div>
 <div class="toast" id="toast" hidden></div>
 <div class="modal" id="modal" hidden></div>
-<script>window.SITE_CONFIG={{baseUrl:"__RUNTIME_BASE_URL__",routing:"path",supabase:{{url:"__SUPABASE_URL__",key:"__SUPABASE_KEY__",lib:"{A_SB}"}}}};</script>
+<script src="/site-config.js"></script>
 <script src="{A_CHART}"></script>
 <script src="{A_DATA}"></script>
 <script src="{A_APP}"></script>
@@ -171,4 +171,6 @@ open(SRC + '404.html', 'w').write(page('הדף לא נמצא | השמות של �
 # list of indexable paths for the sitemap (finalize.mjs adds the base URL)
 paths = ['/', '/names'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
 json.dump(paths, open(OUT + 'scripts/paths.json', 'w'), ensure_ascii=False)
+# runtime config as an external file (filled by finalize.mjs) so the CSP needs no inline scripts
+open(SRC + 'site-config.js', 'w').write('window.SITE_CONFIG={baseUrl:"__RUNTIME_BASE_URL__",routing:"path",supabase:{url:"__SUPABASE_URL__",key:"__SUPABASE_KEY__",lib:"' + A_SB + '"}};\n')
 print('pages', len(NAMES) + 3, 'assets', A_APP, A_DATA)

@@ -107,8 +107,8 @@ function renderNamle(){const el=$('#g-namle');
     else{const gd=Math.abs(GEMS[i]-GEMS[s.secret]);if(gd>0&&gd<=30)toast(t('הגימטריה רותחת!','Gematria is hot!'))}
     namleSave();renderNamle();if(s.done&&!s.shown){s.shown=true;namleSave();setTimeout(()=>namleEnd(),s.won?900:500)}else{const q=$('#nq');if(q)q.focus()}},30);
 }
-function namleShare(){const s=NML.state;const lines=s.guesses.map(i=>wordle(NAMES[i],NAMES[s.secret]).res.map(r=>r==='g'?'🟩':r==='y'?'🟨':'⬛').join(''));
-  return `${t('השם הסודי','The secret name')}${s.mode==='daily'?` #${s.day}`:''} · ${nmodeLabel()}\n${lines.join('\n')}${s.hint?t('\n(עם גלגל הצלה)','\n(with a lifeline)'):''}\n${t('ניחוש','Guess')} ${s.won?triesUsed(s):'X'}/${MAXG}\n${s.won?t('הצלחתי לגלות את השם של היום!','I found today’s name!'):t('הפעם השם ניצח אותי…','The name beat me this time…')}\n${t('נסו גם אתם:','Try it:')} ${SHARE_URL}`}
+function namleShare(){const s=NML.state;const lines=s.guesses.map(i=>wordle(NAMES[i],NAMES[s.secret]).res.map(r=>r==='g'?'●':r==='y'?'◐':'○').join(' '));const RL=LANG==='en'?'':'\u200F';
+  return `${t('השם הסודי','The secret name')}${s.mode==='daily'?` #${s.day}`:''} · ${nmodeLabel()}\n${lines.map(l=>RL+l).join('\n')}\n${t('● במקום הנכון · ◐ בשם, במקום אחר · ○ לא בשם','● right spot · ◐ in the name · ○ not in it')}${s.hint?t('\n(עם גלגל הצלה)','\n(with a lifeline)'):''}\n${t('ניחוש','Guess')} ${s.won?triesUsed(s):'X'}/${MAXG}\n${s.won?t('הצלחתי לגלות את השם של היום!','I found today’s name!'):t('הפעם השם ניצח אותי…','The name beat me this time…')}\n${t('נסו גם אתם:','Try it:')} ${SHARE_URL}`}
 function namleEnd(){const s=NML.state,i=s.secret,st=stats(-1);const c=comb(st,i);const x=st.tot[0][i]>=st.tot[1][i]?0:1;const d=peakDec(st,i);
   const decTop=[];{const ys=YEARS.map((y,k)=>k).filter(k=>Math.floor((Y0+k)/10)*10===d);const sc={};for(let j=0;j<N;j++){let v=0;for(const k of ys)v+=st.Y[x][j*NY+k];if(v)sc[j]=v}Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,7).forEach(([j])=>{if(+j!==i&&decTop.length<6)decTop.push(+j)})}
   const m=$('#modal');m.hidden=false;

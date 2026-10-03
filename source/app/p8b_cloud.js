@@ -48,7 +48,7 @@ async function cloudPull(r){const c=CL.client;if(!c||CL.room!==r.code)return;
   CL.members=new Map(m.data.map(x=>[x.user_id,x.display_name]));CL.p=new Map();
   s.data.forEach(x=>{if(x.user_id===CL.uid)return;if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind)});
   cloudApply(r,false)}
-function cloudClose(){if(CL.ch&&CL.client){try{CL.client.removeChannel(CL.ch)}catch(e){}}CL.ch=null;CL.room=null;CL.live=false;CL.online=false}
+function cloudClose(){if(CL.ch&&CL.client){try{CL.ch.untrack()}catch(e){}try{CL.client.removeChannel(CL.ch)}catch(e){}}CL.ch=null;CL.room=null;CL.live=false;CL.online=false}
 async function cloudOpen(r){if(!r||!r.cloud)return;if(CL.room===r.code&&CL.ch)return;const c=await sbLoad();if(!c){if(TAB==='match')nmTop();return}
   cloudClose();CL.room=r.code;
   const {error}=await c.rpc('join_room',{p_code:r.code,p_name:r.me});   /* idempotent: refreshes membership/display name */
@@ -68,5 +68,13 @@ async function cloudOpen(r){if(!r||!r.cloud)return;if(CL.room===r.code&&CL.ch)re
 /* safety net: if the WebSocket can't connect (strict networks), poll every few seconds instead */
 setInterval(()=>{if(document.visibilityState!=='visible'||CL.live)return;const r=R();if(TAB==='match'&&r&&r.cloud&&CL.room===r.code&&CL.client){cloudFlush(r);cloudPull(r)}},3000);
 /* phones sleep: catch up when the page is visible again */
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')return;const r=R();if(r&&r.cloud&&CL.room===r.code){cloudFlush(r);cloudPull(r)}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'){if(CL.ch)try{CL.ch.untrack()}catch(e){}return}if(CL.ch&&CL.live){const rr=R();try{CL.ch.track({n:rr?rr.me:''})}catch(e){}}const r=R();if(r&&r.cloud&&CL.room===r.code){cloudFlush(r);cloudPull(r)}});
+addEventListener('pagehide',()=>{if(CL.ch)try{CL.ch.untrack()}catch(e){}});
 addEventListener('online',()=>{const r=R();if(r&&r.cloud&&CL.room===r.code){cloudFlush(r);cloudPull(r)}});
+
+/* "Delete all my data": remove this browser's anonymous user, memberships and swipes from the server */
+async function cloudDeleteMe(){if(!cloudOn())return'none';let had=false;try{had=!!localStorage.getItem('bnil_sb_auth')}catch(e){}if(!had)return'none';
+  try{const c=await sbLoad();if(!c)return'fail';cloudClose();const {error}=await c.rpc('delete_my_data');if(error)return'fail';try{await c.auth.signOut({scope:'local'})}catch(e){}return'ok'}catch(e){return'fail'}}
+/* after the reload that follows a wipe: say what happened */
+setTimeout(()=>{let w=null;try{w=sessionStorage.getItem('wiped');sessionStorage.removeItem('wiped')}catch(e){}if(!w)return;
+  toast(w==='ok'?t('כל הנתונים שלך נמחקו, מהמכשיר ומהשרת','All your data was deleted, from this device and the server'):w==='fail'?t('הנתונים נמחקו מהמכשיר. לשרת לא הצלחנו להגיע, והחדרים שם יימחקו אוטומטית אחרי 90 יום','Deleted from this device. The server was unreachable; rooms there are removed after 90 days'):t('כל הנתונים שלך נמחקו מהמכשיר','All your data was deleted from this device'))},1200);

@@ -77,7 +77,7 @@ function renderMatch(){document.body.classList.add('matchmode');const sec=$('#ta
   if(!r){nmOnboard(sec);return}
   if(!r.me){nmJoin(sec,r);return}
   sec.innerHTML=`<div class="nmapp"><div class="nmtop" id="nmtop"></div><div class="nmstage" id="nmstage"></div>
-    <div class="nmbtns"><button class="nmb sm" id="nb-undo" aria-label="${t('ביטול הפעולה האחרונה','Undo')}">${icon('undo')}</button><button class="nmb no" id="nb-no" aria-label="${t('לא בשבילנו','Pass')}">${icon('x')}</button><button class="nmb sup" id="nb-sup" aria-label="${t('מועדף עליון','Super like')}">${icon('star',1)}</button><button class="nmb yes" id="nb-yes" aria-label="${t('אהבתי','Like')}">${icon('v')}</button></div>
+    <div class="nmbtns" dir="ltr"><button class="nmb sm" id="nb-undo" aria-label="${t('ביטול הפעולה האחרונה','Undo')}">${icon('undo')}</button><button class="nmb no" id="nb-no" aria-label="${t('לא בשבילנו','Pass')}">${icon('x')}</button><button class="nmb sup" id="nb-sup" aria-label="${t('מועדף עליון','Super like')}">${icon('star',1)}</button><button class="nmb yes" id="nb-yes" aria-label="${t('אהבתי','Like')}">${icon('v')}</button></div>
     <div class="nmhint">${t('ימינה: אהבתי · שמאלה: לא · למעלה: מועדף עליון','Right: like · Left: pass · Up: super like')}</div></div>`;
   $('#nb-yes').onclick=()=>nmFly('like');$('#nb-no').onclick=()=>nmFly('pass');$('#nb-sup').onclick=()=>nmFly('super');$('#nb-undo').onclick=nmUndo;
   nmTop();nmStage();if(r.cloud)cloudOpen(r);else nmLive();
@@ -107,11 +107,11 @@ function nmDrag(card){if(!card)return;let sx=0,sy=0,dx=0,dy=0,down=false;
   const up=()=>{if(!down)return;down=false;card.style.transition='';
     if(dx>100)nmFly('like',dx,dy);else if(dx<-100)nmFly('pass',dx,dy);else if(dy<-110)nmFly('super',dx,dy);else{dx=0;dy=0;set();card.querySelectorAll('.stampl').forEach(s=>s.style.opacity=0)}};
   card.addEventListener('pointerup',up);card.addEventListener('pointercancel',up);}
-function nmFly(type,dx=0,dy=0){const card=document.querySelector('.nmcard.top');if(!card||NMX.busy)return;NMX.busy=true;const W=window.innerWidth;
+function nmFly(type,dx=0,dy=0){const card=document.querySelector('.nmcard.top');if(!card)return;if(NMX.busy){if((NMX.q||(NMX.q=[])).length<4)NMX.q.push(type);return}NMX.busy=true;const W=window.innerWidth;
   card.querySelector(type==='like'?'.like':type==='pass'?'.pass':'.sup').style.opacity=1;
   card.style.transition='transform .32s cubic-bezier(.3,.7,.4,1),opacity .32s';
   card.style.transform=type==='super'?`translate(${dx}px,-${window.innerHeight}px) rotate(${dx/18}deg)`:`translate(${type==='like'?W*1.2:-W*1.2}px,${dy}px) rotate(${type==='like'?24:-24}deg)`;card.style.opacity=.2;
-  setTimeout(()=>{NMX.busy=false;nmAct(type,+card.dataset.i)},300)}
+  setTimeout(()=>{NMX.busy=false;nmAct(type,+card.dataset.i);const nx=NMX.q&&NMX.q.shift();if(nx&&$('#modal').hidden)setTimeout(()=>nmFly(nx),20);else if(NMX.q)NMX.q.length=0},300)}
 function nmAct(type,i){const r=R();r.hist.push({i,type});if(r.hist.length>200)r.hist.shift();
   if(type==='pass')r.passes.push(i);else{r.likes.push(i);if(type==='super')r.supers.push(i)}
   nmSave();nmPresence();cloudQueue(r,i,type==='super'?'super':type);

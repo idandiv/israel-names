@@ -1312,7 +1312,12 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(M
 const SECT_HE=['יהודים','מוסלמים','נוצרים ערבים','דרוזים'],SECT_EN=['Jewish','Muslim','Christian Arab','Druze'];
 const SECT=()=>LANG==='en'?SECT_EN:SECT_HE;
 const sectName=s=>SECT()[s];
-let toastT;function toast(m){const el=$('#toast');el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2400)}
+/* Escape closes whatever is on top: an open dialog first, then suggestion lists, then the phone search bar */
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const m=$('#modal');
+  if(m&&!m.hidden){m.hidden=true;e.preventDefault();return}
+  const open=[...document.querySelectorAll('.sugg')].filter(b=>!b.hidden);if(open.length){open.forEach(b=>b.hidden=true);return}
+  const bar=document.querySelector('.bar.sopen');if(bar){bar.classList.remove('sopen');const q=$('#q');if(q)q.blur()}});
+let toastT;function toast(m,ms){const el=$("#toast");el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,ms||Math.max(2400,Math.min(6000,m.length*55)))}
 function copy(text){const ok=()=>toast(t('הועתק! אפשר להדביק בוואטסאפ','Copied! Paste it anywhere'));const no=()=>toast(t('ההעתקה נחסמה בדפדפן הזה','Copying is blocked in this browser'));try{navigator.clipboard.writeText(text).then(ok,no)}catch(e){no()}}
 
 /* ---------- parse ---------- */
@@ -1436,12 +1441,16 @@ function renderShell(){
   <details class="note"><summary>${t('על הנתונים והמקורות','About the data')}</summary><p>${t('המקור: הלשכה המרכזית לסטטיסטיקה, דרך חבילת babynamesIL. הנתונים כוללים כל שם שניתן לפחות ל-5 תינוקות באותה שנה, באותו מגדר ובאותו מגזר. לכן שמות נדירים חסרים, ו״אחוז מהתינוקות״ מחושב מתוך התינוקות שנרשמו בשמות שבנתונים. ה״גיל הטיפוסי״ מבוסס על שנות הלידה בלבד, בלי תמותה והגירה. פירושי השמות הם הפירושים המקובלים, ולחלק מהשמות יש יותר מפירוש אחד. תגיות ״עדכון 2025״ ו״תשפ״ו״ מבוססות על רשימות 10 השמות המובילים שפרסמה רשות האוכלוסין וההגירה, ואינן חלק מנתוני הלמ״ס.',
     'Source: Israel Central Bureau of Statistics, via the babynamesIL package. The data includes every name given to at least 5 babies in a given year, sex and community, so very rare names are missing and percentages are out of the babies listed. "Typical age" uses birth years only. English spellings are approximate transliterations of the Hebrew. "2025 update" tags come from Population Authority top-10 lists, not CBS data.')}</p>
     <p>${cloudOn()?t('פרטיות: אין הרשמה. השמות ששמרתם, התשובות במחולל וההתקדמות במשחקים נשמרים רק בדפדפן במכשיר הזה. בבחירת שם בזוג, השם שבחרתם להציג בחדר והבחירות שלכם בו נשמרים בשרת מאובטח (Supabase), כדי שבן או בת הזוג יראו אותם בזמן אמת. רק מי שהצטרף לחדר יכול לראות אותם, וחדרים שלא היה בהם שימוש 90 יום נמחקים אוטומטית. הכפתור כאן מוחק את מה שנשמר במכשיר.','Privacy: no sign-up. Saved names, finder answers and game progress stay in this browser. In couple rooms, your display name and swipes are stored on a secure server (Supabase) so your partner sees them live. Only room members can see them, and rooms unused for 90 days are deleted automatically. This button deletes what is stored on this device.'):t('פרטיות: אין הרשמה ואין שרת. השמות ששמרתם, התשובות במחולל, ההתקדמות במשחקים והבחירות הזוגיות נשמרים רק בדפדפן במכשיר הזה. מה שעובר בין אנשים עובר רק בקישורים שאתם בוחרים לשלוח.','Privacy: no sign-up and no server. Saved names, finder answers, game progress and couple picks stay in this browser on this device. Only links you choose to send carry anything to others.')}</p>
-    <button class="copybtn danger" id="wipeall">${t('מחיקת כל הנתונים השמורים במכשיר','Delete all data saved on this device')}</button></details>
+    <button class="copybtn danger" id="wipeall">${cloudOn()?t('מחיקת כל הנתונים שלי (במכשיר ובשרת)','Delete all my data (device and server)'):t('מחיקת כל הנתונים השמורים במכשיר','Delete all data saved on this device')}</button></details>
   <div id="favbar" class="favbar" hidden></div>`;
   document.querySelector('.mainnav').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){PUSH_ONCE=true;setTab(b.dataset.tab)}});
   $('#home').onclick=()=>{PUSH_ONCE=true;setTab('home')};
   $('#favtop').onclick=openFavPanel;
-  {const w=$('#wipeall');if(w)w.onclick=()=>{if(!w.dataset.sure){w.dataset.sure=1;w.textContent=t('בטוח? לחצו שוב למחיקה','Sure? Tap again to delete');return}store.wipe();try{history.replaceState(null,'',HREF('home'))}catch(e){}location.reload()}}
+  {const w=$('#wipeall');if(w)w.onclick=async()=>{if(!w.dataset.sure){w.dataset.sure=1;w.textContent=t('בטוח? לחצו שוב למחיקה','Sure? Tap again to delete');return}
+    if(w.disabled)return;w.disabled=true;w.textContent=t('מוחקים…','Deleting…');
+    const server=await cloudDeleteMe();   /* 'ok' | 'none' (never used couple rooms) | 'fail' */
+    store.wipe();try{sessionStorage.setItem('wiped',server)}catch(e){}
+    try{history.replaceState(null,'',HREF('home'))}catch(e){}location.reload()}}
   $('#srchbtn').onclick=()=>{const bar=document.querySelector('.bar');bar.classList.toggle('sopen');if(bar.classList.contains('sopen'))setTimeout(()=>$('#q').focus(),50)};
   $('#lang').onclick=()=>{LANG=LANG==='en'?'he':'en';store.set('lang',LANG);GAME_BUILT=null;renderShell();setTab(TAB)};
   wireSearch($('#q'),$('#sugg'),pick);
@@ -1453,7 +1462,7 @@ function secChips(){const opts=[[-1,t('כל המגזרים','All')],...SECT().ma
 function setMode(m){if(m===MODE)return;MODE=m;store.set('mode',MODE);rerender()}
 function setF(v){F=v;store.set('F',F);GAME_BUILT=null;rerender()}
 const LEGACY={name:['names','file'],me:['names','me'],compare:['names','compare'],explore:['trends'],game:['games']};
-function setTab(k,sub){if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
+function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
   TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
   if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
@@ -1476,7 +1485,7 @@ function wireSearch(inp,box,onPick,minTot=0){let sel=-1,items=[];
   const draw=()=>{const empty=!inp.value.trim();items=empty?(store.get('recent',[])||[]).filter(n=>IDX.has(n)).map(n=>IDX.get(n)).slice(0,6):suggest(inp.value,8,minTot);if(!items.length){if(empty){box.hidden=true;return}box.innerHTML=`<div class="snone">${t('לא מצאנו שם כזה במאגר','No such name in the data')}<small>${t('המאגר כולל שמות שניתנו ל-5 תינוקות לפחות באותה שנה','The data covers names given to at least 5 babies in a year')}</small></div>`;box.hidden=false;return}const st=stats(-1);
     box.innerHTML=(empty?`<div class="srecent">${t('חיפושים אחרונים','Recent')}<button type="button" class="srclr" data-clr="1">${t('ניקוי','Clear')}</button></div>`:'')+items.map((i,k)=>`<button data-i="${i}" class="${k===sel?'on':''}"><b>${esc(NAMES[i])}</b>${LANG==='en'?` <em>${esc(rom(i))}</em>`:''}<span>${secShort(i)} · ${fmt(T(st,i))}</span></button>`).join('');box.hidden=false;};
   inp.addEventListener('input',()=>{sel=-1;draw()});inp.addEventListener('focus',()=>{if(!inp.value.trim()){sel=-1;draw()}});
-  inp.addEventListener('keydown',e=>{if(box.hidden&&e.key!=='Enter')return;if(!items.length&&e.key!=='Enter')return;
+  inp.addEventListener('keydown',e=>{if(box.hidden&&e.key!=='Enter')return;if(!items.length&&e.key!=='Enter'&&e.key!=='Escape')return;
     if(e.key==='ArrowDown'){sel=Math.min(sel+1,items.length-1);draw();e.preventDefault()}
     else if(e.key==='ArrowUp'){sel=Math.max(sel-1,0);draw();e.preventDefault()}
     else if(e.key==='Enter'){const v=normQ(inp.value);if(!v)return;const i=sel>=0?items[sel]:(IDX.has(v)?IDX.get(v):items[0]);if(i!=null){onPick(i);box.hidden=true;}else toast(t(`לא מצאנו את השם "${v}" במאגר`,`"${v}" isn't in the data`));}
@@ -1750,7 +1759,6 @@ function renderName(){
       <div class="seg" id="mseg" ${tmode_==='mix'?'hidden':''}><button data-m="n" aria-pressed="${metric_==='n'}">${t('מספרים','Counts')}</button><button data-m="p" aria-pressed="${metric_==='p'}">${t('לכל 1,000','Per 1,000')}</button></div></div>`}</div>
       <div class="cw"><canvas id="cTime"></canvas></div>
       <div class="legend" id="tleg"></div></div>
-    <div class="card"><div class="head"><div><h3>${t('פרופיל אופי השם','Name character profile')}</h3><div class="sub">${t('חמישה ממדים מהנתונים, מ-0 עד 100','Five data-driven dimensions, 0 to 100')}</div></div></div><div id="prof"></div></div>
     <div class="card"><div class="head"><div><h3>${t('ציר הדרך של השם','The name\u2019s journey')}</h3><div class="sub">${t('הרגעים החשובים בחיים של השם','Key moments in the name\u2019s life')}${F>=0?' · '+sectName(F):''}</div></div></div><ol class="journey" id="journey"></ol></div>
     <div class="card"><div class="head"><div><h3>${t('כמה בכיתה?','How many per class?')}</h3><div class="sub">${t('לפי התינוקות שנולדו בשנה, בכיתה של 30 ילדים','Based on babies born that year, in a class of 30')}</div></div></div><div id="classbox"></div></div>
     <div class="card"><div class="head"><div><h3>${t('בני כמה הם היום?','How old are they today?')}</h3><div class="sub">${t(`כל מי שנקרא ${esc(nm)}, לפי שלב בחיים`,`Everyone named ${dn}, by life stage`)}</div></div></div><div id="lstage"></div></div>
@@ -1758,6 +1766,7 @@ function renderName(){
     <div class="card"><div class="head"><div><h3>${t('באיזה מגזר?','Which community?')}</h3><div class="sub">${t('כל התינוקות בשם, בכל המגזרים','All babies with this name, all communities')}</div></div></div><div class="hb" id="secs"></div></div>`}
     <div class="card ${S?'wide':''}"><div class="head"><div><h3>${t('השנה שלך','Your year')}</h3><div class="sub">${t(`בחרו שנת לידה וגלו כמה ${esc(nm)} נולדו איתכם`,`Pick a birth year to see how many were born with you`)}</div></div></div>
       <div class="yr"><select id="ysel" aria-label="${t('שנת לידה','Birth year')}">${YEARS.slice().reverse().map(y=>`<option ${y===store.get('yr',1990)?'selected':''}>${y}</option>`).join('')}</select></div><div class="yrout" id="yout"></div></div>
+    <div class="card wide"><div class="head"><div><h3>${t('פרופיל אופי השם','Name character profile')}</h3><div class="sub">${t(`איך ${esc(nm)} נראה בנתונים, לעומת שם טיפוסי`,`How ${dn} looks in the data, compared with a typical name`)}</div></div></div><div id="prof"></div></div>
     <div class="card wide"><div class="head"><div><h3>${t('האם ידעת?','Did you know?')}</h3></div></div><div class="faq" id="faq"></div></div>
     <div class="card wide"><div class="head"><div><h3>${t(`שמות קרובים ל${esc(nm)}`,`Names related to ${dn}`)}</h3><div class="sub" id="relsub"></div></div>
       <div class="seg" id="relseg">${[['tw',t('תאומי זהות','Twins')],['var',t('כתיבים','Spellings')],['rhy',t('חרוזים','Rhymes')],['gem',t('גימטריה','Gematria')]].map(([k,l])=>`<button data-r="${k}" aria-pressed="${REL===k}">${l}</button>`).join('')}</div></div>
@@ -1946,30 +1955,42 @@ function profTypical(){if(PROF_TYP)return PROF_TYP;const st=stats(-1);const keys
   for(let i=0;i<N;i++){if(T(st,i)<1000)continue;const p=profileOf(i);if(p)keys.forEach(k=>acc[k].push(p[k]))}
   PROF_TYP={};keys.forEach(k=>{const a=acc[k].sort((x,y)=>x-y);PROF_TYP[k]=a[Math.floor(a.length/2)]||0});return PROF_TYP}
 const PROF_AX=()=>[['mod',t('מודרניות','Modern')],['uniq',t('ייחודיות','Distinctive')],['uni',t('יוניסקס','Unisex')],['peak',t('עוצמת שיא','Peak power')],['time',t('על-זמניות','Timeless')]];
-function profileHTML(i){const p=profileOf(i);if(!p)return'';const T0=profTypical();const ax=PROF_AX();const r=p.raw;
-  /* the tag follows the axis where this name stands out most from a typical name */
-  /* stand-out = distance above the typical name, relative to the room left above it; ties go to the rarer trait */
-  const PRI={time:5,uni:4,mod:3,uniq:2,peak:1};
-  const lead=ax.map(([k])=>[k,(p[k]-T0[k])/Math.max(1,100-T0[k])]).sort((a,b)=>b[1]-a[1]||PRI[b[0]]-PRI[a[0]])[0][0];
-  const TAG={mod:[p.peak>=50?t('להיט עכשווי','A current hit'):t('כוכב עולה','A rising star'),t(`${Math.round(r.modShare*100)}% מהתינוקות בשם הזה נולדו מ-2015 ואילך.`,`${Math.round(r.modShare*100)}% of them were born since 2015.`)],
-    uniq:[t('שם בוטיק','A boutique name'),t(`גם בשיא שלו, פחות מ-${r.pkv<1?'1':Math.ceil(r.pkv)} מכל 1,000 תינוקות קיבלו אותו.`,`Even at its peak, under ${r.pkv<1?1:Math.ceil(r.pkv)} in 1,000 babies got it.`)],
-    uni:[t('שם יוניסקס','A unisex name'),t(`${Math.round(r.g*100)}% בנות ו-${100-Math.round(r.g*100)}% בנים.`,`${Math.round(r.g*100)}% girls, ${100-Math.round(r.g*100)}% boys.`)],
-    peak:[t('אגדה מהצמרת','A chart-topper'),t(`הגיע עד מקום ${fmt(r.best)} בדירוג.`,`Reached #${fmt(r.best)} in the rankings.`)],
-    time:[t('קלאסיקה על-זמנית','A timeless classic'),t(`נשאר נפוץ ב-${r.steady} מתוך ${r.decN} העשורים.`,`Stayed common in ${r.steady} of ${r.decN} decades.`)]}[lead];
-  const W=280,H=250,cx=W/2,cy=H/2+6,R=86;const ang=k=>-Math.PI/2-k*2*Math.PI/5;   /* clockwise from top, RTL-friendly order */
+function profileHTML(i){const p=profileOf(i);if(!p)return'';const T0=profTypical();const ax=PROF_AX();const r=p.raw;const nm=esc(NAMES[i]);
+  const oneIn=r.pkv?Math.round(1000/r.pkv):0;
+  /* concrete fact behind each score */
+  const FACT={mod:t(`${Math.round(r.modShare*100)}% מהם נולדו מ-2015 ואילך`,`${Math.round(r.modShare*100)}% born since 2015`),
+    uniq:t(`גם בשיא: אחד מכל ${fmt(oneIn)} תינוקות`,`At its peak: 1 in ${fmt(oneIn)} babies`),
+    uni:t(`${Math.round(r.g*100)}% בנות, ${100-Math.round(r.g*100)}% בנים`,`${Math.round(r.g*100)}% girls, ${100-Math.round(r.g*100)}% boys`),
+    peak:r.best<1e9?t(`הגיע עד מקום ${fmt(r.best)} בדירוג`,`Reached #${fmt(r.best)}`):t('לא נכנס לדירוג','Never ranked'),
+    time:t(`נפוץ ב-${r.steady} מתוך ${r.decN} עשורים`,`Common in ${r.steady} of ${r.decN} decades`)};
+  const lvl=k=>{const d=p[k]-T0[k];return d>=25?[t('הרבה מעל הממוצע','well above typical'),'hi2']:d>=8?[t('מעל הממוצע','above typical'),'hi']:d<=-25?[t('הרבה מתחת לממוצע','well below typical'),'lo2']:d<=-8?[t('מתחת לממוצע','below typical'),'lo']:[t('כמו רוב השמות','typical'),'mid']};
+  /* one clear character, from the combination of traits */
+  const P=p;const pdec=peakDec(stats(-1),i);const tag=P.uni>=60?['uni',t('שם יוניסקס','A unisex name'),Math.abs(r.g-.5)<.08?t('שם שניתן כמעט באותה מידה לבנות ולבנים.','Given almost equally to girls and boys.'):t(`שם שניתן גם לבנות וגם לבנים, ${r.g>=.5?`${Math.round(r.g*100)}% מהם בנות`:`${Math.round((1-r.g)*100)}% מהם בנים`}.`,`Given to both girls and boys (${Math.round(r.g*100)}% girls).`)]
+    :P.mod>=70&&P.peak>=75?['mod',t('להיט עכשווי','A current hit'),t('שם של הדור הנוכחי, שהגיע עד צמרת הדירוג.','A name of today’s generation that reached the top of the charts.')]
+    :P.mod>=70?['mod',t('כוכב עולה','A rising star'),t('רוב מי שנקרא כך נולד בשנים האחרונות, והשם עדיין לא בצמרת.','Most were born in recent years; not at the top yet.')]
+    :P.time>=75&&P.peak>=60?['time',t('קלאסיקה על-זמנית','A timeless classic'),t('שם שנשאר נפוץ לאורך כמעט כל העשורים.','A name that stayed common through almost every decade.')]
+    :P.peak>=85&&P.mod<45?['peak',t('אגדה מהצמרת','A former chart-topper'),t('היה מהשמות הכי נפוצים בישראל, והשיא שלו כבר מאחוריו.','Once among Israel’s most common names; its peak is behind it.')]
+    :P.uniq>=65?['uniq',t('שם בוטיק','A boutique name'),t('שם מיוחד שאף פעם לא היה נפוץ.','A distinctive name that was never common.')]
+    :P.time>=60?['time',t('שם יציב','A steady name'),t('שם שמופיע באופן קבוע לאורך השנים, בלי שיאים חדים.','Shows up steadily over the years, without sharp peaks.')]
+    :P.mod<=20?(pdec>=1970?['peak',t(`שם של ${decLabel(pdec)}`,`A name of the ${decLabel(pdec)}`),t(`היה בשיא ב${decLabel(pdec)}, והיום נותנים אותו פחות.`,`Peaked in the ${decLabel(pdec)}; less common today.`)]:['peak',t('שם של פעם','A vintage name'),t(`היה נפוץ ב${decLabel(pdec)}, והיום כמעט לא נותנים אותו.`,`Common in the ${decLabel(pdec)}; rarely given today.`)])
+    :['peak',t('שם מוכר','A familiar name'),t('שם מוכר, בלי תכונה אחת שבולטת במיוחד.','A familiar name with no single standout trait.')];
+  const lead=tag[0];
+  const W=280,H=250,cx=W/2,cy=H/2+6,R=86;const ang=k=>-Math.PI/2+k*2*Math.PI/5;
   const pt=(k,v)=>[cx+Math.cos(ang(k))*R*v/100,cy+Math.sin(ang(k))*R*v/100];
   const poly=vals=>vals.map((v,k)=>pt(k,v).map(q=>q.toFixed(1)).join(',')).join(' ');
   const rings=[25,50,75,100].map(v=>`<polygon points="${poly([v,v,v,v,v])}" class="prring"/>`).join('');
   const spokes=ax.map((_,k)=>{const [x,y]=pt(k,100);return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="prspoke"/>`}).join('');
-  const labels=ax.map(([k,l],j)=>{const [x,y]=pt(j,124);const anc=Math.abs(x-cx)<8?'middle':x<cx?'end':'start';const yy=y<cy-10?y-6:y>cy+10?y+8:y;return `<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${anc}" class="prlab ${k===lead?'on':''}">${l}</text><text x="${x.toFixed(1)}" y="${(yy+15).toFixed(1)}" text-anchor="${anc}" class="prlab prv ${k===lead?'on':''}">${p[k]}</text>`}).join('');
-  const dots=ax.map(([k,l],j)=>{const [x,y]=pt(j,p[k]);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="prdot"><title>${l}: ${p[k]} (${t('שם טיפוסי','typical')}: ${T0[k]})</title></circle>`}).join('');
-  const rows=ax.map(([k,l])=>`<div class="prrow ${k===lead?'on':''}"><span>${l}</span><span class="prbar"><i style="width:${p[k]}%"></i><em style="inset-inline-start:${T0[k]}%"></em></span><b>${p[k]}</b></div>`).join('');
-  return `<div class="prtag"><b>${TAG[0]}</b><span>${TAG[1]}</span></div>
-    <svg class="prsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('פרופיל אופי השם','Name character profile')}">${rings}${spokes}
+  const labels=ax.map(([k,l],j)=>{const [x,y]=pt(j,122);const anc=Math.abs(x-cx)<8?'middle':x<cx?'end':'start';const yy=y<cy-10?y-6:y>cy+10?y+8:y;
+    return `<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${anc}" class="prlab ${k===lead?'on':''}">${l}</text><text x="${x.toFixed(1)}" y="${(yy+15).toFixed(1)}" text-anchor="${anc}" class="prlab prv ${k===lead?'on':''}">${p[k]}</text>`}).join('');
+  const dots=ax.map(([k,l],j)=>{const [x,y]=pt(j,p[k]);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="prdot"><title>${l}: ${p[k]} · ${FACT[k]}</title></circle>`}).join('');
+  const rows=ax.map(([k,l])=>{const [lt,lc]=lvl(k);return `<div class="prrow ${k===lead?'on':''}"><div class="prk"><b>${l}</b><small>${FACT[k]}</small></div>
+      <div class="prbarw"><span class="prbar"><i style="width:${p[k]}%"></i><em style="inset-inline-start:${T0[k]}%" title="${t('שם טיפוסי','Typical name')}"></em></span><span class="prlvl ${lc}">${lt}</span></div><b class="prnum">${p[k]}</b></div>`}).join('');
+  return `<div class="prtop"><div class="prtag"><b>${tag[1]}</b><span>${tag[2]}</span></div></div>
+    <div class="prgrid"><div class="prchart"><svg class="prsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('פרופיל אופי השם','Name character profile')}">${rings}${spokes}
       <polygon points="${poly(ax.map(([k])=>T0[k]))}" class="prtyp"/><polygon points="${poly(ax.map(([k])=>p[k]))}" class="prme"/>${dots}${labels}</svg>
-    <div class="prleg"><span><i class="me"></i>${t(`${esc(NAMES[i])}`,`${esc(NM(i))}`)}</span><span><i class="ty"></i>${t('שם טיפוסי','Typical name')}</span></div>
-    <details class="prmore"><summary>${t('איך זה מחושב?','How is this calculated?')}</summary>${rows}
-      <p class="sub">${t('מודרניות: חלק הלידות מ-2015 ואילך, ביחס לכלל האוכלוסייה. ייחודיות: כמה נדיר השם היה גם בשיא שלו. יוניסקס: 100 כשהחלוקה 50/50. עוצמת שיא: המקום הגבוה ביותר בדירוג אי פעם. על-זמניות: בכמה עשורים השם נשאר נפוץ. הקו המקווקו הוא החציון של שמות שניתנו לפחות ל-1,000 תינוקות.','Modern: share of births since 2015 vs. the population. Distinctive: how rare it was even at its peak. Unisex: 100 at a 50/50 split. Peak power: best rank ever. Timeless: decades in which it stayed common. Dashed: median of names given to 1,000+ babies.')}</p></details>`}
+      <div class="prleg"><span><i class="me"></i>${t(nm,esc(NM(i)))}</span><span><i class="ty"></i>${t('שם טיפוסי','Typical name')}</span></div></div>
+      <div class="prrows">${rows}</div></div>
+    <p class="sub prnote">${t('כל ציון בין 0 ל-100. הקו הקטן בכל פס מסמן שם טיפוסי, לפי החציון של השמות שניתנו לפחות ל-1,000 תינוקות.','Each score is 0–100. The small mark on each bar is a typical name: the median of names given to 1,000+ babies.')}</p>`}
 
 /* =========================================================
    EXPLORE
@@ -2552,7 +2573,7 @@ function renderMatch(){document.body.classList.add('matchmode');const sec=$('#ta
   if(!r){nmOnboard(sec);return}
   if(!r.me){nmJoin(sec,r);return}
   sec.innerHTML=`<div class="nmapp"><div class="nmtop" id="nmtop"></div><div class="nmstage" id="nmstage"></div>
-    <div class="nmbtns"><button class="nmb sm" id="nb-undo" aria-label="${t('ביטול הפעולה האחרונה','Undo')}">${icon('undo')}</button><button class="nmb no" id="nb-no" aria-label="${t('לא בשבילנו','Pass')}">${icon('x')}</button><button class="nmb sup" id="nb-sup" aria-label="${t('מועדף עליון','Super like')}">${icon('star',1)}</button><button class="nmb yes" id="nb-yes" aria-label="${t('אהבתי','Like')}">${icon('v')}</button></div>
+    <div class="nmbtns" dir="ltr"><button class="nmb sm" id="nb-undo" aria-label="${t('ביטול הפעולה האחרונה','Undo')}">${icon('undo')}</button><button class="nmb no" id="nb-no" aria-label="${t('לא בשבילנו','Pass')}">${icon('x')}</button><button class="nmb sup" id="nb-sup" aria-label="${t('מועדף עליון','Super like')}">${icon('star',1)}</button><button class="nmb yes" id="nb-yes" aria-label="${t('אהבתי','Like')}">${icon('v')}</button></div>
     <div class="nmhint">${t('ימינה: אהבתי · שמאלה: לא · למעלה: מועדף עליון','Right: like · Left: pass · Up: super like')}</div></div>`;
   $('#nb-yes').onclick=()=>nmFly('like');$('#nb-no').onclick=()=>nmFly('pass');$('#nb-sup').onclick=()=>nmFly('super');$('#nb-undo').onclick=nmUndo;
   nmTop();nmStage();if(r.cloud)cloudOpen(r);else nmLive();
@@ -2582,11 +2603,11 @@ function nmDrag(card){if(!card)return;let sx=0,sy=0,dx=0,dy=0,down=false;
   const up=()=>{if(!down)return;down=false;card.style.transition='';
     if(dx>100)nmFly('like',dx,dy);else if(dx<-100)nmFly('pass',dx,dy);else if(dy<-110)nmFly('super',dx,dy);else{dx=0;dy=0;set();card.querySelectorAll('.stampl').forEach(s=>s.style.opacity=0)}};
   card.addEventListener('pointerup',up);card.addEventListener('pointercancel',up);}
-function nmFly(type,dx=0,dy=0){const card=document.querySelector('.nmcard.top');if(!card||NMX.busy)return;NMX.busy=true;const W=window.innerWidth;
+function nmFly(type,dx=0,dy=0){const card=document.querySelector('.nmcard.top');if(!card)return;if(NMX.busy){if((NMX.q||(NMX.q=[])).length<4)NMX.q.push(type);return}NMX.busy=true;const W=window.innerWidth;
   card.querySelector(type==='like'?'.like':type==='pass'?'.pass':'.sup').style.opacity=1;
   card.style.transition='transform .32s cubic-bezier(.3,.7,.4,1),opacity .32s';
   card.style.transform=type==='super'?`translate(${dx}px,-${window.innerHeight}px) rotate(${dx/18}deg)`:`translate(${type==='like'?W*1.2:-W*1.2}px,${dy}px) rotate(${type==='like'?24:-24}deg)`;card.style.opacity=.2;
-  setTimeout(()=>{NMX.busy=false;nmAct(type,+card.dataset.i)},300)}
+  setTimeout(()=>{NMX.busy=false;nmAct(type,+card.dataset.i);const nx=NMX.q&&NMX.q.shift();if(nx&&$('#modal').hidden)setTimeout(()=>nmFly(nx),20);else if(NMX.q)NMX.q.length=0},300)}
 function nmAct(type,i){const r=R();r.hist.push({i,type});if(r.hist.length>200)r.hist.shift();
   if(type==='pass')r.passes.push(i);else{r.likes.push(i);if(type==='super')r.supers.push(i)}
   nmSave();nmPresence();cloudQueue(r,i,type==='super'?'super':type);
@@ -2723,7 +2744,7 @@ async function cloudPull(r){const c=CL.client;if(!c||CL.room!==r.code)return;
   CL.members=new Map(m.data.map(x=>[x.user_id,x.display_name]));CL.p=new Map();
   s.data.forEach(x=>{if(x.user_id===CL.uid)return;if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind)});
   cloudApply(r,false)}
-function cloudClose(){if(CL.ch&&CL.client){try{CL.client.removeChannel(CL.ch)}catch(e){}}CL.ch=null;CL.room=null;CL.live=false;CL.online=false}
+function cloudClose(){if(CL.ch&&CL.client){try{CL.ch.untrack()}catch(e){}try{CL.client.removeChannel(CL.ch)}catch(e){}}CL.ch=null;CL.room=null;CL.live=false;CL.online=false}
 async function cloudOpen(r){if(!r||!r.cloud)return;if(CL.room===r.code&&CL.ch)return;const c=await sbLoad();if(!c){if(TAB==='match')nmTop();return}
   cloudClose();CL.room=r.code;
   const {error}=await c.rpc('join_room',{p_code:r.code,p_name:r.me});   /* idempotent: refreshes membership/display name */
@@ -2743,8 +2764,16 @@ async function cloudOpen(r){if(!r||!r.cloud)return;if(CL.room===r.code&&CL.ch)re
 /* safety net: if the WebSocket can't connect (strict networks), poll every few seconds instead */
 setInterval(()=>{if(document.visibilityState!=='visible'||CL.live)return;const r=R();if(TAB==='match'&&r&&r.cloud&&CL.room===r.code&&CL.client){cloudFlush(r);cloudPull(r)}},3000);
 /* phones sleep: catch up when the page is visible again */
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')return;const r=R();if(r&&r.cloud&&CL.room===r.code){cloudFlush(r);cloudPull(r)}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'){if(CL.ch)try{CL.ch.untrack()}catch(e){}return}if(CL.ch&&CL.live){const rr=R();try{CL.ch.track({n:rr?rr.me:''})}catch(e){}}const r=R();if(r&&r.cloud&&CL.room===r.code){cloudFlush(r);cloudPull(r)}});
+addEventListener('pagehide',()=>{if(CL.ch)try{CL.ch.untrack()}catch(e){}});
 addEventListener('online',()=>{const r=R();if(r&&r.cloud&&CL.room===r.code){cloudFlush(r);cloudPull(r)}});
+
+/* "Delete all my data": remove this browser's anonymous user, memberships and swipes from the server */
+async function cloudDeleteMe(){if(!cloudOn())return'none';let had=false;try{had=!!localStorage.getItem('bnil_sb_auth')}catch(e){}if(!had)return'none';
+  try{const c=await sbLoad();if(!c)return'fail';cloudClose();const {error}=await c.rpc('delete_my_data');if(error)return'fail';try{await c.auth.signOut({scope:'local'})}catch(e){}return'ok'}catch(e){return'fail'}}
+/* after the reload that follows a wipe: say what happened */
+setTimeout(()=>{let w=null;try{w=sessionStorage.getItem('wiped');sessionStorage.removeItem('wiped')}catch(e){}if(!w)return;
+  toast(w==='ok'?t('כל הנתונים שלך נמחקו, מהמכשיר ומהשרת','All your data was deleted, from this device and the server'):w==='fail'?t('הנתונים נמחקו מהמכשיר. לשרת לא הצלחנו להגיע, והחדרים שם יימחקו אוטומטית אחרי 90 יום','Deleted from this device. The server was unreachable; rooms there are removed after 90 days'):t('כל הנתונים שלך נמחקו מהמכשיר','All your data was deleted from this device'))},1200);
 
 /* =========================================================
    Persistence extras: shared saved-list links, secret-name stats, cross-tab sync
@@ -2901,8 +2930,8 @@ function renderNamle(){const el=$('#g-namle');
     else{const gd=Math.abs(GEMS[i]-GEMS[s.secret]);if(gd>0&&gd<=30)toast(t('הגימטריה רותחת!','Gematria is hot!'))}
     namleSave();renderNamle();if(s.done&&!s.shown){s.shown=true;namleSave();setTimeout(()=>namleEnd(),s.won?900:500)}else{const q=$('#nq');if(q)q.focus()}},30);
 }
-function namleShare(){const s=NML.state;const lines=s.guesses.map(i=>wordle(NAMES[i],NAMES[s.secret]).res.map(r=>r==='g'?'🟩':r==='y'?'🟨':'⬛').join(''));
-  return `${t('השם הסודי','The secret name')}${s.mode==='daily'?` #${s.day}`:''} · ${nmodeLabel()}\n${lines.join('\n')}${s.hint?t('\n(עם גלגל הצלה)','\n(with a lifeline)'):''}\n${t('ניחוש','Guess')} ${s.won?triesUsed(s):'X'}/${MAXG}\n${s.won?t('הצלחתי לגלות את השם של היום!','I found today’s name!'):t('הפעם השם ניצח אותי…','The name beat me this time…')}\n${t('נסו גם אתם:','Try it:')} ${SHARE_URL}`}
+function namleShare(){const s=NML.state;const lines=s.guesses.map(i=>wordle(NAMES[i],NAMES[s.secret]).res.map(r=>r==='g'?'●':r==='y'?'◐':'○').join(' '));const RL=LANG==='en'?'':'\u200F';
+  return `${t('השם הסודי','The secret name')}${s.mode==='daily'?` #${s.day}`:''} · ${nmodeLabel()}\n${lines.map(l=>RL+l).join('\n')}\n${t('● במקום הנכון · ◐ בשם, במקום אחר · ○ לא בשם','● right spot · ◐ in the name · ○ not in it')}${s.hint?t('\n(עם גלגל הצלה)','\n(with a lifeline)'):''}\n${t('ניחוש','Guess')} ${s.won?triesUsed(s):'X'}/${MAXG}\n${s.won?t('הצלחתי לגלות את השם של היום!','I found today’s name!'):t('הפעם השם ניצח אותי…','The name beat me this time…')}\n${t('נסו גם אתם:','Try it:')} ${SHARE_URL}`}
 function namleEnd(){const s=NML.state,i=s.secret,st=stats(-1);const c=comb(st,i);const x=st.tot[0][i]>=st.tot[1][i]?0:1;const d=peakDec(st,i);
   const decTop=[];{const ys=YEARS.map((y,k)=>k).filter(k=>Math.floor((Y0+k)/10)*10===d);const sc={};for(let j=0;j<N;j++){let v=0;for(const k of ys)v+=st.Y[x][j*NY+k];if(v)sc[j]=v}Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,7).forEach(([j])=>{if(+j!==i&&decTop.length<6)decTop.push(+j)})}
   const m=$('#modal');m.hidden=false;

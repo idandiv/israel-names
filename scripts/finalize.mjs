@@ -26,8 +26,8 @@ const walk = (from, to) => {
   for (const e of fs.readdirSync(from, { withFileTypes: true })) {
     const a = path.join(from, e.name), b = path.join(to, e.name);
     if (e.isDirectory()) { walk(a, b); continue; }
-    if (e.name.endsWith('.html')) {
-      const s = fs.readFileSync(a, 'utf8').split('__BASE_URL__').join(base).split('__RUNTIME_BASE_URL__').join(explicit).split('__SUPABASE_URL__').join(sbUrl).split('__SUPABASE_KEY__').join(sbKey);
+    if (e.name.endsWith('.html') || e.name === 'site-config.js') {
+      const s = fs.readFileSync(a, 'utf8').split('__BASE_URL__').join(base).split('__RUNTIME_BASE_URL__').join(explicit).split('__SUPABASE_URL__').join(JSON.stringify(sbUrl).slice(1,-1)).split('__SUPABASE_KEY__').join(JSON.stringify(sbKey).slice(1,-1));
       fs.writeFileSync(b, s);
     } else fs.copyFileSync(a, b);
   }

@@ -71,7 +71,6 @@ function renderName(){
       <div class="seg" id="mseg" ${tmode_==='mix'?'hidden':''}><button data-m="n" aria-pressed="${metric_==='n'}">${t('מספרים','Counts')}</button><button data-m="p" aria-pressed="${metric_==='p'}">${t('לכל 1,000','Per 1,000')}</button></div></div>`}</div>
       <div class="cw"><canvas id="cTime"></canvas></div>
       <div class="legend" id="tleg"></div></div>
-    <div class="card"><div class="head"><div><h3>${t('פרופיל אופי השם','Name character profile')}</h3><div class="sub">${t('חמישה ממדים מהנתונים, מ-0 עד 100','Five data-driven dimensions, 0 to 100')}</div></div></div><div id="prof"></div></div>
     <div class="card"><div class="head"><div><h3>${t('ציר הדרך של השם','The name\u2019s journey')}</h3><div class="sub">${t('הרגעים החשובים בחיים של השם','Key moments in the name\u2019s life')}${F>=0?' · '+sectName(F):''}</div></div></div><ol class="journey" id="journey"></ol></div>
     <div class="card"><div class="head"><div><h3>${t('כמה בכיתה?','How many per class?')}</h3><div class="sub">${t('לפי התינוקות שנולדו בשנה, בכיתה של 30 ילדים','Based on babies born that year, in a class of 30')}</div></div></div><div id="classbox"></div></div>
     <div class="card"><div class="head"><div><h3>${t('בני כמה הם היום?','How old are they today?')}</h3><div class="sub">${t(`כל מי שנקרא ${esc(nm)}, לפי שלב בחיים`,`Everyone named ${dn}, by life stage`)}</div></div></div><div id="lstage"></div></div>
@@ -79,6 +78,7 @@ function renderName(){
     <div class="card"><div class="head"><div><h3>${t('באיזה מגזר?','Which community?')}</h3><div class="sub">${t('כל התינוקות בשם, בכל המגזרים','All babies with this name, all communities')}</div></div></div><div class="hb" id="secs"></div></div>`}
     <div class="card ${S?'wide':''}"><div class="head"><div><h3>${t('השנה שלך','Your year')}</h3><div class="sub">${t(`בחרו שנת לידה וגלו כמה ${esc(nm)} נולדו איתכם`,`Pick a birth year to see how many were born with you`)}</div></div></div>
       <div class="yr"><select id="ysel" aria-label="${t('שנת לידה','Birth year')}">${YEARS.slice().reverse().map(y=>`<option ${y===store.get('yr',1990)?'selected':''}>${y}</option>`).join('')}</select></div><div class="yrout" id="yout"></div></div>
+    <div class="card wide"><div class="head"><div><h3>${t('פרופיל אופי השם','Name character profile')}</h3><div class="sub">${t(`איך ${esc(nm)} נראה בנתונים, לעומת שם טיפוסי`,`How ${dn} looks in the data, compared with a typical name`)}</div></div></div><div id="prof"></div></div>
     <div class="card wide"><div class="head"><div><h3>${t('האם ידעת?','Did you know?')}</h3></div></div><div class="faq" id="faq"></div></div>
     <div class="card wide"><div class="head"><div><h3>${t(`שמות קרובים ל${esc(nm)}`,`Names related to ${dn}`)}</h3><div class="sub" id="relsub"></div></div>
       <div class="seg" id="relseg">${[['tw',t('תאומי זהות','Twins')],['var',t('כתיבים','Spellings')],['rhy',t('חרוזים','Rhymes')],['gem',t('גימטריה','Gematria')]].map(([k,l])=>`<button data-r="${k}" aria-pressed="${REL===k}">${l}</button>`).join('')}</div></div>

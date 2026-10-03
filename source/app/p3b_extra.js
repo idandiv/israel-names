@@ -81,27 +81,39 @@ function profTypical(){if(PROF_TYP)return PROF_TYP;const st=stats(-1);const keys
   for(let i=0;i<N;i++){if(T(st,i)<1000)continue;const p=profileOf(i);if(p)keys.forEach(k=>acc[k].push(p[k]))}
   PROF_TYP={};keys.forEach(k=>{const a=acc[k].sort((x,y)=>x-y);PROF_TYP[k]=a[Math.floor(a.length/2)]||0});return PROF_TYP}
 const PROF_AX=()=>[['mod',t('מודרניות','Modern')],['uniq',t('ייחודיות','Distinctive')],['uni',t('יוניסקס','Unisex')],['peak',t('עוצמת שיא','Peak power')],['time',t('על-זמניות','Timeless')]];
-function profileHTML(i){const p=profileOf(i);if(!p)return'';const T0=profTypical();const ax=PROF_AX();const r=p.raw;
-  /* the tag follows the axis where this name stands out most from a typical name */
-  /* stand-out = distance above the typical name, relative to the room left above it; ties go to the rarer trait */
-  const PRI={time:5,uni:4,mod:3,uniq:2,peak:1};
-  const lead=ax.map(([k])=>[k,(p[k]-T0[k])/Math.max(1,100-T0[k])]).sort((a,b)=>b[1]-a[1]||PRI[b[0]]-PRI[a[0]])[0][0];
-  const TAG={mod:[p.peak>=50?t('להיט עכשווי','A current hit'):t('כוכב עולה','A rising star'),t(`${Math.round(r.modShare*100)}% מהתינוקות בשם הזה נולדו מ-2015 ואילך.`,`${Math.round(r.modShare*100)}% of them were born since 2015.`)],
-    uniq:[t('שם בוטיק','A boutique name'),t(`גם בשיא שלו, פחות מ-${r.pkv<1?'1':Math.ceil(r.pkv)} מכל 1,000 תינוקות קיבלו אותו.`,`Even at its peak, under ${r.pkv<1?1:Math.ceil(r.pkv)} in 1,000 babies got it.`)],
-    uni:[t('שם יוניסקס','A unisex name'),t(`${Math.round(r.g*100)}% בנות ו-${100-Math.round(r.g*100)}% בנים.`,`${Math.round(r.g*100)}% girls, ${100-Math.round(r.g*100)}% boys.`)],
-    peak:[t('אגדה מהצמרת','A chart-topper'),t(`הגיע עד מקום ${fmt(r.best)} בדירוג.`,`Reached #${fmt(r.best)} in the rankings.`)],
-    time:[t('קלאסיקה על-זמנית','A timeless classic'),t(`נשאר נפוץ ב-${r.steady} מתוך ${r.decN} העשורים.`,`Stayed common in ${r.steady} of ${r.decN} decades.`)]}[lead];
-  const W=280,H=250,cx=W/2,cy=H/2+6,R=86;const ang=k=>-Math.PI/2-k*2*Math.PI/5;   /* clockwise from top, RTL-friendly order */
+function profileHTML(i){const p=profileOf(i);if(!p)return'';const T0=profTypical();const ax=PROF_AX();const r=p.raw;const nm=esc(NAMES[i]);
+  const oneIn=r.pkv?Math.round(1000/r.pkv):0;
+  /* concrete fact behind each score */
+  const FACT={mod:t(`${Math.round(r.modShare*100)}% מהם נולדו מ-2015 ואילך`,`${Math.round(r.modShare*100)}% born since 2015`),
+    uniq:t(`גם בשיא: אחד מכל ${fmt(oneIn)} תינוקות`,`At its peak: 1 in ${fmt(oneIn)} babies`),
+    uni:t(`${Math.round(r.g*100)}% בנות, ${100-Math.round(r.g*100)}% בנים`,`${Math.round(r.g*100)}% girls, ${100-Math.round(r.g*100)}% boys`),
+    peak:r.best<1e9?t(`הגיע עד מקום ${fmt(r.best)} בדירוג`,`Reached #${fmt(r.best)}`):t('לא נכנס לדירוג','Never ranked'),
+    time:t(`נפוץ ב-${r.steady} מתוך ${r.decN} עשורים`,`Common in ${r.steady} of ${r.decN} decades`)};
+  const lvl=k=>{const d=p[k]-T0[k];return d>=25?[t('הרבה מעל הממוצע','well above typical'),'hi2']:d>=8?[t('מעל הממוצע','above typical'),'hi']:d<=-25?[t('הרבה מתחת לממוצע','well below typical'),'lo2']:d<=-8?[t('מתחת לממוצע','below typical'),'lo']:[t('כמו רוב השמות','typical'),'mid']};
+  /* one clear character, from the combination of traits */
+  const P=p;const pdec=peakDec(stats(-1),i);const tag=P.uni>=60?['uni',t('שם יוניסקס','A unisex name'),Math.abs(r.g-.5)<.08?t('שם שניתן כמעט באותה מידה לבנות ולבנים.','Given almost equally to girls and boys.'):t(`שם שניתן גם לבנות וגם לבנים, ${r.g>=.5?`${Math.round(r.g*100)}% מהם בנות`:`${Math.round((1-r.g)*100)}% מהם בנים`}.`,`Given to both girls and boys (${Math.round(r.g*100)}% girls).`)]
+    :P.mod>=70&&P.peak>=75?['mod',t('להיט עכשווי','A current hit'),t('שם של הדור הנוכחי, שהגיע עד צמרת הדירוג.','A name of today’s generation that reached the top of the charts.')]
+    :P.mod>=70?['mod',t('כוכב עולה','A rising star'),t('רוב מי שנקרא כך נולד בשנים האחרונות, והשם עדיין לא בצמרת.','Most were born in recent years; not at the top yet.')]
+    :P.time>=75&&P.peak>=60?['time',t('קלאסיקה על-זמנית','A timeless classic'),t('שם שנשאר נפוץ לאורך כמעט כל העשורים.','A name that stayed common through almost every decade.')]
+    :P.peak>=85&&P.mod<45?['peak',t('אגדה מהצמרת','A former chart-topper'),t('היה מהשמות הכי נפוצים בישראל, והשיא שלו כבר מאחוריו.','Once among Israel’s most common names; its peak is behind it.')]
+    :P.uniq>=65?['uniq',t('שם בוטיק','A boutique name'),t('שם מיוחד שאף פעם לא היה נפוץ.','A distinctive name that was never common.')]
+    :P.time>=60?['time',t('שם יציב','A steady name'),t('שם שמופיע באופן קבוע לאורך השנים, בלי שיאים חדים.','Shows up steadily over the years, without sharp peaks.')]
+    :P.mod<=20?(pdec>=1970?['peak',t(`שם של ${decLabel(pdec)}`,`A name of the ${decLabel(pdec)}`),t(`היה בשיא ב${decLabel(pdec)}, והיום נותנים אותו פחות.`,`Peaked in the ${decLabel(pdec)}; less common today.`)]:['peak',t('שם של פעם','A vintage name'),t(`היה נפוץ ב${decLabel(pdec)}, והיום כמעט לא נותנים אותו.`,`Common in the ${decLabel(pdec)}; rarely given today.`)])
+    :['peak',t('שם מוכר','A familiar name'),t('שם מוכר, בלי תכונה אחת שבולטת במיוחד.','A familiar name with no single standout trait.')];
+  const lead=tag[0];
+  const W=280,H=250,cx=W/2,cy=H/2+6,R=86;const ang=k=>-Math.PI/2+k*2*Math.PI/5;
   const pt=(k,v)=>[cx+Math.cos(ang(k))*R*v/100,cy+Math.sin(ang(k))*R*v/100];
   const poly=vals=>vals.map((v,k)=>pt(k,v).map(q=>q.toFixed(1)).join(',')).join(' ');
   const rings=[25,50,75,100].map(v=>`<polygon points="${poly([v,v,v,v,v])}" class="prring"/>`).join('');
   const spokes=ax.map((_,k)=>{const [x,y]=pt(k,100);return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="prspoke"/>`}).join('');
-  const labels=ax.map(([k,l],j)=>{const [x,y]=pt(j,124);const anc=Math.abs(x-cx)<8?'middle':x<cx?'end':'start';const yy=y<cy-10?y-6:y>cy+10?y+8:y;return `<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${anc}" class="prlab ${k===lead?'on':''}">${l}</text><text x="${x.toFixed(1)}" y="${(yy+15).toFixed(1)}" text-anchor="${anc}" class="prlab prv ${k===lead?'on':''}">${p[k]}</text>`}).join('');
-  const dots=ax.map(([k,l],j)=>{const [x,y]=pt(j,p[k]);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="prdot"><title>${l}: ${p[k]} (${t('שם טיפוסי','typical')}: ${T0[k]})</title></circle>`}).join('');
-  const rows=ax.map(([k,l])=>`<div class="prrow ${k===lead?'on':''}"><span>${l}</span><span class="prbar"><i style="width:${p[k]}%"></i><em style="inset-inline-start:${T0[k]}%"></em></span><b>${p[k]}</b></div>`).join('');
-  return `<div class="prtag"><b>${TAG[0]}</b><span>${TAG[1]}</span></div>
-    <svg class="prsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('פרופיל אופי השם','Name character profile')}">${rings}${spokes}
+  const labels=ax.map(([k,l],j)=>{const [x,y]=pt(j,122);const anc=Math.abs(x-cx)<8?'middle':x<cx?'end':'start';const yy=y<cy-10?y-6:y>cy+10?y+8:y;
+    return `<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${anc}" class="prlab ${k===lead?'on':''}">${l}</text><text x="${x.toFixed(1)}" y="${(yy+15).toFixed(1)}" text-anchor="${anc}" class="prlab prv ${k===lead?'on':''}">${p[k]}</text>`}).join('');
+  const dots=ax.map(([k,l],j)=>{const [x,y]=pt(j,p[k]);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="prdot"><title>${l}: ${p[k]} · ${FACT[k]}</title></circle>`}).join('');
+  const rows=ax.map(([k,l])=>{const [lt,lc]=lvl(k);return `<div class="prrow ${k===lead?'on':''}"><div class="prk"><b>${l}</b><small>${FACT[k]}</small></div>
+      <div class="prbarw"><span class="prbar"><i style="width:${p[k]}%"></i><em style="inset-inline-start:${T0[k]}%" title="${t('שם טיפוסי','Typical name')}"></em></span><span class="prlvl ${lc}">${lt}</span></div><b class="prnum">${p[k]}</b></div>`}).join('');
+  return `<div class="prtop"><div class="prtag"><b>${tag[1]}</b><span>${tag[2]}</span></div></div>
+    <div class="prgrid"><div class="prchart"><svg class="prsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('פרופיל אופי השם','Name character profile')}">${rings}${spokes}
       <polygon points="${poly(ax.map(([k])=>T0[k]))}" class="prtyp"/><polygon points="${poly(ax.map(([k])=>p[k]))}" class="prme"/>${dots}${labels}</svg>
-    <div class="prleg"><span><i class="me"></i>${t(`${esc(NAMES[i])}`,`${esc(NM(i))}`)}</span><span><i class="ty"></i>${t('שם טיפוסי','Typical name')}</span></div>
-    <details class="prmore"><summary>${t('איך זה מחושב?','How is this calculated?')}</summary>${rows}
-      <p class="sub">${t('מודרניות: חלק הלידות מ-2015 ואילך, ביחס לכלל האוכלוסייה. ייחודיות: כמה נדיר השם היה גם בשיא שלו. יוניסקס: 100 כשהחלוקה 50/50. עוצמת שיא: המקום הגבוה ביותר בדירוג אי פעם. על-זמניות: בכמה עשורים השם נשאר נפוץ. הקו המקווקו הוא החציון של שמות שניתנו לפחות ל-1,000 תינוקות.','Modern: share of births since 2015 vs. the population. Distinctive: how rare it was even at its peak. Unisex: 100 at a 50/50 split. Peak power: best rank ever. Timeless: decades in which it stayed common. Dashed: median of names given to 1,000+ babies.')}</p></details>`}
+      <div class="prleg"><span><i class="me"></i>${t(nm,esc(NM(i)))}</span><span><i class="ty"></i>${t('שם טיפוסי','Typical name')}</span></div></div>
+      <div class="prrows">${rows}</div></div>
+    <p class="sub prnote">${t('כל ציון בין 0 ל-100. הקו הקטן בכל פס מסמן שם טיפוסי, לפי החציון של השמות שניתנו לפחות ל-1,000 תינוקות.','Each score is 0–100. The small mark on each bar is a typical name: the median of names given to 1,000+ babies.')}</p>`}

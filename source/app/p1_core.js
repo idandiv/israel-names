@@ -24,7 +24,12 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(M
 const SECT_HE=['יהודים','מוסלמים','נוצרים ערבים','דרוזים'],SECT_EN=['Jewish','Muslim','Christian Arab','Druze'];
 const SECT=()=>LANG==='en'?SECT_EN:SECT_HE;
 const sectName=s=>SECT()[s];
-let toastT;function toast(m){const el=$('#toast');el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2400)}
+/* Escape closes whatever is on top: an open dialog first, then suggestion lists, then the phone search bar */
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const m=$('#modal');
+  if(m&&!m.hidden){m.hidden=true;e.preventDefault();return}
+  const open=[...document.querySelectorAll('.sugg')].filter(b=>!b.hidden);if(open.length){open.forEach(b=>b.hidden=true);return}
+  const bar=document.querySelector('.bar.sopen');if(bar){bar.classList.remove('sopen');const q=$('#q');if(q)q.blur()}});
+let toastT;function toast(m,ms){const el=$("#toast");el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,ms||Math.max(2400,Math.min(6000,m.length*55)))}
 function copy(text){const ok=()=>toast(t('הועתק! אפשר להדביק בוואטסאפ','Copied! Paste it anywhere'));const no=()=>toast(t('ההעתקה נחסמה בדפדפן הזה','Copying is blocked in this browser'));try{navigator.clipboard.writeText(text).then(ok,no)}catch(e){no()}}
 
 /* ---------- parse ---------- */
@@ -148,12 +153,16 @@ function renderShell(){
   <details class="note"><summary>${t('על הנתונים והמקורות','About the data')}</summary><p>${t('המקור: הלשכה המרכזית לסטטיסטיקה, דרך חבילת babynamesIL. הנתונים כוללים כל שם שניתן לפחות ל-5 תינוקות באותה שנה, באותו מגדר ובאותו מגזר. לכן שמות נדירים חסרים, ו״אחוז מהתינוקות״ מחושב מתוך התינוקות שנרשמו בשמות שבנתונים. ה״גיל הטיפוסי״ מבוסס על שנות הלידה בלבד, בלי תמותה והגירה. פירושי השמות הם הפירושים המקובלים, ולחלק מהשמות יש יותר מפירוש אחד. תגיות ״עדכון 2025״ ו״תשפ״ו״ מבוססות על רשימות 10 השמות המובילים שפרסמה רשות האוכלוסין וההגירה, ואינן חלק מנתוני הלמ״ס.',
     'Source: Israel Central Bureau of Statistics, via the babynamesIL package. The data includes every name given to at least 5 babies in a given year, sex and community, so very rare names are missing and percentages are out of the babies listed. "Typical age" uses birth years only. English spellings are approximate transliterations of the Hebrew. "2025 update" tags come from Population Authority top-10 lists, not CBS data.')}</p>
     <p>${cloudOn()?t('פרטיות: אין הרשמה. השמות ששמרתם, התשובות במחולל וההתקדמות במשחקים נשמרים רק בדפדפן במכשיר הזה. בבחירת שם בזוג, השם שבחרתם להציג בחדר והבחירות שלכם בו נשמרים בשרת מאובטח (Supabase), כדי שבן או בת הזוג יראו אותם בזמן אמת. רק מי שהצטרף לחדר יכול לראות אותם, וחדרים שלא היה בהם שימוש 90 יום נמחקים אוטומטית. הכפתור כאן מוחק את מה שנשמר במכשיר.','Privacy: no sign-up. Saved names, finder answers and game progress stay in this browser. In couple rooms, your display name and swipes are stored on a secure server (Supabase) so your partner sees them live. Only room members can see them, and rooms unused for 90 days are deleted automatically. This button deletes what is stored on this device.'):t('פרטיות: אין הרשמה ואין שרת. השמות ששמרתם, התשובות במחולל, ההתקדמות במשחקים והבחירות הזוגיות נשמרים רק בדפדפן במכשיר הזה. מה שעובר בין אנשים עובר רק בקישורים שאתם בוחרים לשלוח.','Privacy: no sign-up and no server. Saved names, finder answers, game progress and couple picks stay in this browser on this device. Only links you choose to send carry anything to others.')}</p>
-    <button class="copybtn danger" id="wipeall">${t('מחיקת כל הנתונים השמורים במכשיר','Delete all data saved on this device')}</button></details>
+    <button class="copybtn danger" id="wipeall">${cloudOn()?t('מחיקת כל הנתונים שלי (במכשיר ובשרת)','Delete all my data (device and server)'):t('מחיקת כל הנתונים השמורים במכשיר','Delete all data saved on this device')}</button></details>
   <div id="favbar" class="favbar" hidden></div>`;
   document.querySelector('.mainnav').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){PUSH_ONCE=true;setTab(b.dataset.tab)}});
   $('#home').onclick=()=>{PUSH_ONCE=true;setTab('home')};
   $('#favtop').onclick=openFavPanel;
-  {const w=$('#wipeall');if(w)w.onclick=()=>{if(!w.dataset.sure){w.dataset.sure=1;w.textContent=t('בטוח? לחצו שוב למחיקה','Sure? Tap again to delete');return}store.wipe();try{history.replaceState(null,'',HREF('home'))}catch(e){}location.reload()}}
+  {const w=$('#wipeall');if(w)w.onclick=async()=>{if(!w.dataset.sure){w.dataset.sure=1;w.textContent=t('בטוח? לחצו שוב למחיקה','Sure? Tap again to delete');return}
+    if(w.disabled)return;w.disabled=true;w.textContent=t('מוחקים…','Deleting…');
+    const server=await cloudDeleteMe();   /* 'ok' | 'none' (never used couple rooms) | 'fail' */
+    store.wipe();try{sessionStorage.setItem('wiped',server)}catch(e){}
+    try{history.replaceState(null,'',HREF('home'))}catch(e){}location.reload()}}
   $('#srchbtn').onclick=()=>{const bar=document.querySelector('.bar');bar.classList.toggle('sopen');if(bar.classList.contains('sopen'))setTimeout(()=>$('#q').focus(),50)};
   $('#lang').onclick=()=>{LANG=LANG==='en'?'he':'en';store.set('lang',LANG);GAME_BUILT=null;renderShell();setTab(TAB)};
   wireSearch($('#q'),$('#sugg'),pick);
@@ -165,7 +174,7 @@ function secChips(){const opts=[[-1,t('כל המגזרים','All')],...SECT().ma
 function setMode(m){if(m===MODE)return;MODE=m;store.set('mode',MODE);rerender()}
 function setF(v){F=v;store.set('F',F);GAME_BUILT=null;rerender()}
 const LEGACY={name:['names','file'],me:['names','me'],compare:['names','compare'],explore:['trends'],game:['games']};
-function setTab(k,sub){if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
+function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
   TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
   if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
@@ -188,7 +197,7 @@ function wireSearch(inp,box,onPick,minTot=0){let sel=-1,items=[];
   const draw=()=>{const empty=!inp.value.trim();items=empty?(store.get('recent',[])||[]).filter(n=>IDX.has(n)).map(n=>IDX.get(n)).slice(0,6):suggest(inp.value,8,minTot);if(!items.length){if(empty){box.hidden=true;return}box.innerHTML=`<div class="snone">${t('לא מצאנו שם כזה במאגר','No such name in the data')}<small>${t('המאגר כולל שמות שניתנו ל-5 תינוקות לפחות באותה שנה','The data covers names given to at least 5 babies in a year')}</small></div>`;box.hidden=false;return}const st=stats(-1);
     box.innerHTML=(empty?`<div class="srecent">${t('חיפושים אחרונים','Recent')}<button type="button" class="srclr" data-clr="1">${t('ניקוי','Clear')}</button></div>`:'')+items.map((i,k)=>`<button data-i="${i}" class="${k===sel?'on':''}"><b>${esc(NAMES[i])}</b>${LANG==='en'?` <em>${esc(rom(i))}</em>`:''}<span>${secShort(i)} · ${fmt(T(st,i))}</span></button>`).join('');box.hidden=false;};
   inp.addEventListener('input',()=>{sel=-1;draw()});inp.addEventListener('focus',()=>{if(!inp.value.trim()){sel=-1;draw()}});
-  inp.addEventListener('keydown',e=>{if(box.hidden&&e.key!=='Enter')return;if(!items.length&&e.key!=='Enter')return;
+  inp.addEventListener('keydown',e=>{if(box.hidden&&e.key!=='Enter')return;if(!items.length&&e.key!=='Enter'&&e.key!=='Escape')return;
     if(e.key==='ArrowDown'){sel=Math.min(sel+1,items.length-1);draw();e.preventDefault()}
     else if(e.key==='ArrowUp'){sel=Math.max(sel-1,0);draw();e.preventDefault()}
     else if(e.key==='Enter'){const v=normQ(inp.value);if(!v)return;const i=sel>=0?items[sel]:(IDX.has(v)?IDX.get(v):items[0]);if(i!=null){onPick(i);box.hidden=true;}else toast(t(`לא מצאנו את השם "${v}" במאגר`,`"${v}" isn't in the data`));}
