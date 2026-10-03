@@ -277,19 +277,13 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .crow{display:grid;gap:6px;background:var(--surface-2);border-radius:14px;padding:12px 14px}
 .crow .ck{font-size:12px;font-weight:700;color:var(--muted)}
 .crow .cv{font-size:15px;color:var(--ink)}.crow .cv b{color:var(--accent);font-size:20px;font-variant-numeric:tabular-nums}
-.grade{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-.gbox{min-height:28px;border:1px solid var(--line);border-radius:8px;padding:5px;display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start;justify-content:center}
-.gbox i{width:7px;height:7px;border-radius:50%;background:var(--girl)}
-.grade.boy .gbox i{background:var(--boy)}
-.gbox b{font-size:13px;color:var(--ink);align-self:center}
 .crow .cs{font-size:12px;color:var(--muted)}
 .cins{margin:12px 2px 0;font-size:13.5px;color:var(--ink-2)}
-/* ===== v21 desktop: a bit wider, 3 cards per row on the name file, soft halos, ghost name ===== */
+/* ===== v21 desktop: soft halos, ghost name ===== */
 .ghostname{display:none}
 @media (min-width:1100px){
   html,body{overflow-x:clip}
-  #app{max-width:1240px;position:relative;z-index:1}
-  .favbar{max-width:1240px}
+  #app{position:relative;z-index:1}
   /* soft color halos in the side margins (fixed, behind everything, never on phones) */
   body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
     background:
@@ -301,7 +295,18 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
     font-family:var(--f-display);font-weight:700;line-height:.85;font-size:200px;color:var(--accent);opacity:.07}
   .hero>.ghostname[hidden]{display:none}
 }
-@media (min-width:1280px){
-  /* name file: the regular cards three across; wide cards still span the full row */
-  #tab-names .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
+
+
+/* v22 class presence */
+.crow .chd{font-family:var(--f-display);font-weight:700;font-size:30px;line-height:1;color:var(--ink)}
+.crow.hi .chd{color:var(--accent)}.crow.mid .chd{color:var(--ink)}.crow.lo .chd{color:var(--ink-2)}
+.crow .cp{font-size:14px;color:var(--ink-2);line-height:1.5}.crow .cp b{color:var(--ink);font-weight:700}
+/* v22 profile: radar + insight cards */
+.prgrid{grid-template-columns:1fr;gap:10px}
+.prins{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.prins{grid-template-columns:1fr;gap:8px}}
+.prcard{background:var(--surface-2);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;border:1px solid transparent}
+.prcard .pk{font-size:12px;font-weight:700;color:var(--muted)}
+.prcard .pf{font-size:15px;font-weight:600;color:var(--ink);line-height:1.4}
+.prcard .pl{font-size:12px;color:var(--ink-2)}
+.prcard.on{border-color:color-mix(in srgb,var(--stamp) 45%,transparent)}.prcard.on .pk,.prcard.on .pl{color:var(--stamp)}

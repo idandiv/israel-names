@@ -107,34 +107,33 @@ function profileHTML(i){const p=profileOf(i);if(!p)return'';const T0=profTypical
   const rings=[25,50,75,100].map(v=>`<polygon points="${poly([v,v,v,v,v])}" class="prring"/>`).join('');
   const spokes=ax.map((_,k)=>{const [x,y]=pt(k,100);return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="prspoke"/>`}).join('');
   const labels=ax.map(([k,l],j)=>{const [x,y]=pt(j,122);const anc=Math.abs(x-cx)<8?'middle':x<cx?'end':'start';const yy=y<cy-10?y-6:y>cy+10?y+8:y;
-    return `<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${anc}" class="prlab ${k===lead?'on':''}">${l}</text><text x="${x.toFixed(1)}" y="${(yy+15).toFixed(1)}" text-anchor="${anc}" class="prlab prv ${k===lead?'on':''}">${p[k]}</text>`}).join('');
-  const dots=ax.map(([k,l],j)=>{const [x,y]=pt(j,p[k]);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="prdot ${k===lead?'lead':''}"><title>${l}: ${p[k]} · ${FACT[k]}</title></circle>`}).join('');
-  const rows=ax.map(([k,l])=>{const [lt,lc]=lvl(k);return `<div class="prrow ${k===lead?'on':''}"><div class="prk"><b>${l} <span class="prsc">· ${p[k]}</span></b><small>${FACT[k]}</small></div>
-      <div class="prbarw"><span class="prbar"><i style="width:${p[k]}%"></i><em style="inset-inline-start:${T0[k]}%" title="${t('שם טיפוסי','Typical name')}"></em></span><span class="prlvl ${lc}">${k===lead?t('זה מה שקבע את התגית','this set the tag'):lt}</span></div></div>`}).join('');
+    return `<text x="${x.toFixed(1)}" y="${yy.toFixed(1)}" text-anchor="${anc}" class="prlab ${k===lead?'on':''}">${l}</text>`}).join('');
+  const dots=ax.map(([k,l],j)=>{const [x,y]=pt(j,p[k]);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="prdot ${k===lead?'lead':''}"><title>${l}: ${FACT[k]}</title></circle>`}).join('');
+  /* insight cards: the trait behind the tag, then the traits that stand out most from a typical name */
+  const others=ax.map(([k])=>k).filter(k=>k!==lead).sort((x,y)=>Math.abs(p[y]-T0[y])-Math.abs(p[x]-T0[x]));
+  const pick=[lead,...others.filter(k=>Math.abs(p[k]-T0[k])>=8)].slice(0,3);if(pick.length<3)pick.push(...others.filter(k=>!pick.includes(k)).slice(0,3-pick.length));
+  const AXL=Object.fromEntries(ax);
+  const cards=pick.map(k=>{const [lt]=lvl(k);return `<div class="prcard ${k===lead?'on':''}"><span class="pk">${AXL[k]}</span><span class="pf">${FACT[k]}</span><span class="pl">${k===lead?t('זה מה שקבע את התגית','This set the tag'):lt}</span></div>`}).join('');
   return `<div class="prtop"><div class="prtag"><b>${tag[1]}</b><span>${tag[2]}</span></div></div>
     <div class="prgrid"><div class="prchart"><svg class="prsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('פרופיל אופי השם','Name character profile')}">${rings}${spokes}
       <polygon points="${poly(ax.map(([k])=>T0[k]))}" class="prtyp"/><polygon points="${poly(ax.map(([k])=>p[k]))}" class="prme"/>${dots}${labels}</svg>
       <div class="prleg"><span><i class="me"></i>${t(nm,esc(NM(i)))}</span><span><i class="ty"></i>${t('שם טיפוסי','Typical name')}</span></div></div>
-      <div class="prrows">${rows}</div></div>
-    <p class="sub prnote">${t('כל ציון בין 0 ל-100. הקו הקטן בכל פס מסמן שם טיפוסי, לפי החציון של השמות שניתנו לפחות ל-1,000 תינוקות.','Each score is 0–100. The small mark on each bar is a typical name: the median of names given to 1,000+ babies.')}</p>`}
+      <div class="prins">${cards}</div></div>
+    <p class="sub prnote">${t('ככל שהצורה נמתחת יותר לכיוון תכונה, התכונה בולטת יותר בשם. הקו המקווקו הוא שם טיפוסי, לפי החציון של השמות שניתנו לפחות ל-1,000 תינוקות.','The further the shape reaches toward a trait, the stronger it is. The dashed line is a typical name: the median of names given to 1,000+ babies.')}</p>`}
 
-/* ---------- name file: how many in a class (today vs. the name's peak), shown as one school grade ---------- */
+/* ---------- name file: class presence index (today vs. the name's peak) ---------- */
 function classHTML(nm,c,st,pk,gw,dom){const L=NY-1,sh=y=>st.DD[y]?c[y]/st.DD[y]:0;
   const peakRow=pk!==L?[pk,atStart(pk)?t(`בתחילת הרישום · ${Y0}`,`When records began · ${Y0}`):t(`בשנת השיא · ${Y0+pk}`,`At its peak · ${Y0+pk}`)]
     :[Math.max(0,L-20),t(`לפני 20 שנה · ${Y0+Math.max(0,L-20)}`,`20 years earlier · ${Y0+Math.max(0,L-20)}`)];
   const rows=[[L,t(`היום · ילידי ${Y1}`,`Today · born ${Y1}`)],peakRow];
-  const one=gw('ילדה אחת','ילד אחד','ילד אחד'),kids=gw('ילדות','ילדים','ילדים');   /* mixed names: the usual generic masculine */
-  const row=([y,lab])=>{const s=sh(y),perClass=s*30,grade=Math.round(s*150);
-    const head=perClass>=1.5?t(`<b>${Math.round(perClass)}</b> ${kids} בשם ${esc(nm)} בכל כיתה`,`<b>${Math.round(perClass)}</b> per class`)
-      :perClass>=.5?t(`בערך <b>${one}</b> בכל כיתה`,`About <b>one</b> per class`)
-      :perClass>0?t(`${one} בכל <b>${fmt(Math.round(1/perClass))}</b> כיתות`,`One in every <b>${fmt(Math.round(1/perClass))}</b> classes`)
-      :t('כמעט אף אחד בשם הזה','Almost no one');
-    /* a grade = 5 classes of 30; each dot is one child with this name */
-    const per=[0,0,0,0,0];for(let k=0;k<Math.min(grade,60);k++)per[k%5]++;
-    const boxes=per.map(n=>`<span class="gbox">${n>12?`<b>${n}</b>`:Array.from({length:n},()=>'<i></i>').join('')}</span>`).join('');
-    return `<div class="crow"><div class="ck">${lab}</div><div class="cv">${head}</div>
-      <div class="grade ${dom?'boy':'girl'}" aria-hidden="true">${boxes}</div>
-      <div class="cs">${grade?t(`כ-${fmt(grade)} בשכבה של 150 ילדים (5 כיתות)`,`About ${fmt(grade)} in a grade of 150 (5 classes)`):t('פחות מאחד בשכבה של 150 ילדים','Fewer than one in a grade of 150')}</div></div>`};
+  const meet=gw('שתפגוש ילדה נוספת','שיפגוש ילד נוסף','לפגוש עוד ילד או ילדה');
+  const row=([y,lab])=>{const s=sh(y),grade=s*150,P=1-Math.pow(1-s,29);   /* chance that at least one of the 29 classmates has the name */
+    const [cls,head]=grade>=2.5?['hi',t('כמעט בכל כיתה','In almost every class')]:grade>=.5?['mid',t('אחד בשכבה','About one per grade')]:['lo',t('נדיר לפגוש בכיתה','Rare in a class')];
+    const pc=P>=.995?'99%':P>=.095?Math.round(P*100)+'%':P>=.01?(P*100).toFixed(1).replace(/\.0$/,'')+'%':'';
+    const lvl=P>=.35?t('גבוה','high'):P>=.08?t('בינוני','medium'):P>=.02?t('נמוך','low'):t('אפסי','close to zero');
+    const txt=t(`הסיכוי ${meet} בשם ${esc(nm)} בכיתה של 30 ילדים הוא <b>${lvl}</b>${pc?` (כ-${pc})`:P>0?' (פחות מ-1%)':''}.`,
+      `The chance of another child named ${esc(nm)} in a class of 30 is <b>${lvl}</b>${pc?` (about ${pc})`:P>0?' (under 1%)':''}.`);
+    return `<div class="crow ${cls}"><div class="ck">${lab}</div><div class="chd">${head}</div><div class="cp">${txt}</div></div>`};
   const a=sh(L),b=sh(peakRow[0]);let ins='';
   if(a&&b){const r=a>=b?a/b:b/a;const xs=r>=1.25?t(`פי ${r>=10?Math.round(r):r.toFixed(1).replace(/\.0$/,'')}`,`${r>=10?Math.round(r):r.toFixed(1)}×`):'';
     ins=pk===L?t(`${Y1} היא שנת השיא של השם עד היום${xs&&a>b?`, ${xs} יותר מלפני 20 שנה`:''}.`,`${Y1} is its peak so far${xs&&a>b?`, ${xs} more than 20 years earlier`:''}.`)
