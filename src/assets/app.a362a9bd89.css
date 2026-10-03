@@ -937,7 +937,6 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .lsrow.top .lsb i{background:var(--accent)}.lsrow.top .lsl{color:var(--ink)}
 .lsv{text-align:left;font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}.lsrow.top .lsv{color:var(--ink)}
 .lsnote{margin-top:10px}
-.sibrow{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;align-items:start;margin-top:8px}.sibl{font-weight:700;color:var(--muted);font-size:13px;padding-top:7px}
 .cmptbl{overflow-x:auto;margin-top:14px;border-top:1px solid var(--line)}
 .cmptbl table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
 .cmptbl th{font-weight:600;color:var(--muted);font-size:12px;text-align:right;padding:10px 8px 6px;white-space:nowrap}
@@ -948,6 +947,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .linkname{all:unset;cursor:pointer;font-weight:700;color:var(--ink)}.linkname:hover{text-decoration:underline}
 .cmpact{display:flex;justify-content:flex-start;margin-top:12px}
 @media (max-width:520px){.cmptbl table{font-size:13px}.cmptbl th,.cmptbl td{padding:7px 5px}.lsrow{grid-template-columns:84px minmax(0,1fr) 40px}}
+.gsecbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px}
+.gsecbar .nml{margin:0}
 
 /* static fallback content (visible until the app boots, and to crawlers) */
 .seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;line-height:1.7}
