@@ -284,3 +284,24 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .gbox b{font-size:13px;color:var(--ink);align-self:center}
 .crow .cs{font-size:12px;color:var(--muted)}
 .cins{margin:12px 2px 0;font-size:13.5px;color:var(--ink-2)}
+/* ===== v21 desktop: a bit wider, 3 cards per row on the name file, soft halos, ghost name ===== */
+.ghostname{display:none}
+@media (min-width:1100px){
+  html,body{overflow-x:clip}
+  #app{max-width:1240px;position:relative;z-index:1}
+  .favbar{max-width:1240px}
+  /* soft color halos in the side margins (fixed, behind everything, never on phones) */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(520px 420px at 0% 18%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 70%),
+      radial-gradient(560px 460px at 100% 62%,color-mix(in srgb,var(--stamp) 10%,transparent),transparent 70%),
+      radial-gradient(420px 360px at 4% 92%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 70%)}
+  /* the name, huge and faint, in the empty side of the name-file header */
+  .hero>.ghostname{display:block;position:absolute;top:54px;left:170px;pointer-events:none;user-select:none;white-space:nowrap;
+    font-family:var(--f-display);font-weight:700;line-height:.85;font-size:200px;color:var(--accent);opacity:.07}
+  .hero>.ghostname[hidden]{display:none}
+}
+@media (min-width:1280px){
+  /* name file: the regular cards three across; wide cards still span the full row */
+  #tab-names .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
