@@ -1945,6 +1945,7 @@ const TG=()=>[['lead',t('מי מוביל','Who leads')],['trend',t('עולים �
 function groupTrends(){const map={leaders:'lead',rg:'lead',secall:'sect',up:'trend',down:'trend',comeb:'trend',flash:'trend',newb:'trend',ever:'trend',cDiv:'il',cUniq:'il',cLen:'il',cEnd:'il',cLet:'il',cBirth:'il',uni:'gender',swap:'gender'};
   const grid=$('#tab-explore .grid');if(!grid)return;
   [...grid.children].forEach(c=>{const id=c.id&&map[c.id]?c.id:Object.keys(map).find(k=>c.querySelector('#'+k));c.dataset.g=id?map[id]:'il'});
+  {const has=(c,k)=>c.id===k||c.querySelector('#'+k);const kids=[...grid.children];const rc=kids.find(c=>has(c,'rg')),lc=kids.find(c=>has(c,'leaders'));if(rc&&lc&&rc!==lc)grid.insertBefore(rc,lc)}
   let nav=$('#tgnav');if(!nav){nav=document.createElement('div');nav.id='tgnav';nav.className='seg tgnav';grid.parentNode.insertBefore(nav,grid)}
   const apply=()=>{nav.innerHTML=TG().map(([k,l])=>`<button data-tg="${k}" aria-pressed="${TGROUP===k}">${l}</button>`).join('');
     [...grid.children].forEach(c=>c.hidden=c.dataset.g!==TGROUP);if(TGROUP!=='lead')stopRace();window.dispatchEvent(new Event('resize'))};
@@ -2117,14 +2118,14 @@ function wzCandidates(){const st=stats(-1);const out=[];const GUT=/[חעצץ]/;
     if(WZ.world!=='all'){const w=SECTOT[i],tt=w[0]+w[1]+w[2]+w[3];const j=w[0]/tt;if(WZ.world==='heb'&&j<.6)continue;if(WZ.world==='arab'&&j>.4)continue}
     if(WZ.letter&&!lettersOf(n).includes(WZ.letter))continue;if(WZ.nogut&&GUT.test(n))continue;
     const inf=nameInfo(st,i);const r=inf.r3;if(WZ.pop==='pop'&&r<400)continue;if(WZ.pop==='mid'&&(r<45||r>=400))continue;if(WZ.pop==='rare'&&(r<1||r>=45))continue;
-    let sc=k*10;sc+=WZ.pop==='pop'?Math.log10(r+1)*3:WZ.pop==='mid'?Math.min(inf.mom,4):(hash(n+WZ.seed)%1000)/500;sc+=(hash(WZ.seed+n)%1000)/700;out.push([i,sc,k])}
+    let sc=k*10;sc+=WZ.pop==='pop'?Math.log10(r+1)*3:WZ.pop==='mid'?Math.min(inf.mom,4):WZ.pop==='any'?Math.log10(r+1)*1.2:(hash(n+WZ.seed)%1000)/500;sc+=(hash(WZ.seed+n)%1000)/700;out.push([i,sc,k])}
   return out.sort((a,b)=>b[1]-a[1])}
 function genWizard(){store.set('wz',WZ);const body=$('#gbody');const TL=THEME_LAB();const st=stats(-1);const AB='אבגדהוזחטיכלמנסעפצקרשת'.split('');
   const steps=[
-    {k:'sex',q:t('למי השם?','Who is the name for?'),o:[['F',t('בת','A girl')],['M',t('בן','A boy')],['U',t('לא משנה, יוניסקס','Unisex')]]},
-    {k:'themes',multi:3,q:t('איזו אווירה אתם מחפשים?','What feeling are you after?'),sub:t('אפשר לבחור עד 3 סגנונות. שמות שמתאימים לכמה מהם יופיעו ראשונים.','Pick up to 3. Names that fit several come first.'),o:['nature','light','bible','intl','strength'].map(k=>[k,TL[k],THEME_EX[k]])},
-    {k:'len',q:t('מה אורך השם המועדף עליכם?','Preferred length?'),o:[['s',t('קצר וקולע','Short & sharp'),t('2–3 אותיות: תום, שי, גל, מאי','2–3 letters: Tom, Shai, Gal')],['m',t('קלאסי ומאוזן','Balanced'),t('4 אותיות: איתמר, לביא, אביגיל','4 letters')],['l',t('ארוך ונוכח','Long & present'),t('5 אותיות ומעלה','5+ letters')],['any',t('לא משנה לנו','No preference')]]},
-    {k:'pop',q:t('כמה נפוץ שיהיה?','How common should it be?'),o:[['pop',t('מוכר ואהוב','Well known'),t('מהשמות הנפוצים היום','Among today’s most common')],['mid',t('באמצע','In between'),t('מוכר, אבל לא בכל כיתה','Familiar, not in every class')],['rare',t('נדיר ומיוחד','Rare & special'),t('כמעט אף אחד לא נקרא ככה','Hardly anyone has it')]]},
+    {k:'sex',q:t('למי השם?','Who is the name for?'),o:[['F',t('בת','A girl')],['M',t('בן','A boy')],['U',t('יוניסקס','Unisex'),t('שם שמתאים גם לבת וגם לבן','A name that fits both')],['any',t('לא משנה לנו','No preference'),t('בנות, בנים ויוניסקס','Girls, boys and unisex')]]},
+    {k:'themes',multi:3,q:t('איזו אווירה אתם מחפשים?','What feeling are you after?'),sub:t('אפשר לבחור עד 3 סגנונות. שמות שמתאימים לכמה מהם יופיעו ראשונים.','Pick up to 3. Names that fit several come first.'),o:['nature','light','bible','intl','strength'].map(k=>[k,TL[k],THEME_EX[k]]).concat([['any',t('לא משנה לנו','No preference'),t('כל הסגנונות','Every style')]])},
+    {k:'len',q:t('מה אורך השם המועדף עליכם?','Preferred length?'),o:[['s',t('קצר וקולע','Short & sharp'),t('2–3 אותיות: תום, שי, גל, מאי','2–3 letters: Tom, Shai, Gal')],['m',t('קלאסי ומאוזן','Balanced'),t('4 אותיות: איתמר, לביא, אביגיל','4 letters')],['l',t('ארוך ונוכח','Long & present'),t('5 אותיות ומעלה','5+ letters')],['any',t('לא משנה לנו','No preference'),t('כל אורך','Any length')]]},
+    {k:'pop',q:t('כמה נפוץ שיהיה?','How common should it be?'),o:[['pop',t('מוכר ואהוב','Well known'),t('מהשמות הנפוצים היום','Among today’s most common')],['mid',t('באמצע','In between'),t('מוכר, אבל לא בכל כיתה','Familiar, not in every class')],['rare',t('נדיר ומיוחד','Rare & special'),t('כמעט אף אחד לא נקרא ככה','Hardly anyone has it')],['any',t('לא משנה לנו','No preference'),t('מכל הסוגים','A mix of everything')]]},
     {k:'sound',q:t('אותיות או צלילים מיוחדים?','Special letters or sounds?'),sub:t('שלב אופציונלי. אפשר לדלג.','Optional step. You can skip it.')}];
   const NS=steps.length;
   if(WZ.step<NS){const s=steps[WZ.step];
@@ -2134,8 +2135,8 @@ function genWizard(){store.set('wz',WZ);const body=$('#gbody');const TL=THEME_LA
         <div class="letgrid">${AB.map(c=>`<button data-l="${c}" aria-pressed="${WZ.letter===c}">${c}</button>`).join('')}</div>
         <label class="wztoggle"><input type="checkbox" id="wzgut" ${WZ.nogut?'checked':''}><span><b>${t('בלי צלילים גרוניים','No guttural sounds')}</b><small>${t('בלי ח׳, ע׳ וצ׳. נוח למי שגר בחו״ל או מתכנן רילוקיישן.','No ח, ע or צ. Easier abroad.')}</small></span></label></div>
       <div class="wznav"><button class="next" id="wzfin">${t('הצגת השמות שלי','Show my names')}</button><button class="linkbtn" id="wzskip">${t('דלגו על השלב','Skip')}</button></div>`}
-    else if(s.multi){inner=`<div class="wzopts">${s.o.map(([v,l,ex])=>`<button data-v="${v}" aria-pressed="${WZ.themes.includes(v)}" class="multi"><span class="ck">${icon('v')}</span><b>${l}</b>${ex?`<small>${ex}</small>`:''}</button>`).join('')}</div>
-      <div class="wznav"><button class="next" id="wznext" ${WZ.themes.length?'':'disabled'}>${t('המשך לשלב הבא','Continue')}${WZ.themes.length?` (${WZ.themes.length})`:''}</button><button class="linkbtn" id="wzany">${t('לא משנה לנו','No preference')}</button></div>`}
+    else if(s.multi){inner=`<div class="wzopts">${s.o.map(([v,l,ex])=>v==='any'?`<button data-v="any" aria-pressed="false"><b>${l}</b>${ex?`<small>${ex}</small>`:''}</button>`:`<button data-v="${v}" aria-pressed="${WZ.themes.includes(v)}" class="multi"><span class="ck">${icon('v')}</span><b>${l}</b>${ex?`<small>${ex}</small>`:''}</button>`).join('')}</div>
+      <div class="wznav"><button class="next" id="wznext" ${WZ.themes.length?'':'disabled'}>${t('המשך לשלב הבא','Continue')}${WZ.themes.length?` (${WZ.themes.length})`:''}</button></div>`}
     else if(s.k==='sex')inner=`<div class="nml">${t('מאיזה עולם שמות?','Which name world?')}</div><div class="chips sel wzworld">${[['heb',t('עברי וישראלי','Hebrew & Israeli')],['arab',t('ערבי','Arabic')],['all',t('הכול','All')]].map(([v,l])=>`<button data-w="${v}" aria-pressed="${WZ.world===v}">${l}</button>`).join('')}</div><div class="nml">${t('ולמי?','And for')}</div><div class="wzopts">${s.o.map(([v,l,ex])=>`<button data-v="${v}" aria-pressed="${WZ[s.k]===v}"><b>${l}</b>${ex?`<small>${ex}</small>`:''}</button>`).join('')}</div>`;
     else inner=`<div class="wzopts">${s.o.map(([v,l,ex])=>`<button data-v="${v}" aria-pressed="${WZ[s.k]===v}"><b>${l}</b>${ex?`<small>${ex}</small>`:''}</button>`).join('')}</div>`;
     body.innerHTML=`<div class="card wizard fade">${prog}<h3 class="wzq">${s.q}</h3>${s.sub?`<p class="wzsub">${s.sub}</p>`:''}${inner}${WZ.step?`<button class="linkbtn wzback" id="wzback">${t('חזרה','Back')}</button>`:''}</div>`;
@@ -2143,15 +2144,15 @@ function genWizard(){store.set('wz',WZ);const body=$('#gbody');const TL=THEME_LA
     if(s.k==='sound'){body.querySelector('.letgrid').onclick=e=>{const b=e.target.closest('[data-l]');if(!b)return;WZ.letter=WZ.letter===b.dataset.l?'':b.dataset.l;genWizard()};
       $('#wzgut').onchange=e=>{WZ.nogut=e.target.checked};
       const go=()=>{WZ.step=NS;WZ.shown=5;WZ.hide=[];genWizard()};$('#wzfin').onclick=go;$('#wzskip').onclick=()=>{WZ.letter='';WZ.nogut=false;go()};return}
-    if(s.multi){body.querySelector('.wzopts').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;const v=b.dataset.v;
+    if(s.multi){body.querySelector('.wzopts').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;const v=b.dataset.v;if(v==='any'){WZ.themes=[];WZ.step++;genWizard();return}
         if(WZ.themes.includes(v))WZ.themes=WZ.themes.filter(x=>x!==v);else{if(WZ.themes.length>=s.multi){toast(t(`אפשר לבחור עד ${s.multi} סגנונות`,`Up to ${s.multi} styles`));return}WZ.themes.push(v)}genWizard()};
-      $('#wznext').onclick=()=>{if(!WZ.themes.length)return;WZ.step++;genWizard()};$('#wzany').onclick=()=>{WZ.themes=[];WZ.step++;genWizard()};return}
+      $('#wznext').onclick=()=>{if(!WZ.themes.length)return;WZ.step++;genWizard()};return}
     const ww=body.querySelector('.wzworld');if(ww)ww.onclick=e=>{const b=e.target.closest('[data-w]');if(!b)return;WZ.world=b.dataset.w;store.set('wzworld',WZ.world);ww.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};
     body.querySelector('.wzopts').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;WZ[s.k]=b.dataset.v;WZ.step++;setTimeout(genWizard,120);b.setAttribute('aria-pressed','true')};
     return}
   const all=wzCandidates().filter(o=>!WZ.hide.includes(o[0]));const shown=all.slice(0,WZ.shown);
-  const lbl={F:t('בת','a girl'),M:t('בן','a boy'),U:t('יוניסקס','unisex')}[WZ.sex]+(WZ.world==='all'?'':' · '+(WZ.world==='heb'?t('עברי וישראלי','Hebrew'):t('ערבי','Arabic')));
-  const sum=[lbl,WZ.themes.length?WZ.themes.map(k=>TL[k]).join(' + '):t('כל סגנון','any style'),{s:t('קצר','short'),m:t('4 אותיות','4 letters'),l:t('ארוך','long'),any:t('כל אורך','any length')}[WZ.len],{pop:t('מוכר ואהוב','well known'),mid:t('באמצע','in between'),rare:t('נדיר','rare')}[WZ.pop]];
+  const lbl={F:t('בת','a girl'),M:t('בן','a boy'),U:t('יוניסקס','unisex'),any:t('בת או בן','any sex')}[WZ.sex]+(WZ.world==='all'?'':' · '+(WZ.world==='heb'?t('עברי וישראלי','Hebrew'):t('ערבי','Arabic')));
+  const sum=[lbl,WZ.themes.length?WZ.themes.map(k=>TL[k]).join(' + '):t('כל סגנון','any style'),{s:t('קצר','short'),m:t('4 אותיות','4 letters'),l:t('ארוך','long'),any:t('כל אורך','any length')}[WZ.len],{pop:t('מוכר ואהוב','well known'),mid:t('באמצע','in between'),rare:t('נדיר','rare'),any:t('כל רמת נפוצות','any popularity')}[WZ.pop]];
   if(WZ.letter)sum.push(t(`עם האות ${WZ.letter}`,`with ${WZ.letter}`));if(WZ.nogut)sum.push(t('בלי צלילים גרוניים','no gutturals'));
   body.innerHTML=`<div class="card wizard done"><div class="wzsum">${t('בחרתם','You chose')}: ${sum.map(x=>`<b>${x}</b>`).join(' · ')} <button class="linkbtn" id="wzedit">${t('שינוי','Edit')}</button></div>
     <h3 class="wzq">${all.length?t(`${shown.length} השמות שהכי מתאימים לכם`,`Your ${shown.length} best matches`):t('לא מצאנו התאמה מדויקת','No exact match')}</h3>
