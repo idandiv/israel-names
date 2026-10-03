@@ -12,8 +12,21 @@ IC.users='<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><
 IC.link='<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>';
 IC.back='<path d="M9 6l6 6-6 6"/>';
 
-const NMX={rooms:Object.assign(Object.create(null),(()=>{const o=store.get('nm_rooms',{});return o&&typeof o==='object'&&!Array.isArray(o)?o:{}})()),active:store.get('nm_active',null),live:null,peer:null,deck:null,deckFor:null,busy:false,joinTried:null};
-const nmSave=()=>{store.set('nm_rooms',NMX.rooms);store.set('nm_active',NMX.active)};
+/* Rooms are stored by NAME, not by index into the data, so future data releases (new years, new names)
+   can't scramble saved rooms. Older saves used indices of the first data release; LEGACY_RM lists the
+   positions removed since then, so those numbers are translated once and then saved as names. */
+const LEGACY_RM=[1628,4807];
+const legacyIdx=v=>{if(!Number.isInteger(v)||v<0||LEGACY_RM.includes(v))return null;const j=v-LEGACY_RM.filter(x=>x<v).length;return j<N?j:null};
+const toIdx=v=>typeof v==='string'?(IDX.has(v)?IDX.get(v):null):legacyIdx(v);
+const ROOM_ARR=['likes','supers','passes','plikes','psupers','seen'];
+function roomIn(o){if(!o||typeof o!=='object'||Array.isArray(o))return null;const r=Object.assign({},o);
+  ROOM_ARR.forEach(k=>{r[k]=(Array.isArray(o[k])?o[k]:[]).map(toIdx).filter(v=>v!=null)});
+  r.hist=(Array.isArray(o.hist)?o.hist:[]).map(h=>h&&{i:toIdx(h.n!=null?h.n:h.i),type:h.type}).filter(h=>h&&h.i!=null);
+  r.q=Array.isArray(o.q)?o.q:[];return r}
+function roomOut(r){const o=Object.assign({},r);ROOM_ARR.forEach(k=>{o[k]=(r[k]||[]).map(i=>NAMES[i])});o.hist=(r.hist||[]).map(h=>({n:NAMES[h.i],type:h.type}));return o}
+const NMX={rooms:(()=>{const out=Object.create(null);const o=store.get('nm_rooms',{});if(o&&typeof o==='object'&&!Array.isArray(o))for(const k of Object.keys(o)){const r=roomIn(o[k]);if(r)out[k]=r}return out})(),active:store.get('nm_active',null),live:null,peer:null,deck:null,deckFor:null,busy:false,joinTried:null};
+const nmSave=()=>{const o={};for(const k of Object.keys(NMX.rooms))o[k]=roomOut(NMX.rooms[k]);store.set('nm_rooms',o);store.set('nm_active',NMX.active)};
+{const o=store.get('nm_rooms',null);if(o&&typeof o==='object'&&Object.values(o).some(r=>r&&Array.isArray(r.likes)&&r.likes.some(v=>typeof v==='number')))nmSave()}   /* one-time migration of index-based saves */
 const R=()=>{const r=NMX.active?NMX.rooms[NMX.active]:null;return r&&typeof r==='object'&&Array.isArray(r.likes)?r:null};
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -22,10 +35,12 @@ const newCode=()=>Array.from({length:6},()=>'abcdefghjkmnpqrstuvwxyz23456789'[Ma
 const fLabel=f=>({f:t('שמות בנות','Girls’ names'),m:t('שמות בנים','Boys’ names'),a:t('כל השמות','All names')}[f]);
 const rTok=r=>`${r.f}${(r.sec||1).toString(16)}${r.uni?'u':''}${r.cloud?'c':''}`;
 function inviteLink(r){return `${SHARE_URL}#match.${r.code}.${rTok(r)}`}
-function picksLink(r){const ids=[...r.supers.map(i=>'S'+i.toString(36)),...r.likes.filter(i=>!r.supers.includes(i)).map(i=>i.toString(36))];
-  return `${SHARE_URL}#match.${r.code}.${rTok(r)}.${b64e(r.me||'')}.${ids.join('~')}`}
-function parseMatchHash(h){h=(h||'').replace(/^#/,'');const m=h.match(/match\.([a-z0-9]{4,16})\.([fma])([0-9a-f]?)(u?)(c?)(?:\.([A-Za-z0-9_-]*)\.([A-Za-z0-9~]*))?/);if(!m)return null;
-  const out={code:m[1],f:m[2],sec:m[3]?parseInt(m[3],16):1,uni:!!m[4],cloud:!!m[5]};if(m[7]!==undefined){out.pname=b64d(m[6]||'');out.plikes=[];out.psupers=[];m[7].split('~').filter(Boolean).forEach(x=>{const sup=x[0]==='S';const id=parseInt(sup?x.slice(1):x,36);if(id>=0&&id<N){out.plikes.push(id);if(sup)out.psupers.push(id)}})}return out}
+function picksLink(r){const L=[...r.supers.map(i=>'*'+NAMES[i]),...r.likes.filter(i=>!r.supers.includes(i)).map(i=>NAMES[i])];
+  return `${SHARE_URL}#match.${r.code}.${rTok(r)}.${b64e(r.me||'')}.~${b64e(L.join(','))}`}
+function parseMatchHash(h){h=(h||'').replace(/^#/,'');const m=h.match(/match\.([a-z0-9]{4,16})\.([fma])([0-9a-f]?)(u?)(c?)(?:\.([A-Za-z0-9_-]*)\.([A-Za-z0-9~_-]*))?/);if(!m)return null;
+  const out={code:m[1],f:m[2],sec:m[3]?parseInt(m[3],16):1,uni:!!m[4],cloud:!!m[5]};if(m[7]!==undefined){out.pname=b64d(m[6]||'').replace(/[\u0000-\u001f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g,'').slice(0,30);out.plikes=[];out.psupers=[];
+    if(m[7][0]==='~'){b64d(m[7].slice(1)).split(',').slice(0,3000).forEach(x=>{const sup=x[0]==='*';const n=sup?x.slice(1):x;if(IDX.has(n)){const id=IDX.get(n);if(!out.plikes.includes(id))out.plikes.push(id);if(sup)out.psupers.push(id)}})}
+    else m[7].split('~').filter(Boolean).forEach(x=>{const sup=x[0]==='S';const id=legacyIdx(parseInt(sup?x.slice(1):x,36));if(id!=null){out.plikes.push(id);if(sup)out.psupers.push(id)}})}return out}
 function ensureRoom(code,f,sec,uni){if(!NMX.rooms[code])NMX.rooms[code]={code,f,sec:sec||1,uni:!!uni,sent:0,me:'',likes:[],supers:[],passes:[],hist:[],pname:'',plikes:[],psupers:[],seen:[],created:Date.now(),pupd:0};return NMX.rooms[code]}
 function matchesOf(r){const pl=new Set(r.plikes);const ms=r.likes.filter(i=>pl.has(i));
   const sc=i=>(r.supers.includes(i)?1:0)+(r.psupers.includes(i)?1:0);return ms.sort((a,b)=>sc(b)-sc(a)||r.likes.indexOf(a)-r.likes.indexOf(b))}

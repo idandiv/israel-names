@@ -137,13 +137,19 @@ function genFree(){const body=$('#gbody');const opt=(k,v,l,ex)=>`<button data-k=
   const fl=$('#gfl');if(fl)fl.onchange=e=>{GEN.fl=e.target.value;saveGen();GEN_SHOWN=24;genFree()};
   $('#gsort').onclick=e=>{const b=e.target.closest('[data-s]');if(b){GEN.sort=b.dataset.s;saveGen();GEN_SHOWN=24;genFree()}};
   wireCards($('#gcards'));computeGen();drawGenResults();}
-function computeGen(){const st=stats(F);const out=[];
+let GEN_EXACT=0,GEN_DROP=[];
+function computeGen(){const exact=genPass({});GEN_EXACT=exact.length;GEN_DROP=[];
+  /* fewer than 3 exact matches: add close results by relaxing one filter at a time (never the sex) */
+  if(exact.length<3){const TL=THEME_LAB();const steps=[['vibe',GEN.vibe!=='any',t('אופי ומגמה','character')],['fl',!!GEN.fl,t('אות ראשונה','first letter')],['len',GEN.len!=='any',t('אורך','length')],['theme',GEN.theme!=='any',t('משמעות','meaning')]];
+    const relax={};for(const [k,on,lab] of steps){if(!on)continue;relax[k]=1;GEN_DROP.push(lab);const near=genPass(relax).filter(i=>!exact.includes(i));if(near.length>=6||k==='theme'){GEN_LIST=exact.concat(near);return}}}
+  GEN_LIST=exact}
+function genPass(R){const st=stats(F);const out=[];
   for(let i=0;i<N;i++){const s=T(st,i);if(s<30)continue;if(!sexOk(st,i,GEN.sex))continue;
-    const L=LEN[i];if(GEN.len==='s'&&L>3)continue;if(GEN.len==='m'&&L!==4)continue;if(GEN.len==='l'&&L<5)continue;
-    if(GEN.fl&&NAMES[i][0]!==GEN.fl)continue;
-    if(GEN.theme!=='any'&&!themesOf(i).has(GEN.theme))continue;
+    const L=LEN[i];if(!R.len){if(GEN.len==='s'&&L>3)continue;if(GEN.len==='m'&&L!==4)continue;if(GEN.len==='l'&&L<5)continue}
+    if(!R.fl&&GEN.fl&&NAMES[i][0]!==GEN.fl)continue;
+    if(!R.theme&&GEN.theme!=='any'&&!themesOf(i).has(GEN.theme))continue;
     const inf=nameInfo(st,i);const m=inf.mom;let ok=true;
-    switch(GEN.vibe){case'trend':ok=m>.4&&m<9&&inf.r3>=60;break;
+    if(!R.vibe)switch(GEN.vibe){case'trend':ok=m>.4&&m<9&&inf.r3>=60;break;
       case'classic':ok=top100Years(st,i)>=45&&inf.r3>=30;break;
       case'rare':ok=inf.r3>=5&&inf.r3<=45&&s<600;break;
       case'vintage':ok=Y0+inf.my<=1980&&s>=800&&inf.r3<inf.mxv*.25;break;
@@ -152,10 +158,13 @@ function computeGen(){const st=stats(F);const out=[];
   if(GEN.sort==='pop')out.sort((a,b)=>b[1]-a[1]||T(st,b[0])-T(st,a[0]));
   else if(GEN.sort==='trend')out.sort((a,b)=>(b[1]>=20?Math.min(b[2],8):-9)-(a[1]>=20?Math.min(a[2],8):-9));
   else{const sh=shuffle(out);out.length=0;out.push(...sh)}
-  GEN_LIST=out.map(o=>o[0]);}
+  return out.map(o=>o[0])}
 function drawGenResults(){const st=stats(F),box=$('#gcards');if(!box)return;const n=GEN_LIST.length;
-  $('#gcount').innerHTML=n?t(`נמצאו <b>${fmt(n)}</b> שמות שתואמים להגדרות שלכם`,`<b>${fmt(n)}</b> names match your choices`):t('לא נמצאו שמות שמתאימים לכל הבחירות. נסו לשחרר אחד המסננים.','No names match every choice. Try loosening a filter.');
-  box.innerHTML=GEN_LIST.slice(0,GEN_SHOWN).map(i=>genCard(st,i)).join('');
+  const near=n>GEN_EXACT;
+  $('#gcount').innerHTML=!n?t('לא נמצאו שמות שמתאימים לכל הבחירות. נסו לשחרר אחד המסננים.','No names match every choice. Try loosening a filter.')
+    :near?t(`${GEN_EXACT?`רק <b>${GEN_EXACT}</b> ${GEN_EXACT===1?'שם תואם':'שמות תואמים'} בדיוק לכל הבחירות.`:'אין שם שתואם בדיוק לכל הבחירות.'} הוספנו שמות קרובים, בלי הסינון של ${GEN_DROP.join(' ו')}.`,`${GEN_EXACT} exact matches. We added close ones without the ${GEN_DROP.join(' and ')} filter.`)
+    :t(`נמצאו <b>${fmt(n)}</b> שמות שתואמים להגדרות שלכם`,`<b>${fmt(n)}</b> names match your choices`);
+  box.innerHTML=GEN_LIST.slice(0,GEN_SHOWN).map((i,k)=>(near&&k===GEN_EXACT?`<div class="gnear">${t('שמות קרובים','Close matches')}</div>`:'')+genCard(st,i)).join('');
   const mb=$('#gmorebox');mb.innerHTML=n>GEN_SHOWN?`<button class="copybtn" id="gload">${t(`טען עוד שמות (${fmt(n-GEN_SHOWN)} נוספים)`,`Load more (${fmt(n-GEN_SHOWN)} left)`)}</button>`:'';
   const l=$('#gload');if(l)l.onclick=()=>{GEN_SHOWN+=24;drawGenResults()};}
 function wzCandidates(){const st=stats(-1);const out=[];const GUT=/[חעצץ]/;
@@ -166,7 +175,10 @@ function wzCandidates(){const st=stats(-1);const out=[];const GUT=/[חעצץ]/;
     if(WZ.letter&&!lettersOf(n).includes(WZ.letter))continue;if(WZ.nogut&&GUT.test(n))continue;
     const inf=nameInfo(st,i);const r=inf.r3;if(WZ.pop==='pop'&&r<400)continue;if(WZ.pop==='mid'&&(r<45||r>=400))continue;if(WZ.pop==='rare'&&(r<1||r>=45))continue;
     let sc=k*10;sc+=WZ.pop==='pop'?Math.log10(r+1)*3:WZ.pop==='mid'?Math.min(inf.mom,4):WZ.pop==='any'?Math.log10(r+1)*1.2:(hash(n+WZ.seed)%1000)/500;sc+=(hash(WZ.seed+n)%1000)/700;out.push([i,sc,k])}
-  return out.sort((a,b)=>b[1]-a[1])}
+  out.sort((a,b)=>b[1]-a[1]);
+  /* "no preference" on sex: alternate girls and boys so the top results are balanced */
+  if(WZ.sex==='any'){const g=[],b=[];out.forEach(o=>{const s=T(st,o[0]);(st.tot[0][o[0]]/s>=.5?g:b).push(o)});const mix=[];for(let k=0;k<Math.max(g.length,b.length);k++){if(g[k])mix.push(g[k]);if(b[k])mix.push(b[k])}return mix}
+  return out}
 function genWizard(){store.set('wz',WZ);const body=$('#gbody');const TL=THEME_LAB();const st=stats(-1);const AB='אבגדהוזחטיכלמנסעפצקרשת'.split('');
   const steps=[
     {k:'sex',q:t('למי השם?','Who is the name for?'),o:[['F',t('בת','A girl')],['M',t('בן','A boy')],['U',t('יוניסקס','Unisex'),t('שם שמתאים גם לבת וגם לבן','A name that fits both')]],any:1},

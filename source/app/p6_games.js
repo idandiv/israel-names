@@ -45,9 +45,13 @@ function catOf(i){const m=MEAN.get(NAMES[i]);if(!m)return null;
   if(/^(שם עברי|בעברית|בארמית)/.test(m)){const body=m.split(/[.]/)[0];return NAT.test(body)?'nat':'heb'}
   return 'intl';}
 const catLab=c=>c?{bib:t('תנ״כי','Biblical'),heb:t('עברי','Hebrew'),nat:t('טבע','Nature'),arab:t('ערבי','Arabic'),intl:t('בינלאומי','International')}[c]:'?';
-function namlePool(){const st=stats(-1);const [lo,hi]=NLV[NOPT.sec][NOPT.lvl];const p=[];
-  for(let i=0;i<N;i++){if(!MEAN.has(NAMES[i])||/[^א-ת]/.test(NAMES[i]))continue;
-    if(NOPT.sec==='all'){const v=T(st,i);if(v>=lo&&v<hi)p.push(i)}else{const s=+NOPT.sec,w=SECTOT[i],tt=w[0]+w[1]+w[2]+w[3];if(w[s]/tt>=.7&&w[s]>=lo&&w[s]<hi)p.push(i)}}
+function namlePool(){const st=stats(-1);let [lo,hi]=NLV[NOPT.sec][NOPT.lvl];
+  /* Muslim names rarely have curated meanings, so that pool doesn't require one; and any pool that is too small
+     is widened downward until it has at least 40 names, so the daily name never loops over a handful. */
+  const needMean=NOPT.sec!=='1';
+  const build=()=>{const p=[];for(let i=0;i<N;i++){if(needMean&&!MEAN.has(NAMES[i])||/[^א-ת]/.test(NAMES[i]))continue;
+    if(NOPT.sec==='all'){const v=T(st,i);if(v>=lo&&v<hi)p.push(i)}else{const s=+NOPT.sec,w=SECTOT[i],tt=w[0]+w[1]+w[2]+w[3];if(w[s]/tt>=.7&&w[s]>=lo&&w[s]<hi)p.push(i)}}return p};
+  let p=build();while(p.length<40&&lo>25){lo=Math.floor(lo/1.6);p=build()}
   if(p.length<5){for(let i=0;i<N&&p.length<40;i++)if(MEAN.has(NAMES[i])&&!p.includes(i))p.push(i)}return p}
 function attr(i){const st=stats(-1);const s=T(st,i),gp=s?st.tot[0][i]/s:.5;return{sex:gp>=.7?0:gp<=.3?1:2,dec:peakDec(st,i),tot:s,gem:GEMS[i],sec:domSec(i),cat:catOf(i)}}
 const sexLab=s=>[t('בת','Girl'),t('בן','Boy'),t('יוניסקס','Unisex')][s];
@@ -58,9 +62,9 @@ function wordle(g,s){const G_=lettersOf(g),S=lettersOf(s);const res=G_.map(()=>'
 function namleDaily(p,mk){const a=p.slice().sort((x,y)=>NAMES[x]<NAMES[y]?-1:NAMES[x]>NAMES[y]?1:0);const rnd=mulberry32(hash('bnil-daily-'+mk));
   for(let k=a.length-1;k>0;k--){const j=Math.floor(rnd()*(k+1));[a[k],a[j]]=[a[j],a[k]]}const d=dayNum()-1;return a[((d%a.length)+a.length)%a.length]}
 function namleNew(mode){const p=namlePool();const key=todayKey(),mk=nmodeKey();
-  if(mode==='daily'){const saved=store.get('namle2_'+key+'_'+mk,null);NML.state=saved||{mode,key,mk,day:dayNum(),secret:namleDaily(p,mk),guesses:[],hint:false,reveal:[],done:false,won:false,shown:false}}
+  if(mode==='daily'){let saved=store.get('namle2_'+key+'_'+mk,null);if(saved&&saved.sn){if(IDX.has(saved.sn)){saved.secret=IDX.get(saved.sn);saved.guesses=(saved.gn||[]).filter(n=>IDX.has(n)).map(n=>IDX.get(n))}else saved=null}NML.state=saved||{mode,key,mk,day:dayNum(),secret:namleDaily(p,mk),guesses:[],hint:false,reveal:[],done:false,won:false,shown:false}}
   else NML.state={mode,mk,secret:rand(p),guesses:[],hint:false,reveal:[],done:false,won:false,shown:false};}
-function namleSave(){if(NML.state.mode==='daily'){store.set('namle2_'+NML.state.key+'_'+NML.state.mk,NML.state);nstatRecord(NML.state)}}
+function namleSave(){if(NML.state.mode==='daily'){const s=NML.state;store.set('namle2_'+s.key+'_'+s.mk,Object.assign({},s,{sn:NAMES[s.secret],gn:s.guesses.map(i=>NAMES[i])}));nstatRecord(NML.state)}}
 const triesUsed=s=>s.guesses.length+(s.hint?1:0);
 function lockedMask(s){const S=lettersOf(NAMES[s.secret]);const lock=S.map(()=>false);
   s.guesses.forEach(i=>{const w=wordle(NAMES[i],NAMES[s.secret]);w.res.forEach((r,k)=>{if(r==='g'&&k<S.length)lock[k]=true})});
@@ -83,8 +87,8 @@ function renderNamle(){const el=$('#g-namle');
   const left=MAXG-triesUsed(s);
   const {S,lock}=lockedMask(s);
   const mask=`<div class="mask" aria-label="${t('תבנית השם','Name pattern')}">${S.map((c,k)=>lock[k]||s.done?`<i class="on">${c}</i>`:'<i></i>').join('')}</div>`;
-  const dots=`<div class="tries">${Array.from({length:MAXG},(_,k)=>`<i class="${k<s.guesses.length?'u':k<triesUsed(s)?'h':''}"></i>`).join('')}<span>${t(`${left} ניסיונות נותרו`,`${left} tries left`)}</span></div>`;
-  const teaser=s.hint?MEAN.get(NAMES[s.secret]).split(NAMES[s.secret]).join('___'):'';
+  const dots=`<div class="tries">${Array.from({length:MAXG},(_,k)=>`<i class="${k<s.guesses.length?'u':k<triesUsed(s)?'h':''}"></i>`).join('')}<span>${t(left===1?'נותר ניסיון אחד':`נותרו ${left} ניסיונות`,left===1?'1 try left':`${left} tries left`)}</span></div>`;
+  const teaser=s.hint?(()=>{const st=stats(-1),c=comb(st,s.secret),n=c[NY-1],md=st.med[s.secret];return t(`נחשפה אות אחת. בנוסף: ${n?`ב-${Y1} קיבלו את השם ${fmt(n)} תינוקות`:`ב-${Y1} כמעט לא ניתן`}, ושנת הלידה הטיפוסית היא ${md}.`,`One letter revealed. Also: ${n?`${fmt(n)} babies got it in ${Y1}`:`almost none in ${Y1}`}, typical birth year ${md}.`)})():'';
   el.innerHTML=`<div class="head"><div><h3>${t('השם הסודי','The secret name')} ${s.mode==='daily'?`<span class="daynum">#${s.day}</span>`:''}</h3><div class="sub">${s.mode==='daily'?t('שם חדש בכל יום בחצות. ','A new name every day at midnight. '):t('משחק חופשי. ','Free play. ')}${t(`${MAXG} ניסיונות. האותיות נצבעות כמו בוורדל, והעמודות מכוונות אתכם.`,`${MAXG} tries. Letters color like Wordle; the columns steer you.`)}</div></div>
       <div class="seg"><button data-nm="daily" aria-pressed="${s.mode==='daily'}">${t('היומי','Daily')}</button><button data-nm="free" aria-pressed="${s.mode==='free'}">${t('חופשי','Free')}</button></div></div>
     <div class="nopts"><div class="fl"><span>${t('איזה שם?','Which name?')}</span><div class="seg wrap">${[['all',t('מעורב','Mixed')],['0',t('שם יהודי','Jewish name')],['1',t('שם מוסלמי','Muslim name')]].map(([v,l])=>`<button data-ns="${v}" aria-pressed="${NOPT.sec===v}">${l}</button>`).join('')}</div></div>
@@ -214,6 +218,6 @@ function renderDec(){const el=$('#g-dec');if(!G.q)newQ();
 
 /* ---------- boot ---------- */
 (function boot(){const H0=(location.hash||'').slice(1);let t0=H0;if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0=store.get('tab','home');TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
-  const isSaved=/^saved\./.test(H0);if(isSaved){t0='home';TAB='home'}renderShell();setTab(t0);if(isSaved)checkSavedHash(H0);try{document.activeElement&&document.activeElement.blur()}catch(e){}
+  const isSaved=/^saved\./.test(H0);if(isSaved){t0='home';TAB='home'}const miss=URL_MISS;if(miss){t0='home';TAB='home'}renderShell();setTab(t0);if(isSaved)checkSavedHash(H0);if(miss)notFound(miss);try{document.activeElement&&document.activeElement.blur()}catch(e){}
   const mq=matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',()=>{GAME_BUILT=null;rerender()});
   new MutationObserver(()=>{GAME_BUILT=null;rerender()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});})();

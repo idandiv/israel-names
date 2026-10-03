@@ -3,7 +3,7 @@
    ========================================================= */
 let metric='n', tmode=store.get('tmode','sex'), REL=store.get('rel','tw');
 function renderName(){
-  const S=SIMPLE();const tmode_=S?'sex':tmode,metric_=S?'n':metric;
+  const S=false;const tmode_=S?'sex':tmode,metric_=S?'n':metric;
   const i=CUR, nm=NAMES[i], dn=nmh(i), st=stats(F), v=$('#tab-name');
   const g=Float64Array.from({length:NY},(_,y)=>st.Y[0][i*NY+y]), b=Float64Array.from({length:NY},(_,y)=>st.Y[1][i*NY+y]);
   const tg=st.tot[0][i], tb=st.tot[1][i], tot=tg+tb;
@@ -26,10 +26,10 @@ function renderName(){
    pills.push(dp>=97?`<span class="pill sec s${ds}">${t('ניתן כמעט רק אצל ','Almost only ')}${sectName(ds)}</span>`:`<span class="pill sec s${ds}">${t('בעיקר אצל ','Mostly ')}${sectName(ds)} · ${Math.round(dp)}%</span>`);}
   {const pp=paPill(nm);if(pp)pills.push(pp);}
   if(mom>=9)pills.push(`<span class="pill up">${t('שם חדש לגמרי','Brand-new name')}</span>`);
-  else if(mom>0.5)pills.push(`<span class="pill up">${t('בהמראה','Taking off')}: +${Math.round(mom*100)}% ${t('בעשור','in a decade')}</span>`);
-  else if(mom>0.1)pills.push(`<span class="pill up">${t('בעלייה','Rising')}: +${Math.round(mom*100)}% ${t('בעשור','in a decade')}</span>`);
-  else if(mom<-0.5)pills.push(`<span class="pill down">${t('בצניחה','Plunging')}: ${Math.round(mom*100)}% ${t('בעשור','in a decade')}</span>`);
-  else if(mom<-0.1)pills.push(`<span class="pill down">${t('בירידה','Falling')}: ${Math.round(mom*100)}% ${t('בעשור','in a decade')}</span>`);
+  else if(mom>0.5)pills.push(`<span class="pill up">${t('בהמראה','Taking off')}: <bdi dir="ltr">+${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  else if(mom>0.1)pills.push(`<span class="pill up">${t('בעלייה','Rising')}: <bdi dir="ltr">+${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  else if(mom<-0.5)pills.push(`<span class="pill down">${t('בצניחה','Plunging')}: <bdi dir="ltr">${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  else if(mom<-0.1)pills.push(`<span class="pill down">${t('בירידה','Falling')}: <bdi dir="ltr">${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
   else if(c[L])pills.push(`<span class="pill">${t('יציב בעשור האחרון','Stable this decade')}</span>`);
   if(!c[L])pills.push(`<span class="pill down">${t(`לא ניתן ב-${Y1} (פחות מ-5)`,`Not given in ${Y1} (under 5)`)}</span>`);
   pills.push(`<span class="pill acc">${sexWord}</span>`);
@@ -38,17 +38,17 @@ function renderName(){
   if(best[0]<=10)pills.push(`<span class="pill acc">${best[0]===1?t('היה מקום ראשון','Was #1'):t('היה בטופ 10','Was top 10')} (${t('מקום ','#')}${best[0]} ${t('ב-','in ')}${Y0+best[1]})</span>`);
   if(yrsIn===NY)pills.push(`<span class="pill">${t(`נוכח בכל ${NY} השנים`,`Present in all ${NY} years`)}</span>`);
   const oneIn=Math.round(st.DD[pk]/c[pk]);
-  const age=NOW-med;
+  const age=NOW-med;const gw=(fem,mas,both)=>gp>=80?fem:gp<=20?mas:both;
   const secTot=where.reduce((a,q)=>a+q,0);
   const mxs=Math.max(...sh);
-  const summary=t(`${nm}: ${fmt(tot)} תינוקות בישראל מאז ${Y0}. שיא ב-${Y0+pk} (אחד מכל ${fmt(oneIn)}), ${c[L]?`${fmt(c[L])} תינוקות ב-${Y1}`:`כמעט לא ניתן ב-${Y1}`}. ה${nm} הטיפוסי/ת נולד/ה ב-${med}. גימטריה ${gem(nm)}. (השמות של ישראל, נוצר ע״י עידן דיוה)`,
+  const summary=t(`${nm}: ${fmt(tot)} תינוקות בישראל מאז ${Y0}. שיא ב-${Y0+pk} (אחד מכל ${fmt(oneIn)}), ${c[L]?`${fmt(c[L])} תינוקות ב-${Y1}`:`כמעט לא ניתן ב-${Y1}`}. ה${nm} ${gw('הטיפוסית נולדה','הטיפוסי נולד','הטיפוסי/ת נולד/ה')} ב-${med}. גימטריה ${gem(nm)}. (השמות של ישראל, נוצר ע״י עידן דיוה)`,
     `${NM(i)} (${nm}): ${fmt(tot)} babies in Israel since ${Y0}. Peak in ${Y0+pk} (1 in ${fmt(oneIn)}), ${fmt(c[L])} babies in ${Y1}. Typical birth year ${med}. (Names of Israel, made by Idan Diva)`);
-  v.innerHTML=`<div class="nametools">${secChips()}<div class="seg" id="detseg" role="group" aria-label="${t('רמת פירוט','Detail')}"><button data-d="simple" aria-pressed="${SIMPLE()}">${t('תמציתי','Summary')}</button><button data-d="full" aria-pressed="${!SIMPLE()}">${t('כל הנתונים','All data')}</button></div></div>
+  v.innerHTML=`<div class="nametools">${secChips()}</div>
   <div class="hero fade">
     <div class="stamp"><div><small>${t('גימטריה','GEMATRIA')}</small><b class="tn">${gem(nm)}</b><small>${letters(nm)} ${t('אותיות','letters')}</small></div></div>
     <div class="eyebrow">${t('תיק שם','NAME FILE')} · ${F<0?t('כל המגזרים','All communities'):sectName(F)}</div>
     <div class="nm">${dn}</div>${LANG==='en'?`<div class="nmhe" dir="rtl">${esc(nm)}</div>`:''}
-    <p class="tagline">${t(`מאז ${Y0} קיבלו את השם <b>${fmt(tot)}</b> תינוקות. ${atStart(pk)?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-<b>${Y0}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`:`השיא היה ב-<b>${Y0+pk}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`} ה${esc(nm)} הטיפוסי/ת נולד/ה ב-<b>${med}</b>, כלומר בערך בן/בת <b>${age}</b> היום.`,
+    <p class="tagline">${t(`מאז ${Y0} קיבלו את השם <b>${fmt(tot)}</b> תינוקות. ${atStart(pk)?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-<b>${Y0}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`:`השיא היה ב-<b>${Y0+pk}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`} ה${esc(nm)} ${gw('הטיפוסית נולדה','הטיפוסי נולד','הטיפוסי/ת נולד/ה')} ב-<b>${med}</b>, כלומר ${gw('בערך בת','בערך בן','בערך בן/בת')} <b>${age}</b> היום.`,
       `Since ${Y0}, <b>${fmt(tot)}</b> babies got this name. ${atStart(pk)?`It was already most common when records began in <b>${Y0}</b> (1 in <b>${fmt(oneIn)}</b>).`:`It peaked in <b>${Y0+pk}</b>, when 1 in every <b>${fmt(oneIn)}</b> babies was named ${dn}.`} The typical ${dn} was born in <b>${med}</b>, so is about <b>${age}</b> today.`)}</p>
     ${LANG!=='en'&&MEAN.has(nm)?`<p class="meaning"><span>${t('פירוש השם','Meaning')}</span>${esc(MEAN.get(nm))}</p>`:''}
     ${LANG!=='en'&&STORY.has(nm)?`<p class="story">${esc(STORY.get(nm))}</p>`:''}
@@ -71,10 +71,11 @@ function renderName(){
       <div class="seg" id="mseg" ${tmode_==='mix'?'hidden':''}><button data-m="n" aria-pressed="${metric_==='n'}">${t('מספרים','Counts')}</button><button data-m="p" aria-pressed="${metric_==='p'}">${t('לכל 1,000','Per 1,000')}</button></div></div>`}</div>
       <div class="cw"><canvas id="cTime"></canvas></div>
       <div class="legend" id="tleg"></div></div>
+    <div class="card"><div class="head"><div><h3>${t('פרופיל אופי השם','Name character profile')}</h3><div class="sub">${t('חמישה ממדים מהנתונים, מ-0 עד 100','Five data-driven dimensions, 0 to 100')}</div></div></div><div id="prof"></div></div>
     <div class="card"><div class="head"><div><h3>${t('ציר הדרך של השם','The name\u2019s journey')}</h3><div class="sub">${t('הרגעים החשובים בחיים של השם','Key moments in the name\u2019s life')}${F>=0?' · '+sectName(F):''}</div></div></div><ol class="journey" id="journey"></ol></div>
     <div class="card"><div class="head"><div><h3>${t('כמה בכיתה?','How many per class?')}</h3><div class="sub">${t('לפי התינוקות שנולדו בשנה, בכיתה של 30 ילדים','Based on babies born that year, in a class of 30')}</div></div></div><div id="classbox"></div></div>
     <div class="card"><div class="head"><div><h3>${t('בני כמה הם היום?','How old are they today?')}</h3><div class="sub">${t(`כל מי שנקרא ${esc(nm)}, לפי שלב בחיים`,`Everyone named ${dn}, by life stage`)}</div></div></div><div id="lstage"></div></div>
-    ${S?'':`<div class="card"><div class="head"><div><h3>${t('מקום בדירוג','Rank over time')}</h3><div class="sub">${dom?t('בין שמות הבנים','Among boys’ names'):t('בין שמות הבנות','Among girls’ names')} · ${t('למעלה זה טוב','higher is better')}</div></div></div><div class="cw sm"><canvas id="cRank"></canvas></div></div>
+    ${S?'':`<div class="card"><div class="head"><div><h3>${t('מקום בדירוג','Rank over time')}</h3><div class="sub">${dom?t('בין שמות הבנים','Among boys’ names'):t('בין שמות הבנות','Among girls’ names')} · ${t('למעלה זה טוב · קו מקווקו: מתחת לסף הרישום','higher is better · dashed: below the listing threshold')}</div></div></div><div class="cw sm"><canvas id="cRank"></canvas></div></div>
     <div class="card"><div class="head"><div><h3>${t('באיזה מגזר?','Which community?')}</h3><div class="sub">${t('כל התינוקות בשם, בכל המגזרים','All babies with this name, all communities')}</div></div></div><div class="hb" id="secs"></div></div>`}
     <div class="card ${S?'wide':''}"><div class="head"><div><h3>${t('השנה שלך','Your year')}</h3><div class="sub">${t(`בחרו שנת לידה וגלו כמה ${esc(nm)} נולדו איתכם`,`Pick a birth year to see how many were born with you`)}</div></div></div>
       <div class="yr"><select id="ysel" aria-label="${t('שנת לידה','Birth year')}">${YEARS.slice().reverse().map(y=>`<option ${y===store.get('yr',1990)?'selected':''}>${y}</option>`).join('')}</select></div><div class="yrout" id="yout"></div></div>
@@ -84,7 +85,7 @@ function renderName(){
       <div class="rel" id="rel"></div></div>
   </div>`;
   $('#card').onclick=()=>shareCard(i);
-  $('#detseg').onclick=e=>{const b=e.target.closest('[data-d]');if(b)setMode(b.dataset.d)};
+
   $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);
   $('#tocmp').onclick=()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')};
   if(!S){$('#mseg').onclick=e=>{const bt=e.target.closest('[data-m]');if(bt){metric=bt.dataset.m;renderName();}};
@@ -104,9 +105,17 @@ function renderName(){
     else{for(let s=0;s<4;s++){if(!where[s])continue;const a=perSec(s);const d=YEARS.map((_,y)=>DATA.T[s][0][y]+DATA.T[s][1][y]);ds.push(line(sectName(s),metric_==='n'?a:a.map((q,y)=>d[y]?q/d[y]*1000:0),css(SC[s])));leg+=legendHTML([[SC[s],sectName(s)]])}}}
   $('#tsub').textContent=sub;$('#tleg').innerHTML=leg;
   mk('cTime',{type:'line',data:{labels:YEARS,datasets:ds},options:o});
-  if(!S){const ranks=YEARS.map((_,y)=>st.rank[dom][i*NY+y]||null);
-  const o2=chartBase();o2.scales.y.reverse=true;o2.scales.y.beginAtZero=false;o2.scales.y.min=1;o2.plugins.tooltip.callbacks={label:q=>` ${t('מקום','Rank')} ${q.parsed.y}`};
-  mk('cRank',{type:'line',data:{labels:YEARS,datasets:[{...line(t('מקום','Rank'),ranks,css(dom?'--boy':'--girl')),spanGaps:false}]},options:o2});
+  if(!S){/* Years where the name is under the CBS publishing threshold (<5 babies) have no rank. Instead of gaps,
+     they sit on a "below threshold" floor just under the last listed rank of that year, drawn as a thin dashed line. */
+  const real=YEARS.map((_,y)=>st.rank[dom][i*NY+y]||0),below=real.map(r=>!r);
+  const floorOf=y=>(st.uniq[dom][y]||1)+1,ranks=real.map((r,y)=>r||floorOf(y));
+  const col=css(dom?'--boy':'--girl'),mut=css('--muted')||'#888';
+  const o2=chartBase();o2.scales.y={...o2.scales.y,type:'logarithmic',reverse:true,min:1,max:Math.max(...ranks)*1.15,beginAtZero:false,
+    ticks:{...(o2.scales.y.ticks||{}),callback:v=>[1,3,10,30,100,300,1000,3000].includes(v)?v:''}};
+  o2.plugins.tooltip.callbacks={label:q=>below[q.dataIndex]?t(' מתחת לסף הרישום (פחות מ-5 תינוקות)',' Below the listing threshold (under 5 babies)'):` ${t('מקום','Rank')} ${fmt(q.parsed.y)}`};
+  const ds={...line(t('מקום','Rank'),ranks,col),spanGaps:true,pointRadius:0,
+    segment:{borderDash:c2=>below[c2.p0DataIndex]||below[c2.p1DataIndex]?[4,4]:undefined,borderColor:c2=>below[c2.p0DataIndex]||below[c2.p1DataIndex]?mut:undefined,borderWidth:c2=>below[c2.p0DataIndex]&&below[c2.p1DataIndex]?1:undefined}};
+  mk('cRank',{type:'line',data:{labels:YEARS,datasets:[ds]},options:o2});
   const decs=[];for(let d=1940;d<=2020;d+=10){let s=0;for(let y=0;y<NY;y++)if(Y0+y>=d&&Y0+y<d+10)s+=c[y];decs.push([d,s])}
   const dm=Math.max(...decs.map(d=>d[1]));const pd=decs.find(d=>d[1]===dm)[0];
   if($('#decs'))$('#decs').innerHTML=decs.map(([d,s])=>`<div class="c ${d===pd?'pk':''}" title="${d}: ${fmt(s)}"><em>${s?kfmt(s):''}</em><i style="height:${dm?s/dm*100:0}%"></i><span>${d===1940?'1949':"'"+String(d).slice(2)}</span></div>`).join('');
@@ -130,11 +139,11 @@ function renderName(){
    $('#journey').innerHTML=items.map(([y,tx],k)=>`<li class="${y===Y0+pk&&k===items.findIndex(z=>z[0]===Y0+pk)?'pk':''}"><b>${y}</b><span>${tx}</span></li>`).join('');}
   {const per=y=>c[y]/st.DD[y]*30;const now=per(L),then=per(pk);const nmS=esc(nm);
    const tile=(lab,v)=>{let head,viz='';
-     if(v>=1){const k=Math.round(v);head=t(`<b>${v>=1.95?Math.round(v):1}</b> ${v>=1.95?'ילדים':'ילד/ה'} בשם ${nmS} בכל כיתה`,`<b>${Math.round(v)}</b> per class`);viz=`<div class="classdots" aria-hidden="true">${Array.from({length:30},(_,j)=>`<i class="${j<k?'on':''}"></i>`).join('')}</div>`}
-     else if(v>0){const k=Math.round(1/v);head=t(`ילד/ה אחד/ת בכל <b>${fmt(k)}</b> כיתות`,`One in every <b>${fmt(k)}</b> classes`);viz=k<=24?`<div class="classes" aria-hidden="true">${Array.from({length:k},(_,j)=>`<i class="${j===0?'on':''}"></i>`).join('')}</div>`:`<div class="sub">${t('פחות מכיתה אחת בכל בית ספר','Less than one per school')}</div>`}
+     if(v>=1){const k=Math.round(v);head=t(`<b>${v>=1.95?Math.round(v):1}</b> ${v>=1.95?gw('ילדות','ילדים','ילדים'):gw('ילדה','ילד','ילד/ה')} בשם ${nmS} בכל כיתה`,`<b>${Math.round(v)}</b> per class`);viz=`<div class="classdots" aria-hidden="true">${Array.from({length:30},(_,j)=>`<i class="${j<k?'on':''}"></i>`).join('')}</div>`}
+     else if(v>0){const k=Math.round(1/v);head=t(`${gw('ילדה אחת','ילד אחד','ילד/ה אחד/ת')} בכל <b>${fmt(k)}</b> כיתות`,`One in every <b>${fmt(k)}</b> classes`);viz=k<=24?`<div class="classes" aria-hidden="true">${Array.from({length:k},(_,j)=>`<i class="${j===0?'on':''}"></i>`).join('')}</div>`:`<div class="sub">${t('פחות מכיתה אחת בכל בית ספר','Less than one per school')}</div>`}
      else head=t('כמעט אף ילד בשם הזה','Almost no one');
      return `<div class="ctile"><div class="ck">${lab}</div><div class="cv">${head}</div>${viz}</div>`};
-   {const ls=$('#lstage');if(ls)ls.innerHTML=lifeStagesHTML(nm,c);}
+   {const pf=$('#prof');if(pf)pf.innerHTML=profileHTML(i);const ls=$('#lstage');if(ls)ls.innerHTML=lifeStagesHTML(nm,c);}
    $('#classbox').innerHTML=`<div class="ctiles">${tile(t(`היום · ילידי ${Y1}`,`Today · born ${Y1}`),now)}${pk!==L?tile(atStart(pk)?t(`בתחילת הרישום · ${Y0}`,`When records began · ${Y0}`):t(`בשיא · ${Y0+pk}`,`At the peak · ${Y0+pk}`),then):''}</div>`;}
   {const q=[];let my=0;for(let y=1;y<NY;y++)if(c[y]>c[my])my=y;
    q.push([t(`באיזו שנה נולדו הכי הרבה ${esc(nm)}?`,`Which year had the most babies named ${dn}?`),my===pk?t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. זו גם שנת השיא שלו.`,`${Y0+my}, with ${fmt(c[my])} babies, also its peak year.`):t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. ${atStart(pk)?`אבל ביחס למספר התינוקות שנולדו, הוא היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא היא ${Y0+pk}, כי אז הוא היה הכי נפוץ ביחס למספר התינוקות שנולדו באותה שנה.`}`,`${Y0+my}, with ${fmt(c[my])} babies. Its peak year is ${Y0+pk}, when it was most common relative to all births that year.`)]);
@@ -142,24 +151,31 @@ function renderName(){
    q.push([t('כמה זמן השם היה בצמרת?','How long was it near the top?'),k10?t(`${k10} שנים בטופ 10, ו-${k100} שנים בטופ 100.`,`${k10} years in the top 10 and ${k100} in the top 100.`):k100?t(`הוא לא הגיע לטופ 10, אבל היה ${k100} שנים בטופ 100.`,`Never top 10, but ${k100} years in the top 100.`):t('הוא אף פעם לא נכנס לטופ 100. שם מיוחד באמת.','It never made the top 100. Truly distinctive.')]);
    let jy=0,jd=0;for(let y=1;y<NY;y++){const dd=c[y]-c[y-1];if(dd>jd){jd=dd;jy=y}}
    if(jd>=20)q.push([t('מתי השם קפץ הכי הרבה?','When did it jump the most?'),t(`בין ${Y0+jy-1} ל-${Y0+jy}: מ-${fmt(c[jy-1])} ל-${fmt(c[jy])} תינוקות בשנה אחת.`,`Between ${Y0+jy-1} and ${Y0+jy}: from ${fmt(c[jy-1])} to ${fmt(c[jy])} babies.`)]);
-   const ages=[[0,17],[18,39],[40,64],[65,99]].map(([a,b])=>{let v=0;for(let y=0;y<NY;y++){const age=NOW-(Y0+y);if(age>=a&&age<=b)v+=c[y]}return v});const ai=ages.indexOf(Math.max(...ages));
-   q.push([t(`בני כמה רוב ה${esc(nm)} היום?`,`How old are most people named ${dn}?`),t(`רובם ${['ילדים ובני נוער (עד 17)','צעירים (18–39)','בגיל העמידה (40–64)','בני 65 ומעלה'][ai]}, לפי שנות הלידה.`,`Mostly ${['kids and teens','young adults (18–39)','middle-aged (40–64)','65 and over'][ai]}, by birth year.`)]);
    const gm=NAMES.filter((n2,j)=>j!==i&&GEMS[j]===GEMS[i]&&T(stats(-1),j)>=200).slice(0,3);
    $('#faq').innerHTML=q.map(([a,b],k)=>`<details ${k<1?'open':''}><summary>${a}</summary><p>${b}</p></details>`).join('');}
   // related
   const norm=a=>{let m=0;for(const q of a)m+=q;m/=a.length;const d=a.map(q=>q-m);let l=0;for(const q of d)l+=q*q;l=Math.sqrt(l)||1;return d.map(q=>q/l)};
   const mv=norm(Array.from(sh));const res=[];
-  for(let j=0;j<N;j++){if(j===i||T(st,j)<300)continue;const oo=norm(Array.from(share(st,j)));let s=0;for(let y=0;y<NY;y++)s+=mv[y]*oo[y];res.push([j,s])}
+  /* twins and spellings stay within the same sex (a unisex name may pair with either) */
+  const uniName=gp>20&&gp<80;const sexOf=j=>{const a=st.tot[0][j],b=st.tot[1][j],g=a+b?a/(a+b):.5;return g>=.8?0:g<=.2?1:2};
+  const mySec=domSec(i),mixed=(()=>{const w=SECTOT[i],tt=w[0]+w[1]+w[2]+w[3];return w[mySec]/tt<.8})();
+  const sameSex=j=>(uniName||sexOf(j)===dom)&&(mixed||domSec(j)===mySec);
+  for(let j=0;j<N;j++){if(j===i||T(st,j)<300||!sameSex(j))continue;const oo=norm(Array.from(share(st,j)));let s=0;for(let y=0;y<NY;y++)s+=mv[y]*oo[y];res.push([j,s])}
   res.sort((a,q)=>q[1]-a[1]);
+  /* spelling key: only changes that keep the sound -- final he/aleph, aleph/ayin, doubled vav/yod,
+     an aleph next to a yod (מאיה/מיה), and sound-alike letters (ח/כ, ק/כ, ט/ת) */
+  const spellKey=w=>{let x=w.replace(/['\s-]/g,'').replace(/[ךםןףץ]/g,c=>({'ך':'כ','ם':'מ','ן':'נ','ף':'פ','ץ':'צ'}[c]));
+    x=x.replace(/[הא]$/,'H').replace(/ע/g,'א').replace(/וו/g,'ו').replace(/יי/g,'י').replace(/יא/g,'י').replace(/אי/g,'י').replace(/[חק]/g,'כ').replace(/ט/g,'ת');return x};
+  const SK=spellKey(nm);
   const vs=[],rh=[],gm=[];const end=nm.slice(-2),G=GEMS[i];
   for(let j=0;j<N;j++){if(j===i)continue;if(T(st,j)<30)continue;const n2=NAMES[j];
-    if(ed1(nm,n2))vs.push(j);
+    if(n2!==nm&&spellKey(n2)===SK&&sameSex(j))vs.push(j);
     if(n2.length>2&&nm.length>=2&&n2.endsWith(end)&&(st.tot[0][j]>=st.tot[1][j]?0:1)===dom)rh.push(j);
     if(GEMS[j]===G)gm.push(j);}
   const byT=a=>a.sort((p,q)=>T(st,q)-T(st,p));
   const chip=(j,s)=>`<button data-i="${j}"><b>${nmh(j)}</b><small>${s}</small></button>`;
   const REL_DEF={tw:[t(`השמות שהעלייה והירידה שלהם הכי דומות לזו של ${esc(nm)}`,`Names whose rise and fall most resemble ${dn}`),res.slice(0,8).map(([j,s])=>chip(j,Math.round(s*100)+t('% דמיון','% match'))),t('אין מספיק נתונים','Not enough data')],
-    var:[t(`שמות שרחוקים מ${esc(nm)} באות אחת בדיוק`,`Names exactly one Hebrew letter away`),byT(vs).slice(0,8).map(j=>chip(j,kfmt(T(st,j)))),t('אין כתיבים קרובים בנתונים','No close spellings in the data')],
+    var:[t(`כתיבים אחרים של ${esc(nm)}, שנשמעים אותו דבר`,`Other spellings of ${dn} that sound the same`),byT(vs).slice(0,8).map(j=>chip(j,kfmt(T(st,j)))),t('אין כתיבים קרובים בנתונים','No close spellings in the data')],
     rhy:[t('אותן שתי אותיות אחרונות, לאותו מין','Same last two Hebrew letters, same sex'),byT(rh).slice(0,8).map(j=>chip(j,kfmt(T(st,j)))),t('לא מצאנו חרוז','No rhyme found')],
     gem:[t(`שמות ששווים בדיוק ${gem(nm)} בגימטריה, כמו ${esc(nm)}`,`Names with the same gematria value (${gem(nm)})`),byT(gm).slice(0,8).map(j=>chip(j,kfmt(T(st,j)))),t('אין שם אחר עם אותה גימטריה. ייחודי!','No other name has this value. Unique!')]};
   const drawRel=()=>{const [s,items,emp]=REL_DEF[REL];$('#relsub').innerHTML=s;$('#rel').innerHTML=items.join('')||`<span class="sub">${emp}</span>`;

@@ -37,7 +37,7 @@ DATA.txt.split('\n').forEach((line,i)=>{
   SER.push(slots);
 });
 const N=NAMES.length;
-let ROM=null;const rom=i=>{if(!ROM)ROM=NAMES.map(romanize);return ROM[i]};
+let ROM=null;const rom=i=>{if(!ROM)ROM=NAMES.map((n,j)=>{const w=SECTOT[j],tt=w[0]+w[1]+w[2]+w[3];return romanize(n,tt>0&&(w[1]+w[2]+w[3])/tt>.5)});return ROM[i]};
 const NM=i=>LANG==='en'?rom(i):NAMES[i];
 const nmh=i=>esc(NM(i));
 function den(x,F){const out=new Float64Array(NY);for(let s=0;s<4;s++){if(F>=0&&s!==F)continue;const a=DATA.T[s][x];for(let i=0;i<NY;i++)out[i]+=a[i];}return out}
@@ -180,17 +180,18 @@ function renderTrends(){$('#tab-trends').innerHTML=`<div class="pagehead"><h2>${
 function renderGames(){if(!$('#tab-game')){$('#tab-games').innerHTML=`<div class="pagehead"><h2>${t('משחקים','Games')}</h2><p>${t('השם הסודי של היום, ועוד משחקי טריוויה קצרים על שמות.','Today’s secret name, plus quick name trivia games.')}</p></div><div id="tab-game"></div>`;GAME_BUILT=null}renderGame()}
 
 /* ---------- search ---------- */
-function suggest(q,limit=8,minTot=0){q=q.trim();if(!q)return[];const st=stats(-1);const pre=[],inn=[];const lq=q.toLowerCase();const latin=/[a-z]/i.test(q);
+const normQ=q=>String(q||'').replace(/[׳’‘`´]/g,"'").replace(/[״“”]/g,'"').replace(/\s+/g,' ').trim();
+function suggest(q,limit=8,minTot=0){q=normQ(q);if(!q)return[];const st=stats(-1);const pre=[],inn=[];const lq=q.toLowerCase();const latin=/[a-z]/i.test(q);
   for(let i=0;i<N;i++){if(minTot&&T(st,i)<minTot)continue;const n=latin?rom(i).toLowerCase():NAMES[i];const qq=latin?lq:q;if(n.startsWith(qq))pre.push(i);else if(n.includes(qq))inn.push(i);}
   const v=i=>T(st,i);pre.sort((a,b)=>v(b)-v(a));inn.sort((a,b)=>v(b)-v(a));return pre.concat(inn).slice(0,limit);}
 function wireSearch(inp,box,onPick,minTot=0){let sel=-1,items=[];
-  const draw=()=>{const empty=!inp.value.trim();items=empty?(store.get('recent',[])||[]).filter(n=>IDX.has(n)).map(n=>IDX.get(n)).slice(0,6):suggest(inp.value,8,minTot);if(!items.length){box.hidden=true;return}const st=stats(-1);
+  const draw=()=>{const empty=!inp.value.trim();items=empty?(store.get('recent',[])||[]).filter(n=>IDX.has(n)).map(n=>IDX.get(n)).slice(0,6):suggest(inp.value,8,minTot);if(!items.length){if(empty){box.hidden=true;return}box.innerHTML=`<div class="snone">${t('לא מצאנו שם כזה במאגר','No such name in the data')}<small>${t('המאגר כולל שמות שניתנו ל-5 תינוקות לפחות באותה שנה','The data covers names given to at least 5 babies in a year')}</small></div>`;box.hidden=false;return}const st=stats(-1);
     box.innerHTML=(empty?`<div class="srecent">${t('חיפושים אחרונים','Recent')}<button type="button" class="srclr" data-clr="1">${t('ניקוי','Clear')}</button></div>`:'')+items.map((i,k)=>`<button data-i="${i}" class="${k===sel?'on':''}"><b>${esc(NAMES[i])}</b>${LANG==='en'?` <em>${esc(rom(i))}</em>`:''}<span>${secShort(i)} · ${fmt(T(st,i))}</span></button>`).join('');box.hidden=false;};
   inp.addEventListener('input',()=>{sel=-1;draw()});inp.addEventListener('focus',()=>{if(!inp.value.trim()){sel=-1;draw()}});
-  inp.addEventListener('keydown',e=>{if(box.hidden&&e.key!=='Enter')return;
+  inp.addEventListener('keydown',e=>{if(box.hidden&&e.key!=='Enter')return;if(!items.length&&e.key!=='Enter')return;
     if(e.key==='ArrowDown'){sel=Math.min(sel+1,items.length-1);draw();e.preventDefault()}
     else if(e.key==='ArrowUp'){sel=Math.max(sel-1,0);draw();e.preventDefault()}
-    else if(e.key==='Enter'){const v=inp.value.trim();const i=sel>=0?items[sel]:(IDX.has(v)?IDX.get(v):items[0]);if(i!=null){onPick(i);box.hidden=true;}}
+    else if(e.key==='Enter'){const v=normQ(inp.value);if(!v)return;const i=sel>=0?items[sel]:(IDX.has(v)?IDX.get(v):items[0]);if(i!=null){onPick(i);box.hidden=true;}else toast(t(`לא מצאנו את השם "${v}" במאגר`,`"${v}" isn't in the data`));}
     else if(e.key==='Escape')box.hidden=true;});
   box.addEventListener('mousedown',e=>{if(e.target.closest('[data-clr]')){e.preventDefault();store.set('recent',[]);box.hidden=true;return}const b=e.target.closest('[data-i]');if(b){e.preventDefault();onPick(+b.dataset.i);box.hidden=true;}});
   inp.addEventListener('blur',()=>setTimeout(()=>box.hidden=true,150));}

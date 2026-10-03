@@ -16,7 +16,16 @@ function nameFromURL(){let n=null;
   try{const m=/^\/names\/([^/?#]+)\/?$/.exec(location.pathname);if(m)n=decodeURIComponent(m[1]).replace(/\.html$/,'')}catch(e){}
   if(n==null){try{n=new URLSearchParams(location.search).get('name')}catch(e){}}
   if(n==null){const m=/^#name=(.+)$/.exec(location.hash||'');if(m){try{n=decodeURIComponent(m[1])}catch(e){n=m[1]}}}
-  if(n==null)return null;n=n.trim();return IDX.has(n)?IDX.get(n):null}
+  URL_MISS=null;if(n==null)return null;n=normQ(n);if(IDX.has(n))return IDX.get(n);URL_MISS=n.slice(0,40);return null}
+let URL_MISS=null;
+/* a link to a name that isn't in the data: say so, and offer the closest names */
+function notFound(raw){const m=$('#modal');if(!m)return;const near=suggest(raw.slice(0,2),6);m.hidden=false;
+  m.innerHTML=`<div class="mbox" role="dialog" aria-label="${t('השם לא נמצא','Name not found')}"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>
+    <h3>${t(`לא מצאנו את השם "${esc(raw)}"`,`We couldn’t find "${esc(raw)}"`)}</h3>
+    <p class="sub">${t('המאגר כולל כל שם שניתן לפחות ל-5 תינוקות באותה שנה, מאז 1949. ייתכן שהשם נדיר מדי, או שהוא כתוב אחרת.','The data includes every name given to at least 5 babies in a year since 1949. The name may be too rare, or spelled differently.')}</p>
+    ${near.length?`<div class="nml">${t('אולי חיפשתם:','Maybe you meant:')}</div><div class="chips" id="nfchips">${near.map(j=>`<button data-i="${j}">${nmh(j)}</button>`).join('')}</div>`:''}</div>`;
+  const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};
+  const ch=$('#nfchips');if(ch)ch.onclick=e=>{const b=e.target.closest('[data-i]');if(b)pick(+b.dataset.i)}}
 /* the URL that matches what is on screen */
 function currentURL(){
   if(TAB==='names'&&NSUB==='file')return SITE.routing==='path'?`/names/${encodeURIComponent(NAMES[CUR])}`:`#name=${encodeURIComponent(NAMES[CUR])}`;
@@ -39,6 +48,7 @@ function setMeta(){const onName=TAB==='names'&&NSUB==='file';const m=onName?name
 addEventListener('popstate',()=>{const h=(location.hash||'').slice(1);
   if(/^(match|saved\.|compare=)/.test(h))return;                 /* handled by their own hashchange listeners */
   const i=nameFromURL();if(i!=null){CUR=i;store.set('name',NAMES[i]);if(TAB!=='names'||NSUB!=='file')setTab('names','file');else{renderNames();setMeta()}return}
+  if(URL_MISS){setTab('home');notFound(URL_MISS);return}
   const k=h||'home';if(TABS.includes(k)&&k!=='match'){if(k!==TAB)setTab(k)}else if(LEGACY[k])setTab(k);else setTab('home');
   window.scrollTo(0,0)});
 /* share the page of one name: native share sheet on phones, copy elsewhere */
