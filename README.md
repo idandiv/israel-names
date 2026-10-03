@@ -19,3 +19,11 @@
 ## אחרי שהאתר באוויר
 - Google Search Console: מוסיפים את הדומיין ושולחים את `/sitemap.xml`.
 - כדאי לבדוק עמוד שם אחד ב-[Rich Results Test](https://search.google.com/test/rich-results) ובתצוגה מקדימה של וואטסאפ.
+
+## בחירת שם בזוג בזמן אמת (Supabase)
+- כל מבקר מקבל משתמש אנונימי אוטומטית (בלי מייל). חדר נפתח ב-RPC `create_room`, הצטרפות ב-`join_room` (עד 4 מכשירים לחדר).
+- כל החלקה נשמרת בטבלה `swipes`, ובן/בת הזוג מקבלים אותה מיד דרך Realtime (WebSocket). התאמה קופצת לשני המסכים.
+- הרשאות: RLS פעיל על כל הטבלאות. רק חברי החדר רואים אותו, וכל אחד כותב רק את ההחלקות שלו.
+- אם ה-WebSocket חסום ברשת מסוימת, האתר עובר אוטומטית לבדיקה כל 3 שניות. אם Supabase לא זמין בכלל, החדר עובד במצב הקישורים הישן.
+- הגדרות: `supabase.config.json` (כתובת ומפתח publishable, ציבוריים מטבעם). אפשר לדרוס ב-Vercel עם `NEXT_PUBLIC_SUPABASE_URL` ו-`NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- הקמת/עדכון מסד הנתונים מהטרמינל: `SUPABASE_ACCESS_TOKEN=sbp_... node scripts/db-setup.mjs` (מריץ את `supabase/migrations` ומפעיל כניסה אנונימית).

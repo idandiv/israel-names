@@ -12,6 +12,12 @@ const src = path.join(root, 'src'), out = path.join(root, 'public');
 const clean = u => (u || '').trim().replace(/\/+$/, '');
 const withProto = u => (u && !/^https?:\/\//.test(u) ? 'https://' + u : u);
 const explicit = clean(withProto(process.env.NEXT_PUBLIC_BASE_URL));
+// Supabase (NameMatch realtime). The publishable key is public by design: access is enforced by RLS.
+// Env vars win; otherwise the committed supabase.config.json is used.
+let sbCfg = {};
+try { sbCfg = JSON.parse(fs.readFileSync(path.join(root, 'supabase.config.json'), 'utf8')); } catch {}
+const sbUrl = clean(process.env.NEXT_PUBLIC_SUPABASE_URL || sbCfg.url || '');
+const sbKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || sbCfg.publishableKey || '').trim();
 const base = explicit || clean(withProto(process.env.VERCEL_PROJECT_PRODUCTION_URL)) || clean(withProto(process.env.VERCEL_URL));
 
 fs.rmSync(out, { recursive: true, force: true });
@@ -21,7 +27,7 @@ const walk = (from, to) => {
     const a = path.join(from, e.name), b = path.join(to, e.name);
     if (e.isDirectory()) { walk(a, b); continue; }
     if (e.name.endsWith('.html')) {
-      const s = fs.readFileSync(a, 'utf8').split('__BASE_URL__').join(base).split('__RUNTIME_BASE_URL__').join(explicit);
+      const s = fs.readFileSync(a, 'utf8').split('__BASE_URL__').join(base).split('__RUNTIME_BASE_URL__').join(explicit).split('__SUPABASE_URL__').join(sbUrl).split('__SUPABASE_KEY__').join(sbKey);
       fs.writeFileSync(b, s);
     } else fs.copyFileSync(a, b);
   }
@@ -36,4 +42,4 @@ if (base) {
   fs.writeFileSync(path.join(out, 'sitemap.xml'), xml);
 }
 fs.writeFileSync(path.join(out, 'robots.txt'), `User-agent: *\nAllow: /\n${base ? `Sitemap: ${base}/sitemap.xml\n` : ''}`);
-console.log(`finalize: base="${base || '(current origin)'}" pages=${paths.length}`);
+console.log(`finalize: base="${base || '(current origin)'}" pages=${paths.length} realtime=${sbUrl && sbKey ? 'on' : 'off'}`);
