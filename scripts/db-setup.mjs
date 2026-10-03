@@ -1,7 +1,7 @@
 // One-time / repeatable database setup for NameMatch realtime, run from a terminal:
 //   SUPABASE_ACCESS_TOKEN=sbp_... node scripts/db-setup.mjs
 // Uses the Supabase Management API over HTTPS (no direct Postgres connection needed):
-//   1) runs every SQL file in supabase/migrations (idempotent), 2) enables anonymous sign-ins.
+//   1) runs every SQL file in supabase/migrations (idempotent), 2) enables anonymous sign-ins and turns off e-mail sign-up.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,8 +33,8 @@ for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort()) {
   await api('POST', '/database/query', { query: fs.readFileSync(path.join(dir, f), 'utf8') });
   console.log('applied', f);
 }
-await api('PATCH', '/config/auth', { external_anonymous_users_enabled: true });
-console.log('anonymous sign-ins: enabled');
+await api('PATCH', '/config/auth', { external_anonymous_users_enabled: true, external_email_enabled: false });
+console.log('anonymous sign-ins: enabled, e-mail sign-up: disabled');
 const check = await api('POST', '/database/query', { query: `
   select c.relname as table, c.relrowsecurity as rls,
          exists(select 1 from pg_publication_tables p where p.pubname='supabase_realtime' and p.tablename=c.relname) as realtime

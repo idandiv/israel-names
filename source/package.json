@@ -1,0 +1,20 @@
+{
+  "name": "names-of-israel-source",
+  "private": true,
+  "type": "module",
+  "description": "Sources and build tools for the Names of Israel site. The deployable output lives one level up (src/).",
+  "scripts": {
+    "data": "python3 tools/make_data.py",
+    "bundle": "python3 tools/build_bundle.py",
+    "seo": "node tools/export_seo.mjs",
+    "site": "python3 tools/build_site.py",
+    "build": "npm run bundle && npm run seo && npm run site"
+  },
+  "dependencies": {
+    "chart.js": "4.4.1",
+    "@supabase/supabase-js": "2.117.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
+}

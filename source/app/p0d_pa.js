@@ -1,0 +1,12 @@
+const PA={"c": {"boysGeneral": [["מוחמד", 1743], ["יוסף", 1274], ["אדם", 1176], ["אריאל", 1061], ["דוד", 1036], ["לביא", 994], ["רפאל", 875], ["עומר", 867], ["איתן", 744], ["מיכאל", 735]], "boysJewish": [["אריאל", 1032], ["לביא", 973], ["דוד", 970], ["רפאל", 819], ["אורי", 721], ["מיכאל", 692], ["איתן", 674], ["אליה", 665], ["יהודה", 653], ["ארי", 651]], "girlsGeneral": [["אביגיל", 1172], ["מרים", 1010], ["ליבי", 856], ["תמר", 826], ["ליה", 770], ["שרה", 753], ["יעל", 734], ["אלה", 719], ["אילה", 697], ["נועה", 672]], "girlsJewish": [["אביגיל", 1160], ["ליבי", 830], ["תמר", 817], ["יעל", 726], ["אלה", 674], ["נועה", 656], ["שרה", 645], ["ליה", 634], ["אילה", 597], ["אדל", 532]]}, "h": {"boysGeneral": ["מוחמד", "אריאל", "יוסף", "אדם", "דוד", "עומר", "רפאל", "לביא", "מיכאל", "איתן"], "boysJewish": ["אריאל", "דוד", "רפאל", "לביא", "אורי", "מיכאל", "אליה", "איתן", "יהודה", "ארי"], "girlsGeneral": ["אביגיל", "מרים", "ליה", "ליבי", "תמר", "יעל", "אילה", "שרה", "אלה", "נאיה"], "girlsJewish": ["אביגיל", "ליבי", "תמר", "יעל", "ליה", "אלה", "אילה", "שרה", "נועה", "נאיה"]}};
+const PA_ALIAS={'אילה':'איילה'};
+function paInfo(n){const out={c:null,h:null};const fix=x=>PA_ALIAS[x]||x;
+  const pickC=(ks)=>{for(const k of ks){const l=PA.c[k];const r=l.findIndex(e=>fix(e[0])===n);if(r>=0)return{k,rank:r+1,n:l[r][1]}}return null};
+  const pickH=(ks)=>{for(const k of ks){const l=PA.h[k];const r=l.findIndex(e=>fix(e)===n);if(r>=0)return{k,rank:r+1}}return null};
+  const i=IDX.get(n);const jew=i!=null&&domSec(i)===0;
+  const order=jew?['boysJewish','girlsJewish','boysGeneral','girlsGeneral']:['boysGeneral','girlsGeneral','boysJewish','girlsJewish'];
+  out.c=pickC(order);out.h=pickH(order);return(out.c||out.h)?out:null}
+function paPill(n){const p=paInfo(n);if(!p)return'';const lab=k=>({boysGeneral:t('בבנים','among boys'),girlsGeneral:t('בבנות','among girls'),boysJewish:t('בבנים יהודים','among Jewish boys'),girlsJewish:t('בבנות יהודיות','among Jewish girls')}[k]);
+  const src=t('לפי רשימות Top-10 של רשות האוכלוסין וההגירה, לא נתוני הלמ״ס','From Population Authority top-10 lists, not CBS data');
+  if(p.c)return `<span class="pill new25" title="${src}">${t('עדכון 2025','2025 update')}: ${t('מקום ','#')}${p.c.rank} ${lab(p.c.k)} · ${fmt(p.c.n)} ${t('תינוקות','babies')}</span>`;
+  return `<span class="pill new25" title="${src}">${t('תשפ״ו','5786')}: ${t('מקום ','#')}${p.h.rank} ${lab(p.h.k)}</span>`}

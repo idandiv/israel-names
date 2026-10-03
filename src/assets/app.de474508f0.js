@@ -1246,7 +1246,7 @@ function nameFromURL(){let n=null;
 /* the URL that matches what is on screen */
 function currentURL(){
   if(TAB==='names'&&NSUB==='file')return SITE.routing==='path'?`/names/${encodeURIComponent(NAMES[CUR])}`:`#name=${encodeURIComponent(NAMES[CUR])}`;
-  return SITE.routing==='path'?`/#${TAB}`:`#${TAB}`}
+  const h=TAB==='names'?NSUB:TAB;return SITE.routing==='path'?`/#${h}`:`#${h}`}
 function syncURL(){if(TAB==='match')return;const u=currentURL();
   try{const now=SITE.routing==='path'?location.pathname+location.hash:location.hash;
     if(now!==u&&decodeURI(now)!==decodeURI(u)){if(PUSH_ONCE)history.pushState(null,'',u);else history.replaceState(null,'',u)}}catch(e){}
@@ -1254,19 +1254,19 @@ function syncURL(){if(TAB==='match')return;const u=currentURL();
 let PUSH_ONCE=false;
 /* <title>, description, canonical and Open Graph follow the screen */
 function metaTag(sel,attr,key,val){let m=document.head.querySelector(sel);if(!m){m=document.createElement(sel.startsWith('link')?'link':'meta');m.setAttribute(attr,key);document.head.appendChild(m)}m.setAttribute(sel.startsWith('link')?'href':'content',val)}
-function nameMeta(i){const st=stats(-1),c=comb(st,i);let pk=0,tot=0;for(let y=0;y<NY;y++){tot+=c[y];if(c[y]>c[pk])pk=y}
-  const nm=NAMES[i],mean=MEAN.has(nm)?MEAN.get(nm):'';
-  return{title:t(`השם ${nm} – משמעות, מקור וסטטיסטיקה | השמות של ישראל`,`The name ${NM(i)} (${nm}) – meaning, origin and statistics | Names of Israel`),
-    desc:t(`${fmt(tot)} תינוקות בישראל נקראו ${nm} מאז ${Y0}. שנת השיא: ${Y0+pk}, עם ${fmt(c[pk])} תינוקות.${mean?` משמעות: ${mean}`:''}`,
-      `${fmt(tot)} babies in Israel were named ${NM(i)} since ${Y0}. Peak year: ${Y0+pk}, with ${fmt(c[pk])} babies.`).slice(0,300)}}
+function nameMeta(i){const nm=NAMES[i];
+  return{title:t(`השם ${nm} – משמעות, מקור וסטטיסטיקה | השמות של ישראל`,`The name ${NM(i)} (${nm}) – meaning, origin and statistics | Names of Israel`),desc:peakDesc(i)}}
 const SITE_TITLE=()=>t('השמות של ישראל – כל שמות התינוקות בישראל מאז 1949','Names of Israel – every baby name in Israel since 1949');
 const SITE_DESC=()=>t('מה הסיפור מאחורי השם שלך? משמעות, מקור, שנת שיא וגרפים לכל שם שניתן בישראל מאז 1949, מחולל שמות לתינוק ומשחקים. לפי נתוני הלמ״ס.','The story behind every baby name given in Israel since 1949: meaning, peak year, charts, a name finder and games. CBS data.');
 function setMeta(){const onName=TAB==='names'&&NSUB==='file';const m=onName?nameMeta(CUR):{title:SITE_TITLE(),desc:SITE_DESC()};
   document.title=m.title;metaTag('meta[name="description"]','name','description',m.desc);
   metaTag('meta[property="og:title"]','property','og:title',m.title);metaTag('meta[property="og:description"]','property','og:description',m.desc);
   if(SITE.base&&SITE.routing==='path'){const u=onName?nameURL(CUR):SITE.root;metaTag('link[rel="canonical"]','rel','canonical',u);metaTag('meta[property="og:url"]','property','og:url',u)}}
-addEventListener('popstate',()=>{const i=nameFromURL();if(i!=null){CUR=i;store.set('name',NAMES[i]);if(TAB!=='names'||NSUB!=='file')setTab('names','file');else{renderNames();setMeta()}return}
-  const h=(location.hash||'').slice(1);if(TAB==='names'&&NSUB==='file'&&!h)setTab('home')});
+addEventListener('popstate',()=>{const h=(location.hash||'').slice(1);
+  if(/^(match|saved\.|compare=)/.test(h))return;                 /* handled by their own hashchange listeners */
+  const i=nameFromURL();if(i!=null){CUR=i;store.set('name',NAMES[i]);if(TAB!=='names'||NSUB!=='file')setTab('names','file');else{renderNames();setMeta()}return}
+  const k=h||'home';if(TABS.includes(k)&&k!=='match'){if(k!==TAB)setTab(k)}else if(LEGACY[k])setTab(k);else setTab('home');
+  window.scrollTo(0,0)});
 /* share the page of one name: native share sheet on phones, copy elsewhere */
 function shareName(i){const url=nameURL(i);const title=nameMeta(i).title;
   if(navigator.share&&matchMedia('(pointer:coarse)').matches){navigator.share({title,text:t(`הסיפור של השם ${NAMES[i]}`,`The story of the name ${NM(i)}`),url}).catch(()=>{});return}
@@ -1352,6 +1352,13 @@ function spark(arr,w=64,h=20,color='var(--accent)'){let m=0;for(const v of arr)m
   const pts=Array.from(arr,(v,i)=>`${(i/(arr.length-1)*w).toFixed(1)},${(h-1-v/m*(h-2)).toFixed(1)}`).join(' ');
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true" style="direction:ltr"><polyline points="${pts}" fill="none" style="stroke:${color}" stroke-width="1.6" stroke-linejoin="round"/></svg>`}
 function comb(st,i){const a=new Float64Array(NY);for(let y=0;y<NY;y++)a[y]=st.Y[0][i*NY+y]+st.Y[1][i*NY+y];return a}
+/* One definition of "peak year" for the whole site: the year the name was most common relative to all births.
+   If that is the first year of the data (1949), the real peak may be earlier, so it is labeled "start of records". */
+function peakOf(st,i){const sh=share(st,i);let pk=0;for(let y=1;y<NY;y++)if(sh[y]>sh[pk])pk=y;return pk}
+const atStart=pk=>pk===0;
+function peakDesc(i){const st=stats(-1),c=comb(st,i);let tot=0;for(let y=0;y<NY;y++)tot+=c[y];const pk=peakOf(st,i),oneIn=c[pk]?Math.round(st.DD[pk]/c[pk]):0;const nm=NAMES[i],mean=MEAN.get(nm)||'';
+  return t(`${fmt(tot)} תינוקות בישראל נקראו ${nm} מאז ${Y0}. `+(atStart(pk)?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא: ${Y0+pk}, כשאחד מכל ${fmt(oneIn)} תינוקות נקרא כך.`)+(mean?` משמעות: ${mean}`:''),
+    `${fmt(tot)} babies in Israel were named ${NM(i)} since ${Y0}. `+(atStart(pk)?`It was already most common when records began in ${Y0}.`:`Peak year: ${Y0+pk}, when 1 in ${fmt(oneIn)} babies got this name.`)).slice(0,300)}
 function share(st,i){const a=comb(st,i);for(let y=0;y<NY;y++){const d=st.DD[y];a[y]=d?a[y]/d*1000:0}return a}
 const T=(st,i)=>st.tot[0][i]+st.tot[1][i];
 function peakDec(st,i){const c=comb(st,i);const dec={};c.forEach((q,y)=>{const d=Math.floor((Y0+y)/10)*10;dec[d]=(dec[d]||0)+q});return +Object.entries(dec).sort((a,b)=>b[1]-a[1])[0][0]}
@@ -1414,11 +1421,11 @@ function renderShell(){
   <p class="madeby">${madeBy}</p>
   <details class="note"><summary>${t('על הנתונים והמקורות','About the data')}</summary><p>${t('המקור: הלשכה המרכזית לסטטיסטיקה, דרך חבילת babynamesIL. הנתונים כוללים כל שם שניתן לפחות ל-5 תינוקות באותה שנה, באותו מגדר ובאותו מגזר. לכן שמות נדירים חסרים, ו״אחוז מהתינוקות״ מחושב מתוך התינוקות שנרשמו בשמות שבנתונים. ה״גיל הטיפוסי״ מבוסס על שנות הלידה בלבד, בלי תמותה והגירה. פירושי השמות הם הפירושים המקובלים, ולחלק מהשמות יש יותר מפירוש אחד. תגיות ״עדכון 2025״ ו״תשפ״ו״ מבוססות על רשימות 10 השמות המובילים שפרסמה רשות האוכלוסין וההגירה, ואינן חלק מנתוני הלמ״ס.',
     'Source: Israel Central Bureau of Statistics, via the babynamesIL package. The data includes every name given to at least 5 babies in a given year, sex and community, so very rare names are missing and percentages are out of the babies listed. "Typical age" uses birth years only. English spellings are approximate transliterations of the Hebrew. "2025 update" tags come from Population Authority top-10 lists, not CBS data.')}</p>
-    <p>${t('פרטיות: אין הרשמה ואין שרת. השמות ששמרתם, התשובות במחולל, ההתקדמות במשחקים והבחירות הזוגיות נשמרים רק בדפדפן במכשיר הזה. מה שעובר בין אנשים עובר רק בקישורים שאתם בוחרים לשלוח.','Privacy: no sign-up and no server. Saved names, finder answers, game progress and couple picks stay in this browser on this device. Only links you choose to send carry anything to others.')}</p>
+    <p>${cloudOn()?t('פרטיות: אין הרשמה. השמות ששמרתם, התשובות במחולל וההתקדמות במשחקים נשמרים רק בדפדפן במכשיר הזה. בבחירת שם בזוג, השם שבחרתם להציג בחדר והבחירות שלכם בו נשמרים בשרת מאובטח (Supabase), כדי שבן או בת הזוג יראו אותם בזמן אמת. רק מי שהצטרף לחדר יכול לראות אותם, וחדרים שלא היה בהם שימוש 90 יום נמחקים אוטומטית. הכפתור כאן מוחק את מה שנשמר במכשיר.','Privacy: no sign-up. Saved names, finder answers and game progress stay in this browser. In couple rooms, your display name and swipes are stored on a secure server (Supabase) so your partner sees them live. Only room members can see them, and rooms unused for 90 days are deleted automatically. This button deletes what is stored on this device.'):t('פרטיות: אין הרשמה ואין שרת. השמות ששמרתם, התשובות במחולל, ההתקדמות במשחקים והבחירות הזוגיות נשמרים רק בדפדפן במכשיר הזה. מה שעובר בין אנשים עובר רק בקישורים שאתם בוחרים לשלוח.','Privacy: no sign-up and no server. Saved names, finder answers, game progress and couple picks stay in this browser on this device. Only links you choose to send carry anything to others.')}</p>
     <button class="copybtn danger" id="wipeall">${t('מחיקת כל הנתונים השמורים במכשיר','Delete all data saved on this device')}</button></details>
   <div id="favbar" class="favbar" hidden></div>`;
-  document.querySelector('.mainnav').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)setTab(b.dataset.tab)});
-  $('#home').onclick=()=>setTab('home');
+  document.querySelector('.mainnav').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){PUSH_ONCE=true;setTab(b.dataset.tab)}});
+  $('#home').onclick=()=>{PUSH_ONCE=true;setTab('home')};
   $('#favtop').onclick=openFavPanel;
   {const w=$('#wipeall');if(w)w.onclick=()=>{if(!w.dataset.sure){w.dataset.sure=1;w.textContent=t('בטוח? לחצו שוב למחיקה','Sure? Tap again to delete');return}store.wipe();try{history.replaceState(null,'',HREF('home'))}catch(e){}location.reload()}}
   $('#srchbtn').onclick=()=>{const bar=document.querySelector('.bar');bar.classList.toggle('sopen');if(bar.classList.contains('sopen'))setTimeout(()=>$('#q').focus(),50)};
@@ -1441,7 +1448,7 @@ function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:ren
 function renderNames(){const sec=$('#tab-names');
   sec.innerHTML=`<div class="subnav seg" role="tablist">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
     <div id="tab-name"></div><div id="tab-me"></div><div id="tab-compare"></div>`;
-  sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();syncURL()}};
+  sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();PUSH_ONCE=true;syncURL()}};
   ({file:renderName,me:renderMe,compare:renderCompare})[NSUB]();}
 function renderTrends(){$('#tab-trends').innerHTML=`<div class="pagehead"><h2>${t('מגמות ודאטה','Trends & data')}</h2><p>${t('76 שנים של שמות: מי הוביל בכל תקופה, מי עולה ומי יורד, ומה מאפיין כל מגזר.','76 years of names: who led each era, who\u2019s rising and falling, and what sets each community apart.')}</p>${secChips()}</div><div id="tab-explore"></div>`;renderExplore()}
 function renderGames(){if(!$('#tab-game')){$('#tab-games').innerHTML=`<div class="pagehead"><h2>${t('משחקים','Games')}</h2><p>${t('השם הסודי של היום, ועוד משחקי טריוויה קצרים על שמות.','Today’s secret name, plus quick name trivia games.')}</p></div><div id="tab-game"></div>`;GAME_BUILT=null}renderGame()}
@@ -1491,7 +1498,7 @@ async function makeCard(i,extra){
   g.font=`700 92px Karantina, ${body}`;g.fillText(GEMS[i],0,28);g.font=`700 24px ${body}`;g.fillText(en?'GEMATRIA':'גימטריה',0,-45);g.restore();
   g.textAlign=en?'left':'right';
   // stats
-  const rows=[[fmt(f.tot),t('תינוקות מאז 1949','babies since 1949')],[String(Y0+f.pk),t('שנת השיא','peak year')],[String(f.med),t('שנת לידה טיפוסית','typical birth year')]];
+  const rows=[[fmt(f.tot),t('תינוקות מאז 1949','babies since 1949')],[String(Y0+f.pk),f.pk===0?t('שיא כבר בתחילת הרישום','peak at start of records'):t('שנת השיא','peak year')],[String(f.med),t('שנת לידה טיפוסית','typical birth year')]];
   y+=40;rows.forEach(([v,l],k)=>{const xx=en?80+k*320:W-80-k*320;g.textAlign=en?'left':'right';g.fillStyle=C.acc;g.font=`700 92px Karantina, ${body}`;g.fillText(v,xx,y+80);g.fillStyle=C.mut;g.font=`500 28px ${body}`;g.fillText(l,xx,y+120)});
   y+=170;
   // chart
@@ -1705,8 +1712,8 @@ function renderName(){
     <div class="stamp"><div><small>${t('גימטריה','GEMATRIA')}</small><b class="tn">${gem(nm)}</b><small>${letters(nm)} ${t('אותיות','letters')}</small></div></div>
     <div class="eyebrow">${t('תיק שם','NAME FILE')} · ${F<0?t('כל המגזרים','All communities'):sectName(F)}</div>
     <div class="nm">${dn}</div>${LANG==='en'?`<div class="nmhe" dir="rtl">${esc(nm)}</div>`:''}
-    <p class="tagline">${t(`מאז ${Y0} קיבלו את השם <b>${fmt(tot)}</b> תינוקות. השיא היה ב-<b>${Y0+pk}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}. ה${esc(nm)} הטיפוסי/ת נולד/ה ב-<b>${med}</b>, כלומר בערך בן/בת <b>${age}</b> היום.`,
-      `Since ${Y0}, <b>${fmt(tot)}</b> babies got this name. It peaked in <b>${Y0+pk}</b>, when 1 in every <b>${fmt(oneIn)}</b> babies was named ${dn}. The typical ${dn} was born in <b>${med}</b>, so is about <b>${age}</b> today.`)}</p>
+    <p class="tagline">${t(`מאז ${Y0} קיבלו את השם <b>${fmt(tot)}</b> תינוקות. ${atStart(pk)?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-<b>${Y0}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`:`השיא היה ב-<b>${Y0+pk}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`} ה${esc(nm)} הטיפוסי/ת נולד/ה ב-<b>${med}</b>, כלומר בערך בן/בת <b>${age}</b> היום.`,
+      `Since ${Y0}, <b>${fmt(tot)}</b> babies got this name. ${atStart(pk)?`It was already most common when records began in <b>${Y0}</b> (1 in <b>${fmt(oneIn)}</b>).`:`It peaked in <b>${Y0+pk}</b>, when 1 in every <b>${fmt(oneIn)}</b> babies was named ${dn}.`} The typical ${dn} was born in <b>${med}</b>, so is about <b>${age}</b> today.`)}</p>
     ${LANG!=='en'&&MEAN.has(nm)?`<p class="meaning"><span>${t('פירוש השם','Meaning')}</span>${esc(MEAN.get(nm))}</p>`:''}
     ${LANG!=='en'&&STORY.has(nm)?`<p class="story">${esc(STORY.get(nm))}</p>`:''}
     <div class="pills">${(S?pills.slice(0,3):pills).join('')}</div>
@@ -1715,7 +1722,7 @@ function renderName(){
     <div class="stats">
       <div class="stat"><div class="k">${t('סה״כ תינוקות','Total babies')}</div><div class="v">${fmt(tot)}</div><div class="s">${Y0}–${Y1}</div></div>
       <div class="stat"><div class="k">${t('ב-','In ')}${Y1}</div><div class="v">${fmt(c[L])}</div><div class="s">${rk?t(`מקום ${rk} ${dom?'בבנים':'בבנות'}`,`#${rk} among ${dom?'boys':'girls'}`):t('מחוץ לרשימה','Not listed')}</div></div>
-      <div class="stat"><div class="k">${t('שנת השיא','Peak year')}</div><div class="v">${Y0+pk}</div><div class="s">${fmt(c[pk])} ${t('תינוקות','babies')}</div></div>
+      <div class="stat"><div class="k">${t('שנת השיא','Peak year')}</div><div class="v">${Y0+pk}</div><div class="s">${atStart(pk)?t('כבר בתחילת הרישום','already at the start of records'):`${t('אחד מכל','1 in')} ${fmt(oneIn)}`}</div></div>
       <div class="stat"><div class="k">${t('הופעה ראשונה','First seen')}</div><div class="v">${Y0+first}</div><div class="s">${yrsIn} ${t('שנים ברשימות','years listed')}</div></div>
     </div>
     <div class="meter"><div class="row"><span class="g">${t('בנות','Girls')} ${gp.toFixed(gp>99||gp<1?1:0)}%</span><span class="b">${t('בנים','Boys')} ${(100-gp).toFixed(gp>99||gp<1?1:0)}%</span></div>
@@ -1779,7 +1786,7 @@ function renderName(){
    const firstR=lim=>{for(let y=0;y<NY;y++){const r=R(y);if(r&&r<=lim)return y}return -1};
    const t100=firstR(100),t10=firstR(10);if(t100>fy)items.push([Y0+t100,t('נכנס לטופ 100','Enters the top 100')]);if(t10>=0&&t10>fy)items.push([Y0+t10,t('נכנס לטופ 10','Enters the top 10')]);
    const ones=YEARS.map((_,y)=>y).filter(y=>R(y)===1);if(ones.length)items.push([Y0+ones[0],ones.length>1?t(`מקום ראשון ב-${ones.length} שנים (עד ${Y0+ones[ones.length-1]})`,`#1 for ${ones.length} years (until ${Y0+ones[ones.length-1]})`):t('מגיע למקום הראשון','Reaches #1')]);
-   if(pk!==L||!c[L])items.push([Y0+pk,t(`שנת השיא: אחד מכל ${fmt(oneIn)} תינוקות`,`Peak year: 1 in ${fmt(oneIn)} babies`)]);
+   if(pk!==L||!c[L])items.push([Y0+pk,atStart(pk)?t(`תחילת הרישום: השם כבר בשיא, אחד מכל ${fmt(oneIn)} תינוקות`,`Records begin: already at its peak, 1 in ${fmt(oneIn)} babies`):t(`שנת השיא: אחד מכל ${fmt(oneIn)} תינוקות`,`Peak year: 1 in ${fmt(oneIn)} babies`)]);
    if(c[L])items.push([Y1,(pk===L?t('שנת השיא עד היום: ','Peak so far: '):'')+(R(L)?t(`מקום ${R(L)} ${dom?'בבנים':'בבנות'}, ${fmt(c[L])} תינוקות`,`#${R(L)} among ${dom?'boys':'girls'}, ${fmt(c[L])} babies`):t(`${fmt(c[L])} תינוקות`,`${fmt(c[L])} babies`))]);
    else{let ly=NY-1;while(ly>0&&!c[ly])ly--;items.push([Y0+ly,t('הפעם האחרונה שהשם מופיע ברשימות','Last time the name appears')])}
    const pa=paInfo(nm);if(pa&&pa.c)items.push([2025,t(`לפי רשות האוכלוסין: מקום ${pa.c.rank} ברשימה`,`Population Authority: #${pa.c.rank}`)]);
@@ -1792,9 +1799,9 @@ function renderName(){
      else head=t('כמעט אף ילד בשם הזה','Almost no one');
      return `<div class="ctile"><div class="ck">${lab}</div><div class="cv">${head}</div>${viz}</div>`};
    {const ls=$('#lstage');if(ls)ls.innerHTML=lifeStagesHTML(nm,c);}
-   $('#classbox').innerHTML=`<div class="ctiles">${tile(t(`היום · ילידי ${Y1}`,`Today · born ${Y1}`),now)}${pk!==L?tile(t(`בשיא · ${Y0+pk}`,`At the peak · ${Y0+pk}`),then):''}</div>`;}
+   $('#classbox').innerHTML=`<div class="ctiles">${tile(t(`היום · ילידי ${Y1}`,`Today · born ${Y1}`),now)}${pk!==L?tile(atStart(pk)?t(`בתחילת הרישום · ${Y0}`,`When records began · ${Y0}`):t(`בשיא · ${Y0+pk}`,`At the peak · ${Y0+pk}`),then):''}</div>`;}
   {const q=[];let my=0;for(let y=1;y<NY;y++)if(c[y]>c[my])my=y;
-   q.push([t(`באיזו שנה נולדו הכי הרבה ${esc(nm)}?`,`Which year had the most babies named ${dn}?`),my===pk?t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. זו גם שנת השיא שלו.`,`${Y0+my}, with ${fmt(c[my])} babies, also its peak year.`):t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. שנת השיא היא ${Y0+pk}, כי אז הוא היה הכי נפוץ ביחס למספר התינוקות שנולדו באותה שנה.`,`${Y0+my}, with ${fmt(c[my])} babies. Its peak year is ${Y0+pk}, when it was most common relative to all births that year.`)]);
+   q.push([t(`באיזו שנה נולדו הכי הרבה ${esc(nm)}?`,`Which year had the most babies named ${dn}?`),my===pk?t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. זו גם שנת השיא שלו.`,`${Y0+my}, with ${fmt(c[my])} babies, also its peak year.`):t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. ${atStart(pk)?`אבל ביחס למספר התינוקות שנולדו, הוא היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא היא ${Y0+pk}, כי אז הוא היה הכי נפוץ ביחס למספר התינוקות שנולדו באותה שנה.`}`,`${Y0+my}, with ${fmt(c[my])} babies. Its peak year is ${Y0+pk}, when it was most common relative to all births that year.`)]);
    let k10=0,k100=0;for(let y=0;y<NY;y++){const r=st.rank[dom][i*NY+y];if(r&&r<=10)k10++;if(r&&r<=100)k100++}
    q.push([t('כמה זמן השם היה בצמרת?','How long was it near the top?'),k10?t(`${k10} שנים בטופ 10, ו-${k100} שנים בטופ 100.`,`${k10} years in the top 10 and ${k100} in the top 100.`):k100?t(`הוא לא הגיע לטופ 10, אבל היה ${k100} שנים בטופ 100.`,`Never top 10, but ${k100} years in the top 100.`):t('הוא אף פעם לא נכנס לטופ 100. שם מיוחד באמת.','It never made the top 100. Truly distinctive.')]);
    let jy=0,jd=0;for(let y=1;y<NY;y++){const dd=c[y]-c[y-1];if(dd>jd){jd=dd;jy=y}}
@@ -1841,7 +1848,7 @@ function lifeStagesHTML(nm,c){const S=lifeStages(c);const tot=S.reduce((a,x)=>a+
 function compareTableHTML(st){if(!CMP.length)return'';const L=NY-1;
   const rows=CMP.map((n,k)=>{const i=IDX.get(n),c=comb(st,i),sh=share(st,i);let pk=0,tot=0;for(let y=0;y<NY;y++){tot+=c[y];if(sh[y]>sh[pk])pk=y}
     const a=c[L]+c[L-1]+c[L-2],b=c[L-10]+c[L-11]+c[L-12];const tr=b>=30?Math.round((a/b-1)*100):null;
-    return `<tr><td><i class="cdot" style="background:var(${CC[k]})"></i><button class="linkname" data-i="${i}">${nmh(i)}</button></td><td>${kfmt(tot)}</td><td>${Y0+pk}</td><td>${fmt(c[L])}</td><td class="${tr==null?'':tr>=0?'up':'dn'}">${tr==null?'—':`<span dir="ltr">${(tr>0?'+':'')+tr}%</span>`}</td></tr>`}).join('');
+    return `<tr><td><i class="cdot" style="background:var(${CC[k]})"></i><button class="linkname" data-i="${i}">${nmh(i)}</button></td><td>${kfmt(tot)}</td><td>${pk===0?t(`${Y0} או לפני`,`${Y0} or earlier`):Y0+pk}</td><td>${fmt(c[L])}</td><td class="${tr==null?'':tr>=0?'up':'dn'}">${tr==null?'—':`<span dir="ltr">${(tr>0?'+':'')+tr}%</span>`}</td></tr>`}).join('');
   return `<div class="cmptbl"><table><thead><tr><th>${t('שם','Name')}</th><th>${t('סה״כ','Total')}</th><th>${t('שנת שיא','Peak')}</th><th>${t(`ב-${Y1}`,`In ${Y1}`)}</th><th>${t('מגמה ב-10 שנים','10-yr trend')}</th></tr></thead><tbody>${rows}</tbody></table></div>`}
 const compareLink=()=>`${SHARE_URL}#compare=${encodeURIComponent(CMP.join(','))}`;
 function compareFromHash(h){const m=/^compare=(.+)$/.exec(h||'');if(!m)return null;let s='';try{s=decodeURIComponent(m[1])}catch(e){s=m[1]}const L=s.split(',').map(x=>x.trim()).filter(x=>IDX.has(x)).slice(0,4);return L.length?L:null}
@@ -2305,8 +2312,11 @@ function renderMe(){
     <div class="actions"><button class="copybtn" id="famadd">${t('+ הוספת בן/בת משפחה','+ Add member')}</button></div>
     <div id="famout"></div></div>`;
   let pendingI=IDX.get(me.n);
-  const run=()=>{const i=pendingI;if(i==null)return;ME={n:NAMES[i],y:+$('#mey').value,x:+($('#mex [aria-pressed="true"]')?.dataset.x||0)};store.set('me',ME);drawMe(ME);};
-  wireSearch($('#meq'),$('#mesugg'),i=>{pendingI=i;$('#meq').value=NM(i);const st=stats(-1);const x=st.tot[0][i]>=st.tot[1][i]?0:1;$('#mex').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.x===x));run()});
+  const run=()=>{const i=pendingI;if(i==null)return;ME={n:NAMES[i],y:+$('#mey').value,x:+($('#mex [aria-pressed="true"]')?.dataset.x||0)};store.set('me',ME);const ex=document.querySelector('.meq .exnote');if(ex)ex.remove();drawMe(ME);};
+  const onMe=i=>{pendingI=i;$('#meq').value=NM(i);const st=stats(-1);const x=st.tot[0][i]>=st.tot[1][i]?0:1;$('#mex').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.x===x));run()};
+  wireSearch($('#meq'),$('#mesugg'),onMe);
+  /* a fully typed name counts even without picking it from the list; the sex follows the name */
+  $('#meq').addEventListener('change',()=>{const v=$('#meq').value.trim().replace(/[׳`]/g,"'");const i=IDX.has(v)?IDX.get(v):suggest(v,1)[0];if(i!=null&&i!==pendingI&&(NAMES[i]===v||rom(i).toLowerCase()===v.toLowerCase()))onMe(i)});
   $('#mey').onchange=run;$('#mex').onclick=e=>{const b=e.target.closest('[data-x]');if(!b)return;$('#mex').querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',q===b));run()};
   drawMe(me);drawFam();
 }
@@ -2316,12 +2326,12 @@ function drawMe(me){
   const sh=YEARS.map((_,y)=>st.D[x][y]?st.Y[x][i*NY+y]/st.D[x][y]:0);let pk=0;for(let y=1;y<NY;y++)if(sh[y]>sh[pk])pk=y;
   const tier=!n?5:r<=10?0:r<=50?1:r<=200?2:r<=600?3:4;
   const tierLab=[t('סופר-מיינסטרים','Super mainstream'),t('פופולרי','Popular'),t('מוכר','Familiar'),t('מיוחד','Distinctive'),t('נדיר','Rare'),t('נדיר ביותר','Ultra rare')][tier];
-  const diff=me.y-(Y0+pk);const timing=!sh[pk]?'classic':diff<-4?'pioneer':diff>4?'classic':'wave';
+  const diff=me.y-(Y0+pk);const timing=!sh[pk]||pk===0?'classic':diff<-4?'pioneer':diff>4?'classic':'wave';
   const [title,desc]=persona(tier,timing,x);
   const peers=st.top[x][yi].slice(0,6);
   let best=-1,bs=0;for(let j=0;j<N;j++){const q=st.Y[x][j*NY+yi];if(q<60)continue;let s=0;for(let y=0;y<NY;y++)s+=st.Y[x][j*NY+y];const c=q/(s/NY);if(c>bs){bs=c;best=j}}
   const other=st.Y[1-x][i*NY+yi];
-  const timingTxt=!sh[pk]?'':diff<-4?t(`נולדת ${-diff} שנים לפני שהשם הגיע לשיא (${Y0+pk}).`,`You were born ${-diff} years before the name peaked (${Y0+pk}).`):diff>4?t(`נולדת ${diff} שנים אחרי שיא השם (${Y0+pk}).`,`You were born ${diff} years after the name peaked (${Y0+pk}).`):t(`נולדת ממש בשיא של השם (${Y0+pk}).`,`You were born right at the name’s peak (${Y0+pk}).`);
+  const timingTxt=!sh[pk]?'':pk===0?t(`השם היה בשיא כבר בתחילת הרישום (${Y0}).`,`The name was already at its peak when records began (${Y0}).`):diff<-4?t(`נולדת ${-diff} שנים לפני שהשם הגיע לשיא (${Y0+pk}).`,`You were born ${-diff} years before the name peaked (${Y0+pk}).`):diff>4?t(`נולדת ${diff} שנים אחרי שיא השם (${Y0+pk}).`,`You were born ${diff} years after the name peaked (${Y0+pk}).`):t(`נולדת ממש בשיא של השם (${Y0+pk}).`,`You were born right at the name’s peak (${Y0+pk}).`);
   const sex=x?t('בנים','boys'):t('בנות','girls');
   const pctv=n/D*100,pct=(pctv>=10?pctv.toFixed(0):pctv>=1?pctv.toFixed(1):pctv>=.1?pctv.toFixed(2):pctv.toFixed(3))+'%';
   const pd=n/365,perDay=pd>=1.5?t(`בערך ${Math.round(pd)} ביום`,`about ${Math.round(pd)} a day`):pd>=.75?t('בערך אחד ביום','about one a day'):pd>=1/7?t(`בערך ${Math.round(pd*7)} בשבוע`,`about ${Math.round(pd*7)} a week`):t(`בערך ${Math.max(1,Math.round(n/12))} בחודש`,`about ${Math.max(1,Math.round(n/12))} a month`);
@@ -2392,9 +2402,9 @@ IC.users='<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><
 IC.link='<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>';
 IC.back='<path d="M9 6l6 6-6 6"/>';
 
-const NMX={rooms:store.get('nm_rooms',{}),active:store.get('nm_active',null),live:null,peer:null,deck:null,deckFor:null,busy:false,joinTried:null};
+const NMX={rooms:Object.assign(Object.create(null),(()=>{const o=store.get('nm_rooms',{});return o&&typeof o==='object'&&!Array.isArray(o)?o:{}})()),active:store.get('nm_active',null),live:null,peer:null,deck:null,deckFor:null,busy:false,joinTried:null};
 const nmSave=()=>{store.set('nm_rooms',NMX.rooms);store.set('nm_active',NMX.active)};
-const R=()=>NMX.active?NMX.rooms[NMX.active]:null;
+const R=()=>{const r=NMX.active?NMX.rooms[NMX.active]:null;return r&&typeof r==='object'&&Array.isArray(r.likes)?r:null};
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const b64d=s=>{try{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return decodeURIComponent(escape(atob(s)))}catch(e){return''}};
@@ -2498,7 +2508,7 @@ function nmOnboard(sec){const rooms=Object.values(NMX.rooms).filter(x=>x.me).sor
   sec.innerHTML=`<div class="nmapp"><div class="nmtop"><button class="nmback" id="nmback">${icon('back')}<span>${t('לאתר הראשי','Main site')}</span></button></div>
     <div class="nmwelcome fade"><div class="nmlogo">${icon('heart',1)}</div><div class="k">${t('התאמת שמות זוגית','NameMatch for couples')}</div>
       <h2>${t('בוחרים שם<br>ביחד.','Choose a name<br>together.')}</h2>
-      <p>${t('כל אחד מחליק לבד, מתי שנוח לו. כששניכם אוהבים את אותו שם, יש התאמה. בלי הרשמה, והכול נשמר אצלכם כדי שתוכלו לחזור בכל רגע.','Each of you swipes alone, whenever it suits. When you both like a name, it’s a match. No sign-up, and everything is saved so you can come back anytime.')}</p>
+      <p>${t('כל אחד מחליק לבד, מתי שנוח לו. כששניכם אוהבים את אותו שם, יש התאמה. בלי הרשמה, ואפשר לחזור לחדר בכל רגע.','Each of you swipes alone, whenever it suits. When you both like a name, it’s a match. No sign-up, and you can come back to the room anytime.')}</p>
       ${rooms.length?`<div class="nmprev"><div class="nml">${t('להמשיך מאיפה שעצרתם','Pick up where you left off')}</div>${rooms.map(x=>`<button data-room="${x.code}"><b>${x.pname?t(`${esc(x.me)} ו${esc(x.pname)}`,`${esc(x.me)} & ${esc(x.pname)}`):esc(x.me)}</b><span>${fLabel(x.f)} · ${x.likes.length} ${t('אהבתם','liked')} · ${matchesOf(x).length} ${t('התאמות','matches')}</span></button>`).join('')}<div class="nml" style="margin-top:14px">${t('או חדר חדש','Or a new room')}</div></div>`:''}
       <label class="nml" for="nmme">${t('השם שלך','Your name')}</label><input class="inp nmin" id="nmme" maxlength="30" autocomplete="off" placeholder="${t('למשל: עידן','e.g. Dana')}" value="${esc(store.get('nm_me',''))}">
       ${nmSetupForm({})}
@@ -2651,8 +2661,8 @@ function openSharedList(L){const m=$('#modal');m.hidden=false;const fresh=L.filt
   $('#shchips').onclick=e=>{const b=e.target.closest('[data-i]');if(b){close();quickView(+b.dataset.i)}};
   const mg=$('#shmerge');if(mg)mg.onclick=()=>{FAV=FAV.concat(fresh);store.set('fav',FAV);renderFavBar();rerenderCards();close();toast(t(`${fresh.length} שמות נוספו לשמורים`,`${fresh.length} names added to Saved`));const b=$('#favtop');if(b){b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}};
   try{syncURL()}catch(e){}}
-function checkSavedHash(){const L=parseSavedHash((location.hash||'').slice(1));if(L){if(TAB==='match')setTab('home');openSharedList(L);return true}return false}
-addEventListener('hashchange',checkSavedHash);
+function checkSavedHash(h0){const L=parseSavedHash(h0!=null?h0:(location.hash||'').slice(1));if(L){if(TAB==='match')setTab('home');openSharedList(L);return true}return false}
+addEventListener('hashchange',()=>checkSavedHash());
 
 /* Secret-name daily stats: one entry per day (first finished board of the day counts) */
 function nstatGet(){const s=store.get('nstat',null);return s&&typeof s==='object'&&s.days?s:{days:{},dist:[0,0,0,0,0,0,0,0,0,0]}}
@@ -2675,10 +2685,10 @@ addEventListener('storage',e=>{if(e.key==='bnil_fav'){try{FAV=(JSON.parse(e.newV
 if(window.SITE_CONFIG&&window.SITE_CONFIG.exportSEO)window.__bnilExport=()=>{const st=stats(-1);const out=[];
   const byDec={};for(let i=0;i<N;i++){const s=T(st,i);if(s<50)continue;const g=st.tot[0][i]/s;const sx=g>=.7?0:g<=.3?1:2;const k=peakDec(st,i)+'_'+sx;(byDec[k]=byDec[k]||[]).push(i)}
   Object.values(byDec).forEach(a=>a.sort((x,y)=>T(st,y)-T(st,x)));
-  for(let i=0;i<N;i++){const c=comb(st,i);let pk=0,tot=0;for(let y=0;y<NY;y++){tot+=c[y];if(c[y]>c[pk])pk=y}
+  for(let i=0;i<N;i++){const c=comb(st,i);let tot=0,my=0;for(let y=0;y<NY;y++){tot+=c[y];if(c[y]>c[my])my=y}const pk=peakOf(st,i);
     const g=tot?st.tot[0][i]/tot:.5;const sx=g>=.7?0:g<=.3?1:2;const x=g>=.5?0:1;const rk=st.rank[x][i*NY+NY-1]||0;
     const rel=(byDec[peakDec(st,i)+'_'+sx]||[]).filter(j=>j!==i).slice(0,8).map(j=>NAMES[j]);
-    out.push({n:NAMES[i],en:rom(i),tot:Math.round(tot),pk:Y0+pk,pkc:Math.round(c[pk]),last:Math.round(c[NY-1]),rk,x,g:Math.round(g*100),med:st.med[i],first:Y0+c.findIndex(v=>v>0),
+    out.push({n:NAMES[i],en:rom(i),tot:Math.round(tot),pk:Y0+pk,pkc:Math.round(c[pk]),start:pk===0,oneIn:c[pk]?Math.round(st.DD[pk]/c[pk]):0,my:Y0+my,myc:Math.round(c[my]),desc:peakDesc(i),last:Math.round(c[NY-1]),rk,x,g:Math.round(g*100),med:st.med[i],first:Y0+c.findIndex(v=>v>0),
       sec:secShort(i),mean:MEAN.get(NAMES[i])||'',story:STORY.get(NAMES[i])||'',rel})}
   return{y0:Y0,y1:Y1,names:out}};
 
@@ -2897,8 +2907,8 @@ function renderDec(){const el=$('#g-dec');if(!G.q)newQ();
   const qn=$('#qn');if(qn)qn.onclick=()=>{newQ();renderDec()};const qo=$('#qopen');if(qo)qo.onclick=()=>pick(G.q.i);}
 
 /* ---------- boot ---------- */
-(function boot(){let t0=(location.hash||'').slice(1);if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0=store.get('tab','home');TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
-  if(/^saved\./.test((location.hash||'').slice(1)))t0=store.get('tab','home')==='match'?'home':store.get('tab','home');renderShell();setTab(t0);checkSavedHash();try{document.activeElement&&document.activeElement.blur()}catch(e){}
+(function boot(){const H0=(location.hash||'').slice(1);let t0=H0;if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0=store.get('tab','home');TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
+  const isSaved=/^saved\./.test(H0);if(isSaved){t0='home';TAB='home'}renderShell();setTab(t0);if(isSaved)checkSavedHash(H0);try{document.activeElement&&document.activeElement.blur()}catch(e){}
   const mq=matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',()=>{GAME_BUILT=null;rerender()});
   new MutationObserver(()=>{GAME_BUILT=null;rerender()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});})();
 
