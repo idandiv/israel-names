@@ -1402,7 +1402,7 @@ function renderShell(){
   app.innerHTML=`
   <div class="bar">
     <div class="toprow">
-      <button class="brandbtn" id="home" aria-label="${t('לדף הבית','Home')}"><h1>${t('השמות של ישראל','Names of Israel')}</h1><small>${t('נוצר ע״י עידן דיוה','by Idan Diva')}</small></button>
+      <button class="brandbtn" id="home" aria-label="${t('לדף הבית','Home')}"><h1>${t('השמות של ישראל','Names of Israel')}</h1></button>
       <div class="search tsearch">${icon('search')}<input id="q" type="search" placeholder="${t('חיפוש שם…','Search a name…')}" autocomplete="off" aria-label="${t('חיפוש שם','Search a name')}"><div class="sugg" id="sugg" hidden></div></div>
       <button class="favtop" id="favtop" aria-label="${t('השמות ששמרתי','Saved names')}">${icon('save',1)}<span>${t('שמורים','Saved')}</span><b id="favcnt">0</b></button>
       <button class="srchbtn" id="srchbtn" aria-label="${t('חיפוש שם','Search')}">${icon('search')}</button>
@@ -1709,7 +1709,7 @@ function renderName(){
     ${LANG!=='en'&&MEAN.has(nm)?`<p class="meaning"><span>${t('פירוש השם','Meaning')}</span>${esc(MEAN.get(nm))}</p>`:''}
     ${LANG!=='en'&&STORY.has(nm)?`<p class="story">${esc(STORY.get(nm))}</p>`:''}
     <div class="pills">${(S?pills.slice(0,3):pills).join('')}</div>
-    ${S?'':`<div class="heat">${Array.from(sh,(q,y)=>`<i title="${Y0+y}: ${fmt(c[y])}" style="background:var(--accent);opacity:${q?(.08+.92*q/mxs).toFixed(2):0}"></i>`).join('')}</div>
+    ${`<div class="heat">${Array.from(sh,(q,y)=>`<i title="${Y0+y}: ${fmt(c[y])}" style="background:var(--accent);opacity:${q?(.08+.92*q/mxs).toFixed(2):0}"></i>`).join('')}</div>
     <div class="heatlab"><span>${Y0}</span><span>1970</span><span>1990</span><span>2010</span><span>${Y1}</span></div>`}
     <div class="stats">
       <div class="stat"><div class="k">${t('סה״כ תינוקות','Total babies')}</div><div class="v">${fmt(tot)}</div><div class="s">${Y0}–${Y1}</div></div>
@@ -1792,7 +1792,7 @@ function renderName(){
      return `<div class="ctile"><div class="ck">${lab}</div><div class="cv">${head}</div>${viz}</div>`};
    $('#classbox').innerHTML=`<div class="ctiles">${tile(t(`היום · ילידי ${Y1}`,`Today · born ${Y1}`),now)}${pk!==L?tile(t(`בשיא · ${Y0+pk}`,`At the peak · ${Y0+pk}`),then):''}</div>`;}
   {const q=[];let my=0;for(let y=1;y<NY;y++)if(c[y]>c[my])my=y;
-   q.push([t(`באיזו שנה נולדו הכי הרבה ${esc(nm)}?`,`Which year had the most babies named ${dn}?`),t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות.`,`${Y0+my}, with ${fmt(c[my])} babies.`)]);
+   q.push([t(`באיזו שנה נולדו הכי הרבה ${esc(nm)}?`,`Which year had the most babies named ${dn}?`),my===pk?t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. זו גם שנת השיא שלו.`,`${Y0+my}, with ${fmt(c[my])} babies, also its peak year.`):t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. שנת השיא היא ${Y0+pk}, כי אז הוא היה הכי נפוץ ביחס למספר התינוקות שנולדו באותה שנה.`,`${Y0+my}, with ${fmt(c[my])} babies. Its peak year is ${Y0+pk}, when it was most common relative to all births that year.`)]);
    let k10=0,k100=0;for(let y=0;y<NY;y++){const r=st.rank[dom][i*NY+y];if(r&&r<=10)k10++;if(r&&r<=100)k100++}
    q.push([t('כמה זמן השם היה בצמרת?','How long was it near the top?'),k10?t(`${k10} שנים בטופ 10, ו-${k100} שנים בטופ 100.`,`${k10} years in the top 10 and ${k100} in the top 100.`):k100?t(`הוא לא הגיע לטופ 10, אבל היה ${k100} שנים בטופ 100.`,`Never top 10, but ${k100} years in the top 100.`):t('הוא אף פעם לא נכנס לטופ 100. שם מיוחד באמת.','It never made the top 100. Truly distinctive.')]);
    let jy=0,jd=0;for(let y=1;y<NY;y++){const dd=c[y]-c[y-1];if(dd>jd){jd=dd;jy=y}}
@@ -1800,7 +1800,6 @@ function renderName(){
    const ages=[[0,17],[18,39],[40,64],[65,99]].map(([a,b])=>{let v=0;for(let y=0;y<NY;y++){const age=NOW-(Y0+y);if(age>=a&&age<=b)v+=c[y]}return v});const ai=ages.indexOf(Math.max(...ages));
    q.push([t(`בני כמה רוב ה${esc(nm)} היום?`,`How old are most people named ${dn}?`),t(`רובם ${['ילדים ובני נוער (עד 17)','צעירים (18–39)','בגיל העמידה (40–64)','בני 65 ומעלה'][ai]}, לפי שנות הלידה.`,`Mostly ${['kids and teens','young adults (18–39)','middle-aged (40–64)','65 and over'][ai]}, by birth year.`)]);
    const gm=NAMES.filter((n2,j)=>j!==i&&GEMS[j]===GEMS[i]&&T(stats(-1),j)>=200).slice(0,3);
-   if(gm.length)q.push([t(`לאיזה שמות יש אותה גימטריה (${GEMS[i]})?`,`Which names share its gematria (${GEMS[i]})?`),gm.map(esc).join(', ')+'.']);
    $('#faq').innerHTML=q.map(([a,b],k)=>`<details ${k<1?'open':''}><summary>${a}</summary><p>${b}</p></details>`).join('');}
   // related
   const norm=a=>{let m=0;for(const q of a)m+=q;m/=a.length;const d=a.map(q=>q-m);let l=0;for(const q of d)l+=q*q;l=Math.sqrt(l)||1;return d.map(q=>q/l)};
@@ -2222,7 +2221,7 @@ function renderMe(){
   const sec=$('#tab-me');const me=ME||ME_EX;
   sec.innerHTML=`<div class="card meq" style="margin-top:16px">
     <div class="head"><div><h3>${t('מה השם שלך אומר עליך?','What does your name say about you?')}</h3><div class="sub">${t('הכניסו שם, שנת לידה ומין, וקבלו פרופיל מבוסס נתונים','Enter a name, birth year and sex, and get a data-driven profile')}</div></div></div>
-    <div class="meform"><div class="cmpin" style="margin:0"><input class="inp" id="meq" value="${esc(LANG==='en'?rom(IDX.get(me.n)):me.n)}" autocomplete="off" aria-label="${t('השם שלך','Your name')}"><div class="sugg" id="mesugg" hidden></div></div>
+    <div class="meform"><label class="mefl" for="meq">${t('השם שלך','Your name')}</label><label class="mefl" for="mey">${t('שנת לידה','Birth year')}</label><span class="mefl mefl-x">${t('מין','Sex')}</span><div class="cmpin" style="margin:0"><input class="inp" id="meq" value="${esc(LANG==='en'?rom(IDX.get(me.n)):me.n)}" autocomplete="off" aria-label="${t('השם שלך','Your name')}"><div class="sugg" id="mesugg" hidden></div></div>
       <select class="inp" id="mey" aria-label="${t('שנת לידה','Birth year')}">${YEARS.slice().reverse().map(y=>`<option ${y===me.y?'selected':''}>${y}</option>`).join('')}</select>
       <div class="seg" id="mex"><button data-x="0" aria-pressed="${me.x===0}">${t('בת','Girl')}</button><button data-x="1" aria-pressed="${me.x===1}">${t('בן','Boy')}</button></div></div>
     ${me.ex?`<div class="exnote">${t('זו דוגמה. הכניסו את השם שלכם כדי לראות את שלכם.','This is an example. Enter your own name to see yours.')}</div>`:''}

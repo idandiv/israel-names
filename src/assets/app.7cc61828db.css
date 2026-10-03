@@ -926,6 +926,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .note #wipeall{margin-top:8px}
 #shchips button.on{border-color:var(--stamp);color:var(--ink)}
 .wzfoot{display:flex;align-items:center;gap:18px;margin-top:10px;flex-wrap:wrap}
+.mefl{font-size:12px;font-weight:600;color:var(--muted);align-self:end;padding-inline-start:2px}
+@media (max-width:520px){.mefl-x{display:none}}
 
 /* static fallback content (visible until the app boots, and to crawlers) */
 .seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;line-height:1.7}
