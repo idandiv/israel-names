@@ -928,6 +928,26 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .wzfoot{display:flex;align-items:center;gap:18px;margin-top:10px;flex-wrap:wrap}
 .mefl{font-size:12px;font-weight:600;color:var(--muted);align-self:end;padding-inline-start:2px}
 @media (max-width:520px){.mefl-x{display:none}}
+/* v18 */
+.mbox img.tall{max-height:62vh;width:auto;max-width:100%;display:block;margin:0 auto;border-radius:14px}
+.lstage{display:grid;gap:7px;margin-top:4px}
+.lsrow{display:grid;grid-template-columns:96px minmax(0,1fr) 44px;align-items:center;gap:10px;font-size:14px}
+.lsl{font-weight:600;color:var(--ink-2);display:flex;flex-direction:column;line-height:1.15}.lsl small{font-weight:500;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.lsb{height:12px;background:var(--surface-2);border-radius:99px;overflow:hidden}.lsb i{display:block;height:100%;background:color-mix(in srgb,var(--accent) 55%,transparent);border-radius:99px}
+.lsrow.top .lsb i{background:var(--accent)}.lsrow.top .lsl{color:var(--ink)}
+.lsv{text-align:left;font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}.lsrow.top .lsv{color:var(--ink)}
+.lsnote{margin-top:10px}
+.sibrow{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;align-items:start;margin-top:8px}.sibl{font-weight:700;color:var(--muted);font-size:13px;padding-top:7px}
+.cmptbl{overflow-x:auto;margin-top:14px;border-top:1px solid var(--line)}
+.cmptbl table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.cmptbl th{font-weight:600;color:var(--muted);font-size:12px;text-align:right;padding:10px 8px 6px;white-space:nowrap}
+.cmptbl td{padding:8px;border-top:1px solid var(--line);white-space:nowrap}
+.cmptbl td:first-child{display:flex;align-items:center;gap:8px}
+.cmptbl .cdot{width:10px;height:10px;border-radius:50%;flex:none}
+.cmptbl .up{color:#5fd39a}.cmptbl .dn{color:#ff7f9b}
+.linkname{all:unset;cursor:pointer;font-weight:700;color:var(--ink)}.linkname:hover{text-decoration:underline}
+.cmpact{display:flex;justify-content:flex-start;margin-top:12px}
+@media (max-width:520px){.cmptbl table{font-size:13px}.cmptbl th,.cmptbl td{padding:7px 5px}.lsrow{grid-template-columns:84px minmax(0,1fr) 40px}}
 
 /* static fallback content (visible until the app boots, and to crawlers) */
 .seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;line-height:1.7}

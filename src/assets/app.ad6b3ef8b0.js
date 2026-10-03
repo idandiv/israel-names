@@ -1509,17 +1509,18 @@ async function makeCard(i,extra){
   g.fillStyle=C.mut;g.font=`500 26px ${body}`;g.fillText(en?'Made by Idan Diva · linkedin.com/in/idan-diva':'נוצר ע״י עידן דיוה · linkedin.com/in/idan-diva',X0,H-60);
   return cv;
 }
-async function shareCard(i,extra){
-  const cv=await makeCard(i,extra);const url=cv.toDataURL('image/png');
+async function shareCard(i,extra){const cv=await makeCard(i,extra);showCard(cv,`${rom(i)}-names-of-israel.png`,NM(i),t('כרטיס השם שלכם','Your name card'))}
+async function showCard(cv,fname,alt,title){const url=cv.toDataURL('image/png');
   const m=$('#modal');m.hidden=false;
   m.innerHTML=`<div class="mbox" role="dialog" aria-label="${t('כרטיס לשיתוף','Share card')}"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">×</button>
-    <h3>${t('כרטיס השם שלכם','Your name card')}</h3><img src="${url}" alt="${esc(NM(i))}">
-    <div class="mrow"><button class="next" id="msave" hidden>${t('שמירת התמונה','Save image')}</button><button class="copybtn" id="mcopy">${t('העתקת התמונה','Copy image')}</button></div>
+    <h3>${title}</h3><img src="${url}" alt="${esc(alt)}" class="${cv.height>cv.width*1.4?'tall':''}">
+    <div class="mrow"><button class="next" id="mshare" hidden>${t('שיתוף לסטורי / וואטסאפ','Share to story / WhatsApp')}</button><button class="next" id="msave" hidden>${t('שמירת התמונה','Save image')}</button><button class="copybtn" id="mcopy">${t('העתקת התמונה','Copy image')}</button></div>
     <div class="sub">${t('בטלפון אפשר גם ללחוץ לחיצה ארוכה על התמונה ולשמור','On a phone you can also long-press the image to save it')}</div></div>`;
   $('#mclose').onclick=()=>m.hidden=true;m.onclick=e=>{if(e.target===m)m.hidden=true};
+  cv.toBlob(bl=>{try{const file=new File([bl],fname,{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[file]})){const b=$('#mshare');if(!b)return;b.hidden=false;const sv=$('#msave');if(sv)sv.className='copybtn';b.onclick=()=>navigator.share({files:[file],title:alt}).catch(()=>{})}}catch(e){}});
   const dl=await cap('downloads');
-  if(!dl){const b=$('#msave');b.hidden=false;b.onclick=()=>{const a=document.createElement('a');a.href=url;a.download=`${rom(i)}-names-of-israel.png`;document.body.appendChild(a);a.click();a.remove()}}
-  if(dl){const b=$('#msave');b.hidden=false;b.onclick=()=>cv.toBlob(bl=>dl.save({filename:`${rom(i)}-names-of-israel.png`,data:bl}).catch(e=>{if(e&&e.code!=='declined')toast(t('השמירה לא זמינה כאן','Saving is not available here'))}))}
+  if(!dl){const b=$('#msave');b.hidden=false;b.onclick=()=>{const a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();a.remove()}}
+  if(dl){const b=$('#msave');b.hidden=false;b.onclick=()=>cv.toBlob(bl=>dl.save({filename:fname,data:bl}).catch(e=>{if(e&&e.code!=='declined')toast(t('השמירה לא זמינה כאן','Saving is not available here'))}))}
   $('#mcopy').onclick=()=>{try{cv.toBlob(bl=>navigator.clipboard.write([new ClipboardItem({'image/png':bl})]).then(()=>toast(t('התמונה הועתקה','Image copied')),()=>toast(t('ההעתקה נחסמה. נסו לשמור או ללחוץ ארוכות','Copy blocked. Try saving or long-press'))))}catch(e){toast(t('ההעתקה נחסמה. נסו לשמור או ללחוץ ארוכות','Copy blocked. Try saving or long-press'))}};
 }
 
@@ -1729,8 +1730,9 @@ function renderName(){
       <div class="legend" id="tleg"></div></div>
     <div class="card"><div class="head"><div><h3>${t('ציר הדרך של השם','The name\u2019s journey')}</h3><div class="sub">${t('הרגעים החשובים בחיים של השם','Key moments in the name\u2019s life')}${F>=0?' · '+sectName(F):''}</div></div></div><ol class="journey" id="journey"></ol></div>
     <div class="card"><div class="head"><div><h3>${t('כמה בכיתה?','How many per class?')}</h3><div class="sub">${t('לפי התינוקות שנולדו בשנה, בכיתה של 30 ילדים','Based on babies born that year, in a class of 30')}</div></div></div><div id="classbox"></div></div>
+    <div class="card"><div class="head"><div><h3>${t('בני כמה הם היום?','How old are they today?')}</h3><div class="sub">${t(`כל מי שנקרא ${esc(nm)}, לפי שלב בחיים`,`Everyone named ${dn}, by life stage`)}</div></div></div><div id="lstage"></div></div>
+    <div class="card"><div class="head"><div><h3>${t('שמות לאחים ואחיות','Names for siblings')}</h3><div class="sub">${t('שמות שעלו וירדו באותן שנים, מאותו עולם שמות','Names that rose and fell in the same years')}</div></div></div><div id="sibs"></div></div>
     ${S?'':`<div class="card"><div class="head"><div><h3>${t('מקום בדירוג','Rank over time')}</h3><div class="sub">${dom?t('בין שמות הבנים','Among boys’ names'):t('בין שמות הבנות','Among girls’ names')} · ${t('למעלה זה טוב','higher is better')}</div></div></div><div class="cw sm"><canvas id="cRank"></canvas></div></div>
-    <div class="card"><div class="head"><div><h3>${t('בני כמה הם היום?','How old are they today?')}</h3><div class="sub">${t('לפי עשור לידה','By decade of birth')}</div></div></div><div class="cols" id="decs"></div></div>
     <div class="card"><div class="head"><div><h3>${t('באיזה מגזר?','Which community?')}</h3><div class="sub">${t('כל התינוקות בשם, בכל המגזרים','All babies with this name, all communities')}</div></div></div><div class="hb" id="secs"></div></div>`}
     <div class="card ${S?'wide':''}"><div class="head"><div><h3>${t('השנה שלך','Your year')}</h3><div class="sub">${t(`בחרו שנת לידה וגלו כמה ${esc(nm)} נולדו איתכם`,`Pick a birth year to see how many were born with you`)}</div></div></div>
       <div class="yr"><select id="ysel" aria-label="${t('שנת לידה','Birth year')}">${YEARS.slice().reverse().map(y=>`<option ${y===store.get('yr',1990)?'selected':''}>${y}</option>`).join('')}</select></div><div class="yrout" id="yout"></div></div>
@@ -1765,7 +1767,7 @@ function renderName(){
   mk('cRank',{type:'line',data:{labels:YEARS,datasets:[{...line(t('מקום','Rank'),ranks,css(dom?'--boy':'--girl')),spanGaps:false}]},options:o2});
   const decs=[];for(let d=1940;d<=2020;d+=10){let s=0;for(let y=0;y<NY;y++)if(Y0+y>=d&&Y0+y<d+10)s+=c[y];decs.push([d,s])}
   const dm=Math.max(...decs.map(d=>d[1]));const pd=decs.find(d=>d[1]===dm)[0];
-  $('#decs').innerHTML=decs.map(([d,s])=>`<div class="c ${d===pd?'pk':''}" title="${d}: ${fmt(s)}"><em>${s?kfmt(s):''}</em><i style="height:${dm?s/dm*100:0}%"></i><span>${d===1940?'1949':"'"+String(d).slice(2)}</span></div>`).join('');
+  if($('#decs'))$('#decs').innerHTML=decs.map(([d,s])=>`<div class="c ${d===pd?'pk':''}" title="${d}: ${fmt(s)}"><em>${s?kfmt(s):''}</em><i style="height:${dm?s/dm*100:0}%"></i><span>${d===1940?'1949':"'"+String(d).slice(2)}</span></div>`).join('');
   const sm=Math.max(...where);
   $('#secs').innerHTML=SECT().map((s,k)=>`<div class="r"><span class="lab">${s}</span><span class="t"><i style="width:${sm?where[k]/sm*100:0}%;background:var(${SC[k]})"></i></span><span class="val">${secTot?Math.round(where[k]/secTot*100):0}%</span></div>`).join('')+`<div class="sub" style="margin-top:4px">${where.filter(q=>q/secTot>=.02).length>1?t('השם חוצה מגזרים','This name crosses communities'):t('השם מופיע במגזר אחד בלבד','Found in one community only')}</div>`;}
   const yr=()=>{const y=+$('#ysel').value;store.set('yr',y);const yi=y-Y0;const n=c[yi];
@@ -1790,6 +1792,7 @@ function renderName(){
      else if(v>0){const k=Math.round(1/v);head=t(`ילד/ה אחד/ת בכל <b>${fmt(k)}</b> כיתות`,`One in every <b>${fmt(k)}</b> classes`);viz=k<=24?`<div class="classes" aria-hidden="true">${Array.from({length:k},(_,j)=>`<i class="${j===0?'on':''}"></i>`).join('')}</div>`:`<div class="sub">${t('פחות מכיתה אחת בכל בית ספר','Less than one per school')}</div>`}
      else head=t('כמעט אף ילד בשם הזה','Almost no one');
      return `<div class="ctile"><div class="ck">${lab}</div><div class="cv">${head}</div>${viz}</div>`};
+   {const ls=$('#lstage');if(ls)ls.innerHTML=lifeStagesHTML(nm,c);const sb=$('#sibs');if(sb){sb.innerHTML=`<p class="sub">${t('מחשבים…','Computing…')}</p>`;setTimeout(()=>{if(CUR!==i||!sb.isConnected)return;sb.innerHTML=siblingsHTML(i)},30);sb.onclick=e=>{const b=e.target.closest('[data-i]');if(b)pick(+b.dataset.i)}}}
    $('#classbox').innerHTML=`<div class="ctiles">${tile(t(`היום · ילידי ${Y1}`,`Today · born ${Y1}`),now)}${pk!==L?tile(t(`בשיא · ${Y0+pk}`,`At the peak · ${Y0+pk}`),then):''}</div>`;}
   {const q=[];let my=0;for(let y=1;y<NY;y++)if(c[y]>c[my])my=y;
    q.push([t(`באיזו שנה נולדו הכי הרבה ${esc(nm)}?`,`Which year had the most babies named ${dn}?`),my===pk?t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. זו גם שנת השיא שלו.`,`${Y0+my}, with ${fmt(c[my])} babies, also its peak year.`):t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. שנת השיא היא ${Y0+pk}, כי אז הוא היה הכי נפוץ ביחס למספר התינוקות שנולדו באותה שנה.`,`${Y0+my}, with ${fmt(c[my])} babies. Its peak year is ${Y0+pk}, when it was most common relative to all births that year.`)]);
@@ -1822,6 +1825,86 @@ function renderName(){
   drawRel();$('#relseg').onclick=e=>{const q=e.target.closest('[data-r]');if(q){REL=q.dataset.r;store.set('rel',REL);drawRel()}};
   openOn($('#rel'));
 }
+
+/* =========================================================
+   Round 18: life stages, sibling names, compare table + share link,
+   "my name" story card
+   ========================================================= */
+
+/* ---------- name file: how old are they today (life stages) ---------- */
+const STAGES=()=>[[0,5,t('גן','Preschool')],[6,17,t('בית ספר','School')],[18,21,t('צבא','Army age')],[22,34,t('צעירים','Young adults')],[35,54,t('הורים','Parents')],[55,69,t('מבוגרים','Older adults')],[70,200,t('סבים וסבתות','Grandparents')]];
+function lifeStages(c){return STAGES().map(([a,b,l])=>{let s=0;for(let y=0;y<NY;y++){const age=NOW-(Y0+y);if(age>=a&&age<=b)s+=c[y]}return{l,a,b,s}})}
+function lifeStagesHTML(nm,c){const S=lifeStages(c);const tot=S.reduce((a,x)=>a+x.s,0)||1;const mx=Math.max(...S.map(x=>x.s))||1;const top=S.find(x=>x.s===mx);
+  return `<div class="lstage">${S.map(x=>`<div class="lsrow ${x===top?'top':''}"><span class="lsl">${x.l}<small>${x.b>=200?t(`${x.a} ומעלה`,`${x.a}+`):`${x.a}–${x.b}`}</small></span><span class="lsb"><i style="width:${(x.s/mx*100).toFixed(1)}%"></i></span><span class="lsv">${x.s?Math.round(x.s/tot*100)+'%':'—'}</span></div>`).join('')}</div>
+    <p class="sub lsnote">${t(`הקבוצה הגדולה ביותר היום: ${top.l}. לפי שנות הלידה בלבד, בלי תמותה והגירה.`,`Largest group today: ${top.l.toLowerCase()}. Based on birth years only.`)}</p>`}
+
+/* ---------- name file: names for brothers and sisters ---------- */
+let SIBV=null;
+function sibVectors(){if(SIBV)return SIBV;const st=stats(-1);const DD=YEARS.map((_,y)=>st.D[0][y]+st.D[1][y]);SIBV=new Array(N);
+  for(let i=0;i<N;i++){if(T(st,i)<400)continue;const v=new Float64Array(NY);let m=0;for(let y=0;y<NY;y++){v[y]=(st.Y[0][i*NY+y]+st.Y[1][i*NY+y])/DD[y];m+=v[y]}m/=NY;let q=0;for(let y=0;y<NY;y++){v[y]-=m;q+=v[y]*v[y]}q=Math.sqrt(q)||1;for(let y=0;y<NY;y++)v[y]/=q;SIBV[i]=v}
+  return SIBV}
+function siblingNames(i){const st=stats(-1),V=sibVectors(),me=V[i];if(!me)return null;const ds=domSec(i);const out={b:[],g:[]};const sc=[];
+  for(let j=0;j<N;j++){if(j===i||!V[j]||domSec(j)!==ds||/[^א-ת]/.test(NAMES[j]))continue;let d=0;const v=V[j];for(let y=0;y<NY;y++)d+=v[y]*me[y];if(d<.6)continue;
+    const gp=st.tot[0][j]/T(st,j);sc.push([j,d,gp])}
+  sc.sort((a,b)=>b[1]-a[1]);for(const [j,,gp] of sc){if(gp<=.15&&out.b.length<6)out.b.push(j);else if(gp>=.85&&out.g.length<6)out.g.push(j);if(out.b.length>=6&&out.g.length>=6)break}
+  return out}
+function siblingsHTML(i){const s=siblingNames(i);if(!s||(!s.b.length&&!s.g.length))return `<p class="sub">${t('אין מספיק נתונים לשם הזה.','Not enough data for this name.')}</p>`;
+  const row=(lab,arr)=>arr.length?`<div class="sibrow"><span class="sibl">${lab}</span><div class="chips">${arr.map(j=>`<button data-i="${j}">${nmh(j)}</button>`).join('')}</div></div>`:'';
+  return row(t('לאח','For a brother'),s.b)+row(t('לאחות','For a sister'),s.g)}
+
+/* ---------- compare: summary table + share link ---------- */
+function compareTableHTML(st){if(!CMP.length)return'';const L=NY-1;
+  const rows=CMP.map((n,k)=>{const i=IDX.get(n),c=comb(st,i),sh=share(st,i);let pk=0,tot=0;for(let y=0;y<NY;y++){tot+=c[y];if(sh[y]>sh[pk])pk=y}
+    const a=c[L]+c[L-1]+c[L-2],b=c[L-10]+c[L-11]+c[L-12];const tr=b>=30?Math.round((a/b-1)*100):null;
+    return `<tr><td><i class="cdot" style="background:var(${CC[k]})"></i><button class="linkname" data-i="${i}">${nmh(i)}</button></td><td>${kfmt(tot)}</td><td>${Y0+pk}</td><td>${fmt(c[L])}</td><td class="${tr==null?'':tr>=0?'up':'dn'}">${tr==null?'—':`<span dir="ltr">${(tr>0?'+':'')+tr}%</span>`}</td></tr>`}).join('');
+  return `<div class="cmptbl"><table><thead><tr><th>${t('שם','Name')}</th><th>${t('סה״כ','Total')}</th><th>${t('שנת שיא','Peak')}</th><th>${t(`ב-${Y1}`,`In ${Y1}`)}</th><th>${t('מגמה ב-10 שנים','10-yr trend')}</th></tr></thead><tbody>${rows}</tbody></table></div>`}
+const compareLink=()=>`${SHARE_URL}#compare=${encodeURIComponent(CMP.join(','))}`;
+function compareFromHash(h){const m=/^compare=(.+)$/.exec(h||'');if(!m)return null;let s='';try{s=decodeURIComponent(m[1])}catch(e){s=m[1]}const L=s.split(',').map(x=>x.trim()).filter(x=>IDX.has(x)).slice(0,4);return L.length?L:null}
+addEventListener('hashchange',()=>{const L=compareFromHash((location.hash||'').slice(1));if(L){CMP=L;store.set('cmp',CMP);setTab('names','compare')}});
+
+/* ---------- "my name" story card (1080x1920) ---------- */
+async function makeMeCard(me,o){
+  try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
+  const i=IDX.get(me.n),W=1080,H=1920;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  const C={bg:'#121326',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',line:me.x?'#4a95ee':'#f07a4a'};
+  g.fillStyle=C.bg;g.fillRect(0,0,W,H);
+  let grd=g.createRadialGradient(W*.85,H*.12,40,W*.85,H*.12,900);grd.addColorStop(0,'rgba(164,157,255,.32)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
+  grd=g.createRadialGradient(W*.1,H*.9,40,W*.1,H*.9,800);grd.addColorStop(0,'rgba(255,127,155,.16)');grd.addColorStop(1,'rgba(255,127,155,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
+  const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?90:W-90;const AL=en?'left':'right';g.textAlign=AL;
+  const body='"IBM Plex Sans Hebrew", Arial, sans-serif';const K=s=>`700 ${s}px Karantina, ${body}`,B=(w,s)=>`${w} ${s}px ${body}`;
+  const fit=(txt,font,size,max)=>{let s=size;g.font=font(s);while(g.measureText(txt).width>max&&s>40){s-=6;g.font=font(s)}return s};
+  g.fillStyle=C.mut;g.font=B(600,36);g.fillText(en?'NAMES OF ISRAEL':'השמות של ישראל',X0,140);
+  g.fillStyle=C.st;g.font=B(700,40);g.fillText(en?'What my name says about me':'מה השם שלי אומר עליי',X0,250);
+  // name + year
+  const nm=en?rom(i):me.n;let s=fit(nm,K,330,W-180);g.fillStyle=C.ink;g.fillText(nm,X0,250+s*.92);let y=280+s*.92;
+  g.fillStyle=C.mut;g.font=B(600,44);g.fillText(en?`Born ${me.y}`:`${me.x?'נולד':'נולדה'} ב-${me.y}`,X0,y+30);y+=70;
+  // persona
+  s=fit(o.title,K,170,W-180);g.fillStyle=C.acc;g.fillText(o.title,X0,y+s*.95);y+=s*.95+40;
+  g.fillStyle=C.ink;g.font=B(500,40);const words=o.desc.split(' ');let ln='',lines=[];for(const w of words){const tst=ln?ln+' '+w:w;if(g.measureText(tst).width>W-180){lines.push(ln);ln=w}else ln=tst}if(ln)lines.push(ln);
+  lines.slice(0,3).forEach((l,k)=>g.fillText(l,X0,y+20+k*58));y+=20+Math.min(lines.length,3)*58+50;
+  // stat tiles
+  const tiles=[[o.n?fmt(o.n):'<5',en?`${o.sexw} named ${nm} in ${me.y}`:`${o.sexw} בשם ${me.n} ב-${me.y}`],[o.n?o.pct:'—',en?'of that year’s babies':`מה${o.sexw} בשנתון`],[o.n?(en?'1 in ':'1 מכל ')+fmt(o.D/o.n):'—',o.tierLab]];
+  const tw=(W-180-40)/3;tiles.forEach(([v,l],k)=>{const x=en?90+k*(tw+20):W-90-k*(tw+20);g.fillStyle='rgba(255,255,255,.05)';const bx=en?x:x-tw;g.beginPath();g.roundRect?g.roundRect(bx,y,tw,210,28):g.rect(bx,y,tw,210);g.fill();
+    g.textAlign=AL;g.fillStyle=C.ink;const vs=fit(v,K,110,tw-50);g.fillText(v,en?x+25:x-25,y+30+vs*.85);g.fillStyle=C.mut;g.font=B(500,27);
+    const lw=l.split(' ');let a='',b2=[];for(const w of lw){const tt=a?a+' '+w:w;if(g.measureText(tt).width>tw-50){b2.push(a);a=w}else a=tt}if(a)b2.push(a);b2.slice(0,2).forEach((q,m)=>g.fillText(q,en?x+25:x-25,y+150+m*34))});
+  y+=255;
+  // your year's top names
+  if(o.peers.length){g.fillStyle=C.mut;g.font=B(600,32);g.fillText(en?`Top names of ${me.y}`:`השמות המובילים של ${me.y}`,X0,y);g.fillStyle=C.ink;g.font=B(700,46);g.fillText(o.peers.slice(0,3).map(j=>en?rom(j):NAMES[j]).join(' · '),X0,y+62)}
+  y+=125;
+  // chart with birth-year marker
+  const ch=Math.max(160,Math.min(340,H-265-y)),cx=90,cw=W-180,cy=y+ch;const m=Math.max(...o.sh)||1;
+  g.beginPath();g.moveTo(cx,cy);o.sh.forEach((v,k)=>g.lineTo(cx+k/(NY-1)*cw,cy-v/m*ch));g.lineTo(cx+cw,cy);g.closePath();
+  const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(164,157,255,.5)');ag.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=ag;g.fill();
+  g.beginPath();o.sh.forEach((v,k)=>{const px=cx+k/(NY-1)*cw,py=cy-v/m*ch;k?g.lineTo(px,py):g.moveTo(px,py)});g.strokeStyle=C.line;g.lineWidth=7;g.lineJoin='round';g.stroke();
+  const yi=me.y-Y0,mx=cx+yi/(NY-1)*cw,my=cy-o.sh[yi]/m*ch;g.setLineDash([10,10]);g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=3;g.beginPath();g.moveTo(mx,cy);g.lineTo(mx,my);g.stroke();g.setLineDash([]);
+  g.fillStyle=C.st;g.beginPath();g.arc(mx,my,16,0,7);g.fill();g.strokeStyle=C.bg;g.lineWidth=6;g.stroke();
+  g.fillStyle=C.ink;g.font=B(700,34);g.textAlign='center';g.direction='ltr';g.fillText(String(me.y),Math.min(Math.max(mx,cx+50),cx+cw-50),Math.max(my-36,cy-ch+10));
+  g.fillStyle=C.mut;g.font=B(500,28);g.textAlign='left';g.fillText(String(Y0),cx,cy+46);g.textAlign='right';g.fillText(String(Y1),cx+cw,cy+46);g.direction=en?'ltr':'rtl';g.textAlign=AL;
+  // footer
+  const host=(SITE.base||'').replace(/^https?:\/\//,'');g.fillStyle=C.acc;g.font=B(700,38);g.fillText(en?'What does your name say about you?':'ומה השם שלכם אומר עליכם?',X0,H-170);
+  if(host&&host.length<=40){g.direction='ltr';g.textAlign=en?'left':'right';g.fillStyle=C.ink;g.font=B(600,34);g.fillText(host,X0,H-118);g.direction=en?'ltr':'rtl'}
+  g.textAlign=AL;g.fillStyle=C.mut;g.font=B(500,28);g.fillText(en?'Made by Idan Diva':'נוצר ע״י עידן דיוה',X0,H-70);
+  return cv}
 
 /* =========================================================
    EXPLORE
@@ -2196,7 +2279,11 @@ function renderCompare(){const st=stats(F),sec=$('#tab-compare');
       <div class="cmpin"><input class="inp" id="cq" placeholder="${t('הוסיפו שם להשוואה','Add a name')}" autocomplete="off" aria-label="${t('הוספת שם להשוואה','Add a name')}"><div class="sugg" id="csugg" hidden></div></div>
       <div id="ctags" class="ctags">${CMP.map((n,k)=>`<span class="tag" style="border-color:var(${CC[k]})">${nmh(IDX.get(n))}<button data-x="${esc(n)}" aria-label="${t('הסרה','Remove')}">×</button></span>`).join('')||`<span class="sub">${t('הוסיפו שם כדי להתחיל','Add a name to start')}</span>`}</div>
       <div class="cw" style="height:320px"><canvas id="cmpChart"></canvas></div>
+      ${compareTableHTML(st)}
+      ${CMP.length>1?`<div class="cmpact"><button class="copybtn" id="cmplink">${icon('link')} ${t('קישור לשיתוף ההשוואה','Share this comparison')}</button></div>`:''}
       <div class="chips" id="presets">${PRESETS.map(([l,v])=>`<button data-p="${v}">${l(t)}</button>`).join('')}</div></div>`;
+  {const cl=$('#cmplink');if(cl)cl.onclick=()=>{const u=compareLink();if(navigator.share&&matchMedia('(pointer:coarse)').matches)navigator.share({title:t('השוואת שמות','Name comparison'),text:CMP.join(' · '),url:u}).catch(()=>{});else copy(u)}}
+  sec.querySelectorAll('.cmptbl [data-i]').forEach(b=>b.onclick=()=>pick(+b.dataset.i));
   wireSearch($('#cq'),$('#csugg'),i=>{const n=NAMES[i];if(!CMP.includes(n)){if(CMP.length>=4)CMP.shift();CMP.push(n)}store.set('cmp',CMP);renderCompare()});
   $('#ctags').onclick=e=>{const b=e.target.closest('[data-x]');if(b){CMP=CMP.filter(n=>n!==b.dataset.x);store.set('cmp',CMP);renderCompare()}};
   $('#presets').onclick=e=>{const b=e.target.closest('[data-p]');if(b){CMP=b.dataset.p.split(',').filter(n=>IDX.has(n));store.set('cmp',CMP);renderCompare()}};
@@ -2208,11 +2295,11 @@ function renderCompare(){const st=stats(F),sec=$('#tab-compare');
    ========================================================= */
 let ME=store.get('me',null);const ME_EX={n:'נועה',y:2005,x:0,ex:true};
 let FAM=store.get('fam',null);const FAM_EX=[{n:'משה',y:1955},{n:'רחל',y:1958},{n:'מיכל',y:1982},{n:'נועה',y:2008}];
-function persona(tier,timing){const P={
+function persona(tier,timing,x){const g=(f,m)=>x?m:f;const P={
   unicorn:[t('חד-קרן','The Unicorn'),t('פחות מ-5 תינוקות מאותו מין קיבלו את השם בשנה שלך. אין עוד כמוך בשנתון.','Fewer than 5 same-sex babies got your name that year. You are one of a kind.')],
-  pioneer_hi:[t('הטרנדסטר','The Trendsetter'),t('נולדת לפני שהשם הגיע לשיא. היית שם לפני שזה היה מגניב.','You were born before the name peaked. You were there before it was cool.')],
+  pioneer_hi:[t(g('הטרנדסטרית','הטרנדסטר'),'The Trendsetter'),t('נולדת לפני שהשם הגיע לשיא. היית שם לפני שזה היה מגניב.','You were born before the name peaked. You were there before it was cool.')],
   pioneer_lo:[t('המגלה','The Discoverer'),t('ההורים שלך מצאו את השם לפני כמעט כולם.','Your parents found this name before almost anyone else.')],
-  wave_hi:[t('כוכב/ת הדור','Face of a Generation'),t('השם שלך הגדיר את השנתון. בכל כיתה היה עוד אחד או שניים.','Your name defined your year. Every class had one or two more.')],
+  wave_hi:[t(g('כוכבת הדור','כוכב הדור'),'Face of a Generation'),t('השם שלך הגדיר את השנתון. בכל כיתה היה עוד אחד או שניים.','Your name defined your year. Every class had one or two more.')],
   wave_lo:[t('בתזמון מושלם','Perfect Timing'),t('נולדת בדיוק כשהשם היה בשיא, אבל הוא אף פעם לא היה המוני.','Born right at the name’s peak, yet it never got crowded.')],
   classic_hi:[t('הקלאסיקה','The Classic'),t('שם שעבר דורות. ההורים שלך בחרו בבטוח והאהוב.','A name that spans generations. Your parents picked the beloved and safe.')],
   classic_lo:[t('הוינטג׳','The Vintage Soul'),t('שם עם נשמה ישנה, שנבחר אחרי שהשיא שלו כבר עבר.','A name with an old soul, chosen after its heyday.')]};
@@ -2245,16 +2332,18 @@ function drawMe(me){
   const tier=!n?5:r<=10?0:r<=50?1:r<=200?2:r<=600?3:4;
   const tierLab=[t('סופר-מיינסטרים','Super mainstream'),t('פופולרי','Popular'),t('מוכר','Familiar'),t('מיוחד','Distinctive'),t('נדיר','Rare'),t('נדיר ביותר','Ultra rare')][tier];
   const diff=me.y-(Y0+pk);const timing=!sh[pk]?'classic':diff<-4?'pioneer':diff>4?'classic':'wave';
-  const [title,desc]=persona(tier,timing);
+  const [title,desc]=persona(tier,timing,x);
   const peers=st.top[x][yi].slice(0,6);
   let best=-1,bs=0;for(let j=0;j<N;j++){const q=st.Y[x][j*NY+yi];if(q<60)continue;let s=0;for(let y=0;y<NY;y++)s+=st.Y[x][j*NY+y];const c=q/(s/NY);if(c>bs){bs=c;best=j}}
   const other=st.Y[1-x][i*NY+yi];
   const timingTxt=!sh[pk]?'':diff<-4?t(`נולדת ${-diff} שנים לפני שהשם הגיע לשיא (${Y0+pk}).`,`You were born ${-diff} years before the name peaked (${Y0+pk}).`):diff>4?t(`נולדת ${diff} שנים אחרי שיא השם (${Y0+pk}).`,`You were born ${diff} years after the name peaked (${Y0+pk}).`):t(`נולדת ממש בשיא של השם (${Y0+pk}).`,`You were born right at the name’s peak (${Y0+pk}).`);
   const sex=x?t('בנים','boys'):t('בנות','girls');
+  const pctv=n/D*100,pct=(pctv>=10?pctv.toFixed(0):pctv>=1?pctv.toFixed(1):pctv>=.1?pctv.toFixed(2):pctv.toFixed(3))+'%';
+  const pd=n/365,perDay=pd>=1.5?t(`בערך ${Math.round(pd)} ביום`,`about ${Math.round(pd)} a day`):pd>=.75?t('בערך אחד ביום','about one a day'):pd>=1/7?t(`בערך ${Math.round(pd*7)} בשבוע`,`about ${Math.round(pd*7)} a week`):t(`בערך ${Math.max(1,Math.round(n/12))} בחודש`,`about ${Math.max(1,Math.round(n/12))} a month`);
   out.innerHTML=`<div class="persona fade"><div class="ptitle">${title}</div><p>${desc}</p>${LANG!=='en'&&MEAN.has(me.n)?`<p class="pmean"><b>${esc(me.n)}:</b> ${esc(MEAN.get(me.n))}</p>`:''}</div>
     <div class="mestats">
-      <div class="stat"><div class="k">${t('בשנתון שלך','In your birth year')}</div><div class="v">${n?fmt(n):'<5'}</div><div class="s">${t(`${sex} בשם ${esc(me.n)} ב-${me.y}`,`${sex} named ${dn} in ${me.y}`)}${other?t(` (ועוד ${fmt(other)} ${x?'בנות':'בנים'})`,` (+${fmt(other)} ${x?'girls':'boys'})`):''}</div></div>
-      <div class="stat"><div class="k">${t('כמה נדיר','How rare')}</div><div class="v">${n?t('1 מכל ','1 in ')+fmt(D/n):'—'}</div><div class="s">${tierLab}${r?` · ${t('מקום ','#')}${r}`:''}</div></div>
+      <div class="stat"><div class="k">${t('בשנתון שלך','In your birth year')}</div><div class="v">${n?fmt(n):'<5'}</div><div class="s">${t(`${sex} בשם ${esc(me.n)} ב-${me.y}`,`${sex} named ${dn} in ${me.y}`)}${n?t(` · ${perDay}`,` · ${perDay}`):''}${other?t(` (ועוד ${fmt(other)} ${x?'בנות':'בנים'})`,` (+${fmt(other)} ${x?'girls':'boys'})`):''}</div></div>
+      <div class="stat"><div class="k">${t('שכיחות בשנתון','Share of your year')}</div><div class="v">${n?pct:'—'}</div><div class="s">${n?t(`אחת מכל ${fmt(D/n)} ${sex}`.replace('אחת',x?'אחד':'אחת'),`1 in ${fmt(D/n)} ${sex}`):''}${n?' · ':''}${tierLab}${r?` · ${t('מקום ','#')}${r}`:''}</div></div>
       <div class="stat"><div class="k">${t('תזמון','Timing')}</div><div class="v">${sh[pk]?Y0+pk:'—'}</div><div class="s">${timingTxt}</div></div>
       <div class="stat"><div class="k">${t('השמות של השנתון שלך','Your year’s top names')}</div><div class="v sm">${peers.slice(0,3).map(nmh).join(', ')}</div><div class="s">${t('המובילים ב-','Top in ')}${me.y}</div></div>
     </div>
@@ -2265,7 +2354,7 @@ function drawMe(me){
   const o=chartBase();o.plugins.tooltip.callbacks={label:q=>` ${q.parsed.y.toFixed(2)}${t(' לאלף',' per 1,000')}`};
   const data=sh.map(v=>v*1000);
   mk('meChart',{type:'line',data:{labels:YEARS,datasets:[{...line(NM(i),data,css(x?'--boy':'--girl'),true),pointRadius:YEARS.map(y=>y===me.y?7:0),pointBackgroundColor:css('--stamp'),pointBorderColor:css('--surface'),pointBorderWidth:2}]},options:o});
-  $('#mecard').onclick=()=>shareCard(i,`${title} · ${me.y}`);
+  $('#mecard').onclick=async()=>{const cv=await makeMeCard(me,{title,desc,n,D,pct,tierLab,sh,peers,sexw:sex});showCard(cv,`${rom(i)}-${me.y}-names-of-israel.png`,`${me.n} ${me.y}`,t('הכרטיס שלך','Your card'))};
   $('#mecopy').onclick=()=>copy(t(`${me.n} (${me.y}): ${title}. ${n?`אחד מכל ${fmt(D/n)} ${sex} בשנתון.`:'פחות מ-5 בשנתון!'} ${timingTxt} (השמות של ישראל, נוצר ע״י עידן דיוה)`,`${NM(i)} (${me.y}): ${title}. ${n?`1 in ${fmt(D/n)} ${sex} that year.`:'Under 5 that year!'} ${timingTxt} (Names of Israel, made by Idan Diva)`));
 }
 function drawFam(){
@@ -2344,8 +2433,9 @@ function deckOrder(r){const st=stats(-1);const rnd=mulberry32(hash('nm'+r.code))
   for(let i=0;i<N;i++){if(/[^א-ת]/.test(NAMES[i]))continue;const s=T(st,i);if(s<100)continue;const gp=st.tot[0][i]/s;
     const w4=SECTOT[i],tt=w4[0]+w4[1]+w4[2]+w4[3];let sh=0;for(let k=0;k<4;k++)if(mask&(1<<k))sh+=w4[k];if(sh/tt<.5)continue;
     const lo=r.uni?.4:.85,hi=r.uni?.6:.15;if(r.f==='f'&&gp<lo)continue;if(r.f==='m'&&gp>hi)continue;if(r.f==='a'&&!r.uni&&gp>.15&&gp<.85)continue;
-    const c=comb(st,i);const r3=c[NY-1]+c[NY-2]+c[NY-3];const w=Math.log(12+r3)+Math.log10(s)/2+(MEAN.has(NAMES[i])?1.5:0);arr.push([i,-Math.log(rnd())/w])}
-  return arr.sort((a,b)=>a[1]-b[1]).map(a=>a[0])}
+    const c=comb(st,i);const r3=c[NY-1]+c[NY-2]+c[NY-3];arr.push([i,(r3+s/40)*(MEAN.has(NAMES[i])?1.3:1)])}
+  /* popularity order, shuffled inside bands of 25 so it never feels like a ranked list */
+  arr.sort((a,b)=>b[1]-a[1]);return arr.map((x,k)=>[x[0],Math.floor(k/25)+rnd()]).sort((a,b)=>a[1]-b[1]).map(a=>a[0])}
 function remaining(r){if(NMX.deckFor!==r.code){NMX.deck=deckOrder(r);NMX.deckFor=r.code}let done=new Set([...r.likes,...r.passes]);let rem=NMX.deck.filter(i=>!done.has(i));
   if(!rem.length&&r.passes.length){r.round=(r.round||1)+1;r.passes=[];nmSave();toast(t('סבב חדש: השמות שדילגתם עליהם חוזרים','New round: skipped names are back'));done=new Set(r.likes);rem=NMX.deck.filter(i=>!done.has(i))}return rem}
 
@@ -2657,8 +2747,10 @@ const lettersOf=n=>[...n].filter(c=>GEM[c]).map(c=>FIN[c]||c);
 function wordle(g,s){const G_=lettersOf(g),S=lettersOf(s);const res=G_.map(()=>'x');const left={};
   S.forEach((c,k)=>{if(G_[k]===c)res[k]='g';else left[c]=(left[c]||0)+1});
   G_.forEach((c,k)=>{if(res[k]==='g')return;if(left[c]){res[k]='y';left[c]--}});return{L:G_,res}}
+function namleDaily(p,mk){const a=p.slice().sort((x,y)=>NAMES[x]<NAMES[y]?-1:NAMES[x]>NAMES[y]?1:0);const rnd=mulberry32(hash('bnil-daily-'+mk));
+  for(let k=a.length-1;k>0;k--){const j=Math.floor(rnd()*(k+1));[a[k],a[j]]=[a[j],a[k]]}const d=dayNum()-1;return a[((d%a.length)+a.length)%a.length]}
 function namleNew(mode){const p=namlePool();const key=todayKey(),mk=nmodeKey();
-  if(mode==='daily'){const saved=store.get('namle2_'+key+'_'+mk,null);NML.state=saved||{mode,key,mk,day:dayNum(),secret:p[hash('bnil2'+key+mk)%p.length],guesses:[],hint:false,reveal:[],done:false,won:false,shown:false}}
+  if(mode==='daily'){const saved=store.get('namle2_'+key+'_'+mk,null);NML.state=saved||{mode,key,mk,day:dayNum(),secret:namleDaily(p,mk),guesses:[],hint:false,reveal:[],done:false,won:false,shown:false}}
   else NML.state={mode,mk,secret:rand(p),guesses:[],hint:false,reveal:[],done:false,won:false,shown:false};}
 function namleSave(){if(NML.state.mode==='daily'){store.set('namle2_'+NML.state.key+'_'+NML.state.mk,NML.state);nstatRecord(NML.state)}}
 const triesUsed=s=>s.guesses.length+(s.hint?1:0);
@@ -2813,7 +2905,7 @@ function renderDec(){const el=$('#g-dec');if(!G.q)newQ();
   const qn=$('#qn');if(qn)qn.onclick=()=>{newQ();renderDec()};const qo=$('#qopen');if(qo)qo.onclick=()=>pick(G.q.i);}
 
 /* ---------- boot ---------- */
-(function boot(){let t0=(location.hash||'').slice(1);if(/^match/.test(t0))t0='match';else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0=store.get('tab','home');TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
+(function boot(){let t0=(location.hash||'').slice(1);if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0=store.get('tab','home');TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
   if(/^saved\./.test((location.hash||'').slice(1)))t0=store.get('tab','home')==='match'?'home':store.get('tab','home');renderShell();setTab(t0);checkSavedHash();try{document.activeElement&&document.activeElement.blur()}catch(e){}
   const mq=matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',()=>{GAME_BUILT=null;rerender()});
   new MutationObserver(()=>{GAME_BUILT=null;rerender()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});})();
