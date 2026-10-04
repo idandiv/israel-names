@@ -2550,6 +2550,7 @@ IC.heart='<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10
 IC.users='<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a4.5 4.5 0 0 1 5 4.8"/>';
 IC.link='<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>';
 IC.back='<path d="M9 6l6 6-6 6"/>';
+IC.chat='<path d="M20 11.5a8 8 0 0 1-11.6 7.1L4 20l1.4-4.2A8 8 0 1 1 20 11.5z"/>';
 
 /* Rooms are stored by NAME, not by index into the data, so future data releases (new years, new names)
    can't scramble saved rooms. Older saves used indices of the first data release; LEGACY_RM lists the
@@ -2695,7 +2696,7 @@ function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k))
   sec.innerHTML=`<div class="nmapp"><div class="nmtop"><button class="nmback" id="nmback">${icon('back')}<span>${t('לאתר הראשי','Main site')}</span></button></div>
   <div class="nmwelcome fade"><div class="nmlogo">${icon('users')}</div><div class="k">${t('הוזמנת לבחור שם יחד','You’re invited to choose a name together')}</div>
     ${who?`<h2>${t('מי מתחבר כרגע?','Who’s connecting?')}</h2>
-    <p>${t('בחרו את השם שלכם כדי להמשיך מאיפה שעצרתם.','Pick your name to continue where you left off.')}</p>
+    <p>${t('חוזרים לחדר? בחרו את השם שלכם. הוזמנתם עכשיו? בחרו "משתתף/ת חדש/ה".','Coming back? Pick your name. Just invited? Choose "I’m new here".')}</p>
     <div class="nmwho">${names.map((n,k)=>`<button class="nmseat" data-k="${k}">${icon('users')}<span>${esc(n)}</span></button>`).join('')}
       <button class="nmseat nmnew" id="nmnew">${t('משתתף/ת חדש/ה','I’m new here')}</button></div>`
     :`<h2>${r.pname?t(`${esc(r.pname)} מחכה לך.`,`${esc(r.pname)} is waiting.`):t('בואו נבחר שם.','Let’s pick a name.')}</h2>`}
@@ -2712,8 +2713,13 @@ function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k))
       <p class="sub">${t(`אם זה את/ה, ${esc(name)} ימשיך מאיפה שעצר, בלי ליצור משתתף כפול.`,`If it’s you, ${esc(name)} continues where it left off, without a duplicate.`)}</p>
       <button class="next nmgo" id="nmyes">${t(`כן, אני ${esc(name)}`,`Yes, I’m ${esc(name)}`)}</button><button class="linkbtn nmno" id="nmno">${t('לא, אבחר שם אחר','No, I’ll pick another name')}</button>`,'nminv');
     $('#nmyes').onclick=()=>{close();claim(name)};$('#nmno').onclick=()=>{close();const i=$('#nmme');if(i){i.focus();i.select()}}};
-  sec.querySelectorAll('.nmseat[data-k]').forEach(b=>b.onclick=()=>claim(names[+b.dataset.k]));
-  if(who)$('#nmnew').onclick=()=>{sec.querySelector('.nmwho').hidden=true;const h=sec.querySelector('.nmwelcome h2');if(h)h.textContent=t('בואו נבחר שם.','Let’s pick a name.');sec.querySelector('.nmwelcome>p').hidden=true;$('#nmform').hidden=false;$('#nmme').focus()};
+  /* only one name in the room: that is usually the person who sent the invite, so make sure before connecting */
+  const showNew=()=>{sec.querySelector('.nmwho').hidden=true;const h=sec.querySelector('.nmwelcome h2');if(h)h.textContent=t('בואו נבחר שם.','Let’s pick a name.');const pp=sec.querySelector('.nmwelcome>p');if(pp)pp.hidden=true;$('#nmform').hidden=false;$('#nmme').focus()};
+  sec.querySelectorAll('.nmseat[data-k]').forEach(b=>b.onclick=()=>{const n=names[+b.dataset.k];if(names.length>1){claim(n);return}
+    const close=nmModal(`<h3>${t(`להמשיך בתור ${esc(n)}?`,`Continue as ${esc(n)}?`)}</h3><p class="sub">${t(`בחרו בזה רק אם אתם ${esc(n)} וחוזרים מדפדפן או ממכשיר אחר. אם ${esc(n)} הזמין/ה אתכם, הצטרפו כמשתתף/ת חדש/ה.`,`Only if you are ${esc(n)} coming back from another browser or device. If ${esc(n)} invited you, join as new.`)}</p>
+      <button class="next nmgo" id="nmyes">${t(`כן, אני ${esc(n)}`,`Yes, I’m ${esc(n)}`)}</button><button class="linkbtn nmno" id="nmno">${t('לא, אני מצטרף/ת בפעם הראשונה','No, I’m joining for the first time')}</button>`,'nminv');
+    $('#nmyes').onclick=()=>{close();claim(n)};$('#nmno').onclick=()=>{close();showNew()}});
+  if(who)$('#nmnew').onclick=showNew;
   $('#nmjoin').onclick=async()=>{const me=$('#nmme').value.trim();if(!me){toast(t('כתבו את השם שלכם','Enter your name'));return}
     const dup=names.find(n=>sameName(n,me));if(dup){askClaim(dup);return}
     store.set('nm_me',me);r.me=me.slice(0,30);r.invShown=1;
@@ -2726,23 +2732,39 @@ function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k))
     nmSave();renderMatch()}}
 function nmModal(html,cls=''){const m=$('#modal');m.hidden=false;m.innerHTML=`<div class="mbox ${cls}" role="dialog"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>${html}</div>`;
   const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};return close}
+const picksText=r=>r.pname?t(`הבחירות החדשות שלי בהתאמת השמות. פתח/י כדי לראות את ההתאמות שלנו:\n${picksLink(r)}`,`My latest picks. Open to see our matches:\n${picksLink(r)}`):t(`בואו נבחר שם לתינוק ביחד! פתח/י את הקישור, כתוב/י את השם שלך ותתחיל/י להחליק:\n${picksLink(r)}`,`Let's choose a baby name together! Open the link and start swiping:\n${picksLink(r)}`);
 function nmInvite(){const r=R();if(r.cloud)return nmInviteCloud(r);const live=!!NMX.live;
   const close=nmModal(`<h3>${r.pname?t(`החדר של ${esc(r.me)} ו${esc(r.pname)}`,`${esc(r.me)} & ${esc(r.pname)}`):t('שליחה לבן/בת הזוג','Send to your partner')}</h3>
     <p class="sub">${t('הקישור הוא גם ההזמנה וגם הבחירות שלכם. שולחים אותו בכל פעם שבחרתם עוד שמות, ובן/בת הזוג עושים אותו דבר בחזרה. כך ההתאמות מתעדכנות אצל שניכם.','The link is both the invite and your picks. Send it whenever you’ve picked more, and your partner does the same back.')}</p>
-    <button class="next nmsend" id="nmsend">${icon('link')} ${t(`העתקת הקישור לשליחה (${r.likes.length} בחירות)`,`Copy link to send (${r.likes.length} picks)`)}</button>
+    ${shareRow(picksText(r))}
     <div class="nmstate">${r.pname?`<div><b>${esc(r.pname)}</b> · ${t(`${r.plikes.length} בחירות התקבלו ${ago(r.pupd)}`,`${r.plikes.length} picks received ${ago(r.pupd)}`)}</div>`:`<div>${t('עוד לא התקבלו בחירות מבן/בת הזוג','No picks from your partner yet')}</div>`}<div>${t(`שלחת לאחרונה ${r.sent||0} מתוך ${r.likes.length} הבחירות שלך`,`You last sent ${r.sent||0} of your ${r.likes.length} picks`)}</div>${live?`<div class="liveok">${t('שניכם מחוברים עכשיו, הבחירות מסתנכרנות לבד','You’re both online, picks sync live')}</div>`:''}</div>
     <details class="nmpastebox"><summary>${t('קיבלתם קישור והוא נפתח בדפדפן אחר?','Got a link that opened in another browser?')}</summary><div class="nmpaste"><input class="inp" id="nmpaste" placeholder="${t('הדביקו כאן את הקישור','Paste the link here')}" autocomplete="off"><button class="copybtn" id="nmpastego">${t('קליטה','Import')}</button></div></details>`,'nminv');
-  $('#nmsend').onclick=()=>{r.sent=r.likes.length;nmSave();copy(r.pname?t(`הבחירות החדשות שלי בהתאמת השמות. פתח/י כדי לראות את ההתאמות שלנו:\n${picksLink(r)}`,`My latest picks. Open to see our matches:\n${picksLink(r)}`):t(`בואו נבחר שם לתינוק ביחד! פתח/י את הקישור, כתוב/י את השם שלך ותתחיל/י להחליק:\n${picksLink(r)}`,`Let's choose a baby name together! Open the link and start swiping:\n${picksLink(r)}`));nmStage();close()};
+  wireShare(picksText(r),()=>{r.sent=r.likes.length;nmSave();nmStage()},close);
   $('#nmpastego').onclick=()=>{const v=$('#nmpaste').value;const k=v.indexOf('#');const p=parseMatchHash(k>=0?v.slice(k):v);
     if(!p||!p.plikes){toast(t('זה לא נראה כמו קישור בחירות','That doesn’t look like a picks link'));return}
     if(p.code!==r.code){toast(t('הקישור שייך לחדר אחר','That link belongs to another room'));return}
     const fresh=importPartner(r,p,true);close();nmTop();if(fresh.length){r.seen.push(...fresh.filter(i=>!r.seen.includes(i)));nmSave();matchModal(fresh)}else toast(t(`נקלטו ${p.plikes.length} בחירות. עוד אין התאמות חדשות.`,`Imported ${p.plikes.length} picks. No new matches yet.`))};}
-function nmInviteCloud(r){const others=cloudOthers();
-  const close=nmModal(`<h3>${others.length?t(`החדר של ${esc(r.me)} ו${esc(others.join(' ו'))}`,`${esc(r.me)} & ${esc(others.join(' & '))}`):t('הזמנת בן/בת הזוג','Invite your partner')}</h3>
+/* share sheet for an invite / picks link: WhatsApp first (opens the app with the message ready), then copy, then the phone's own share menu */
+const waURL=text=>'https://wa.me/?text='+encodeURIComponent(text);
+function shareRow(text,onSend){return `<a class="next nmsend nmwa" id="nmwa" href="${waURL(text)}" target="_blank" rel="noopener">${icon('chat')}<span>${t('שליחה בוואטסאפ','Send on WhatsApp')}</span></a>
+    <div class="nmshare2"><button class="copybtn" id="nmcopy">${icon('link')} ${t('העתקת קישור','Copy link')}</button>${navigator.share?`<button class="copybtn" id="nmos">${t('שיתוף אחר','Other apps')}</button>`:''}</div>`}
+function wireShare(text,onSend,close){const done=()=>{if(onSend)onSend();setTimeout(close,150)};
+  const wa=$('#nmwa');if(wa)wa.onclick=()=>done();
+  const cp=$('#nmcopy');if(cp)cp.onclick=()=>{copy(text);done()};
+  const os=$('#nmos');if(os)os.onclick=()=>{navigator.share({text}).then(done).catch(()=>{})}}
+const inviteText=r=>t(`בואו נבחר שם לתינוק ביחד! פתח/י את הקישור והתחל/י להחליק. ההתאמות יופיעו לשנינו בזמן אמת:\n${inviteLink(r)}`,`Let's choose a baby name together! Open the link and start swiping. Matches show up for both of us live:\n${inviteLink(r)}`);
+function invCloudState(r){const others=cloudOthers();
+  return{h:others.length?t(`החדר של ${esc(r.me)} ו${esc(others.join(' ו'))}`,`${esc(r.me)} & ${esc(others.join(' & '))}`):t('הזמנת בן/בת הזוג','Invite your partner'),
+    st:`${others.length?`<div><b>${esc(others.join(', '))}</b> · ${CL.online?t('מחובר/ת עכשיו','online now'):t('לא מחובר/ת כרגע. הבחירות יחכו','offline, picks will wait')}</div>`:`<div>${t('עוד אף אחד לא הצטרף','Nobody has joined yet')}</div>`}<div class="${CL.live?'liveok':''}">${CL.live?t('מחובר לסנכרון חי','Live sync connected'):t('מתחבר לסנכרון…','Connecting…')}</div>`}}
+/* the open invite window follows the room live (someone joins while it is open) */
+function invCloudRefresh(){const box=document.querySelector('#modal:not([hidden]) .cloudinv');const r=R();if(!box||!r)return;const s=invCloudState(r);
+  const h=box.querySelector('#invh'),st=box.querySelector('#invst');if(h)h.innerHTML=s.h;if(st)st.innerHTML=s.st}
+function nmInviteCloud(r){const s=invCloudState(r),text=inviteText(r);
+  const close=nmModal(`<h3 id="invh">${s.h}</h3>
     <p class="sub">${t('שולחים את הקישור פעם אחת בלבד. מהרגע שבן/בת הזוג מצטרפים, כל בחירה מסתנכרנת לבד, וכשיש התאמה היא קופצת לשניכם באותו רגע.','Send the link once. After your partner joins, every swipe syncs by itself and matches pop up on both phones at the same moment.')}</p>
-    <button class="next nmsend" id="nmsend">${icon('link')} ${t('העתקת קישור ההזמנה','Copy invite link')}</button>
-    <div class="nmstate">${others.length?`<div><b>${esc(others.join(', '))}</b> · ${CL.online?t('מחובר/ת עכשיו','online now'):t('לא מחובר/ת כרגע. הבחירות יחכו','offline, picks will wait')}</div>`:`<div>${t('עוד אף אחד לא הצטרף','Nobody has joined yet')}</div>`}<div class="${CL.live?'liveok':''}">${CL.live?t('מחובר לסנכרון חי','Live sync connected'):t('מתחבר לסנכרון…','Connecting…')}</div></div>`,'nminv');
-  $('#nmsend').onclick=()=>{copy(t(`בואו נבחר שם לתינוק ביחד! פתח/י את הקישור, כתוב/י את השם שלך ותתחיל/י להחליק. ההתאמות יופיעו לשנינו בזמן אמת:\n${inviteLink(r)}`,`Let's choose a baby name together! Open the link and start swiping. Matches show up for both of us live:\n${inviteLink(r)}`));close()}}
+    ${shareRow(text)}
+    <div class="nmstate" id="invst">${s.st}</div>`,'nminv cloudinv');
+  wireShare(text,null,close);cloudSync(r,true)}
 function matchModal(ids){const r=R();const i=ids[0];const m=MEAN.get(NAMES[i]);
   const close=nmModal(`<div class="mmatch"><div class="rings"><i></i><i></i></div><div class="mk">${t('יש לנו התאמה','It’s a match')}</div>
     <div class="mname">${esc(NAMES[i])}</div>${m&&LANG!=='en'?`<p>${esc(m)}</p>`:''}
@@ -2771,15 +2793,16 @@ addEventListener('hashchange',()=>{const h=(location.hash||'').slice(1);if(/^mat
    - Falls back to the link-exchange mode when Supabase is not configured or unreachable.
    ========================================================= */
 const SBC=(window.SITE_CONFIG||{}).supabase||null;
-const CL={client:null,loading:null,uid:null,seat:null,ch:null,room:null,members:new Map(),p:new Map(),online:false,live:false,flushing:false};
+const CL={client:null,loading:null,uid:null,seat:null,ch:null,room:null,members:new Map(),p:new Map(),online:false,live:false,flushing:false,pullSeq:0,pulling:0,evq:[],opening:null,lastOpen:0,lastSync:0};
 const cloudOn=()=>!!(SBC&&SBC.url&&SBC.key&&SBC.lib);
 function sbLoad(){if(!cloudOn())return Promise.resolve(null);if(CL.loading)return CL.loading;
   CL.loading=new Promise(res=>{if(window.supabase&&window.supabase.createClient)return res(window.supabase);
       const s=document.createElement('script');s.src=SBC.lib;s.async=true;s.onload=()=>res(window.supabase||null);s.onerror=()=>res(null);document.head.appendChild(s)})
     .then(async lib=>{if(!lib)throw new Error('lib');
       const c=CL.client||lib.createClient(SBC.url,SBC.key,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'bnil_sb_auth'}});CL.client=c;
-      let {data:{session}}=await c.auth.getSession();
-      if(!session){const {data,error}=await c.auth.signInAnonymously();if(error)throw error;session=data.session}
+      const g=await c.auth.getSession();let session=g.data&&g.data.session;
+      /* never replace a stored identity because of a network blip: only sign in anew when there is truly no session */
+      if(!session){if(g.error)throw g.error;const {data,error}=await c.auth.signInAnonymously();if(error)throw error;session=data.session}
       CL.uid=session.user.id;return c})
     .catch(e=>{console.warn('[namematch] realtime unavailable',e&&e.message);CL.loading=null;return null});
   return CL.loading}
@@ -2815,42 +2838,80 @@ async function cloudFlush(r){if(!r||!r.cloud||!CL.client||!CL.seat||CL.room!==r.
 function cloudApply(r,silent){const pl=new Set(),ps=new Set();
   CL.p.forEach(m=>m.forEach((k,n)=>{const i=IDX.get(n);if(i==null)return;if(k==='like'||k==='super')pl.add(i);if(k==='super')ps.add(i)}));
   const names=cloudOthers();
-  importPartner(r,{pname:names.join(t(' ו',' & ')),plikes:[...pl],psupers:[...ps]},silent);if(TAB==='match')nmTop()}
-async function cloudPull(r){const c=CL.client;if(!c||CL.room!==r.code)return;
-  const [m,s]=await Promise.all([c.from('room_members').select('user_id,display_name,seat_of').eq('room_code',r.code),c.from('swipes').select('user_id,name,kind').eq('room_code',r.code)]);
-  if(m.error||s.error){console.warn('[namematch] pull',(m.error||s.error).message);return}
+  importPartner(r,{pname:names.join(t(' ו',' & ')),plikes:[...pl],psupers:[...ps]},silent);if(TAB==='match')nmTop();invCloudRefresh()}
+/* full snapshot of the room (members + swipes). Returns false when it failed, so the caller can retry.
+   Responses are sequenced (an older one never overwrites a newer one), and realtime swipes that
+   arrive while a snapshot is in flight are re-applied on top of it. */
+async function cloudPull(r){const c=CL.client;if(!c||CL.room!==r.code)return true;const seq=++CL.pullSeq;CL.pulling++;if(CL.pulling===1)CL.evq=[];
+  let m,s;try{[m,s]=await Promise.all([c.from('room_members').select('user_id,display_name,seat_of').eq('room_code',r.code),swipesAll(c,r.code)])}
+  catch(e){m={error:e}}finally{CL.pulling--}
+  if(seq!==CL.pullSeq||CL.room!==r.code)return true;
+  if(m.error||(s&&s.error)){console.warn('[namematch] pull',((m.error||s.error)||{}).message);return false}
   CL.members=new Map(m.data.map(x=>[x.user_id,{n:x.display_name,seat:x.seat_of||x.user_id}]));const mine=CL.members.get(CL.uid);CL.seat=mine?mine.seat:CL.uid;CL.p=new Map();
   const restoring=!!r.restore;if(restoring){cloudRestore(r,s.data.filter(x=>x.user_id===CL.seat));delete r.restore}
-  s.data.forEach(x=>{if(x.user_id===CL.seat)return;if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind)});
-  cloudApply(r,restoring);
-  if(restoring){r.seen=[...new Set([...r.seen,...matchesOf(r)])];nmSave();if(TAB==='match'&&R()===r)nmStage()}}
+  const put=x=>{if(x.user_id===CL.seat)return;if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind)};
+  s.data.forEach(put);if(!CL.pulling){CL.evq.forEach(put);CL.evq=[]}
+  CL.lastSync=Date.now();cloudApply(r,restoring);
+  if(restoring){r.seen=[...new Set([...r.seen,...matchesOf(r)])];nmSave();if(TAB==='match'&&R()===r)nmStage()}
+  return true}
+/* all swipes of a room, page by page (the API returns at most 1,000 rows per request) */
+async function swipesAll(c,code){const out=[];for(let from=0;from<50000;from+=1000){const {data,error}=await c.from('swipes').select('user_id,name,kind').eq('room_code',code).order('user_id').order('name').range(from,from+999);
+    if(error)return{error};out.push(...data);if(data.length<1000)break}return{data:out}}
+/* one entry point for "bring this room up to date": send pending swipes, then take a snapshot; retries on failure */
+let syncT=null,syncTry=0;
+function cloudSync(r,now){if(!r||!r.cloud)return;clearTimeout(syncT);syncT=setTimeout(()=>doSync(r),now?0:250)}
+async function doSync(r){if(!r||!r.cloud||CL.room!==r.code||!CL.client)return;await cloudFlush(r);const ok=await cloudPull(r);
+  if(ok){syncTry=0;return}syncTry++;clearTimeout(syncT);syncT=setTimeout(()=>{const rr=R();if(rr===r)doSync(r)},[1000,3000,8000,15000][Math.min(syncTry-1,3)])}
 /* a device that just connected to an existing participant continues from that participant's swipes */
 function cloudRestore(r,rows){const L=new Set(),S=new Set(),P=new Set();
   rows.forEach(x=>{const i=IDX.get(x.name);if(i==null)return;if(x.kind==='like'||x.kind==='super')L.add(i);if(x.kind==='super')S.add(i);if(x.kind==='pass')P.add(i)});
   r.likes=[...L];r.supers=[...S];r.passes=[...P];r.hist=[];r.q=[];NMX.deckFor=null;nmSave()}
-function cloudClose(){if(CL.ch&&CL.client){try{CL.ch.untrack()}catch(e){}try{CL.client.removeChannel(CL.ch)}catch(e){}}CL.ch=null;CL.room=null;CL.live=false;CL.online=false}
-async function cloudOpen(r){if(!r||!r.cloud)return;if(CL.room===r.code&&CL.ch)return;const c=await sbLoad();if(!c){if(TAB==='match')nmTop();return}
+const chOk=()=>!!(CL.ch&&CL.ch.state!=='closed');   /* 'closed' = the library gave up on this channel; errored ones it rejoins by itself */
+const trackMe=()=>{if(!CL.ch||!CL.live)return;const rr=R();try{CL.ch.track({n:rr?rr.me:'',s:CL.seat})}catch(e){}};
+function cloudClose(){if(CL.ch&&CL.client){try{CL.ch.untrack()}catch(e){}try{CL.client.removeChannel(CL.ch)}catch(e){}}CL.ch=null;CL.room=null;CL.live=false;CL.online=false;CL.members=new Map();CL.p=new Map()}
+async function cloudOpen(r){if(!r||!r.cloud)return;if(CL.room===r.code&&chOk())return;
+  if(CL.opening===r.code)return;CL.opening=r.code;CL.lastOpen=Date.now();
+  try{await cloudOpenNow(r)}finally{if(CL.opening===r.code)CL.opening=null}}
+async function cloudOpenNow(r){const c=await sbLoad();if(!c){if(TAB==='match')nmTop();return}   /* the 3s timer retries the open */
   cloudClose();CL.room=r.code;CL.seat=null;
   const {error}=await c.rpc('join_room',{p_code:r.code,p_name:r.me});   /* idempotent: refreshes membership/display name */
   if(error&&error.code==='P0002'){toast(t('החדר לא נמצא בשרת. ממשיכים במצב קישורים.','Room not found online. Using links instead.'));r.cloud=0;nmSave();CL.room=null;return}
+  if(error&&error.code==='P0003'){   /* this browser lost its anonymous identity: reconnect through "who is connecting?" */
+    CL.room=null;r.me='';r.cloudInvite=1;nmSave();if(TAB==='match')renderMatch();return}
+  if(error){CL.room=null;console.warn('[namematch] open',error.message);return}   /* retried by the timer */
   await cloudPull(r);await cloudFlush(r);   /* show the room right away, even before the socket is up */
+  if(CL.room!==r.code)return;
+  for(const old of (c.getChannels?c.getChannels():[]).filter(x=>x.topic==='realtime:nm:'+r.code)){try{await c.removeChannel(old)}catch(e){}}
   if(CL.room!==r.code)return;
   const ch=c.channel('nm:'+r.code,{config:{presence:{key:CL.uid}}});CL.ch=ch;
   ch.on('postgres_changes',{event:'*',schema:'public',table:'swipes',filter:'room_code=eq.'+r.code},p=>{if(store.get('debug',0))console.log('[namematch] change',p.eventType);const x=p.new;if(!x||!x.user_id||x.user_id===CL.seat)return;
-      if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind);const rr=R();if(rr&&rr.code===r.code)cloudApply(rr,false)})
+      if(CL.pulling)CL.evq.push(x);
+      if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind);const rr=R();if(!rr||rr.code!==r.code)return;
+      cloudApply(rr,false);if(!CL.members.has(x.user_id))cloudSync(rr)})   /* a swipe from someone we don't know yet: refresh the members */
     .on('postgres_changes',{event:'*',schema:'public',table:'room_members',filter:'room_code=eq.'+r.code},p=>{const x=p.new;if(!x||!x.user_id||x.user_id===CL.uid)return;
-      const isNew=!CL.members.has(x.user_id)&&!x.seat_of;const rr=R();if(rr&&rr.code===r.code){if(isNew)toast(t(`${x.display_name} הצטרף/ה לחדר`,`${x.display_name} joined`));cloudPull(rr)}})
-    .on('presence',{event:'sync'},()=>{const ps=ch.presenceState();CL.online=Object.keys(ps).some(k=>k!==CL.uid&&!(ps[k]||[]).some(m=>m&&m.s&&m.s===CL.seat));if(TAB==='match')nmTop()})
+      const isNew=!CL.members.has(x.user_id)&&!x.seat_of;const rr=R();if(rr&&rr.code===r.code){if(isNew)toast(t(`${x.display_name} הצטרף/ה לחדר`,`${x.display_name} joined`));cloudSync(rr)}})
+    .on('presence',{event:'sync'},()=>{const ps=ch.presenceState();CL.online=Object.keys(ps).some(k=>k!==CL.uid&&!(ps[k]||[]).some(m=>m&&m.s&&m.s===CL.seat));if(TAB==='match')nmTop();invCloudRefresh()})
     .subscribe(async (st,err)=>{if(store.get('debug',0))console.log('[namematch] channel',st,err&&err.message);if(CL.ch!==ch)return;
-      if(st==='SUBSCRIBED'){CL.live=true;try{await ch.track({n:r.me,s:CL.seat})}catch(e){}const rr=R();if(rr&&rr.code===r.code){await cloudFlush(rr);await cloudPull(rr)}}
+      if(st==='SUBSCRIBED'){CL.live=true;trackMe();const rr=R();if(rr&&rr.code===r.code)cloudSync(rr,true)}
       else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){CL.live=false;CL.online=false}
       if(TAB==='match')nmTop()});}
-/* safety net: if the WebSocket can't connect (strict networks), poll every few seconds instead */
-setInterval(()=>{if(document.visibilityState!=='visible'||CL.live)return;const r=R();if(TAB==='match'&&r&&r.cloud&&CL.room===r.code&&CL.client){cloudFlush(r);cloudPull(r)}},3000);
-/* phones sleep: catch up when the page is visible again */
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'){if(CL.ch)try{CL.ch.untrack()}catch(e){}return}if(CL.ch&&CL.live){const rr=R();try{CL.ch.track({n:rr?rr.me:''})}catch(e){}}const r=R();if(r&&r.cloud&&CL.room===r.code){cloudFlush(r);cloudPull(r)}});
+/* safety nets, every 3s while the room is on screen:
+   - not connected yet (no network / server hiccup): retry opening the room
+   - socket down: take a snapshot every tick; socket up: still a light snapshot every 15s, in case an event was missed */
+setInterval(()=>{if(document.visibilityState!=='visible'||TAB!=='match')return;const r=R();if(!r||!r.cloud||!r.me)return;
+  if(CL.live&&CL.client&&CL.client.realtime&&typeof CL.client.realtime.isConnected==='function'&&!CL.client.realtime.isConnected()){CL.live=false;CL.online=false;nmTop()}
+  if(CL.room!==r.code||!chOk()){if(!CL.opening&&Date.now()-CL.lastOpen>8000)cloudOpen(r);return}
+  if(!CL.client)return;
+  if(!CL.live||Date.now()-CL.lastSync>15000)doSync(r)},3000);
+/* phones sleep and apps switch (e.g. to WhatsApp to send the invite): catch up the moment the page is back */
+function cloudResume(){const r=R();if(TAB!=='match'||!r||!r.cloud||!r.me)return;
+  if(CL.live&&CL.client&&CL.client.realtime&&typeof CL.client.realtime.isConnected==='function'&&!CL.client.realtime.isConnected()){CL.live=false;CL.online=false}
+  trackMe();if(CL.room!==r.code||!chOk()){CL.lastOpen=0;cloudOpen(r)}else cloudSync(r,true)}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'){if(CL.ch)try{CL.ch.untrack()}catch(e){}return}cloudResume()});
+addEventListener('pageshow',e=>{if(e.persisted)cloudResume()});
+addEventListener('focus',()=>{if(Date.now()-CL.lastSync>4000)cloudResume()});
 addEventListener('pagehide',()=>{if(CL.ch)try{CL.ch.untrack()}catch(e){}});
-addEventListener('online',()=>{const r=R();if(r&&r.cloud&&CL.room===r.code){cloudFlush(r);cloudPull(r)}});
+addEventListener('online',cloudResume);
 
 /* "Delete all my data": remove this browser's anonymous user, memberships and swipes from the server */
 async function cloudDeleteMe(){if(!cloudOn())return'none';let had=false;try{had=!!localStorage.getItem('bnil_sb_auth')}catch(e){}if(!had)return'none';

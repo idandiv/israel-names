@@ -11,6 +11,7 @@ IC.heart='<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10
 IC.users='<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a4.5 4.5 0 0 1 5 4.8"/>';
 IC.link='<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>';
 IC.back='<path d="M9 6l6 6-6 6"/>';
+IC.chat='<path d="M20 11.5a8 8 0 0 1-11.6 7.1L4 20l1.4-4.2A8 8 0 1 1 20 11.5z"/>';
 
 /* Rooms are stored by NAME, not by index into the data, so future data releases (new years, new names)
    can't scramble saved rooms. Older saves used indices of the first data release; LEGACY_RM lists the
@@ -156,7 +157,7 @@ function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k))
   sec.innerHTML=`<div class="nmapp"><div class="nmtop"><button class="nmback" id="nmback">${icon('back')}<span>${t('לאתר הראשי','Main site')}</span></button></div>
   <div class="nmwelcome fade"><div class="nmlogo">${icon('users')}</div><div class="k">${t('הוזמנת לבחור שם יחד','You’re invited to choose a name together')}</div>
     ${who?`<h2>${t('מי מתחבר כרגע?','Who’s connecting?')}</h2>
-    <p>${t('בחרו את השם שלכם כדי להמשיך מאיפה שעצרתם.','Pick your name to continue where you left off.')}</p>
+    <p>${t('חוזרים לחדר? בחרו את השם שלכם. הוזמנתם עכשיו? בחרו "משתתף/ת חדש/ה".','Coming back? Pick your name. Just invited? Choose "I’m new here".')}</p>
     <div class="nmwho">${names.map((n,k)=>`<button class="nmseat" data-k="${k}">${icon('users')}<span>${esc(n)}</span></button>`).join('')}
       <button class="nmseat nmnew" id="nmnew">${t('משתתף/ת חדש/ה','I’m new here')}</button></div>`
     :`<h2>${r.pname?t(`${esc(r.pname)} מחכה לך.`,`${esc(r.pname)} is waiting.`):t('בואו נבחר שם.','Let’s pick a name.')}</h2>`}
@@ -173,8 +174,13 @@ function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k))
       <p class="sub">${t(`אם זה את/ה, ${esc(name)} ימשיך מאיפה שעצר, בלי ליצור משתתף כפול.`,`If it’s you, ${esc(name)} continues where it left off, without a duplicate.`)}</p>
       <button class="next nmgo" id="nmyes">${t(`כן, אני ${esc(name)}`,`Yes, I’m ${esc(name)}`)}</button><button class="linkbtn nmno" id="nmno">${t('לא, אבחר שם אחר','No, I’ll pick another name')}</button>`,'nminv');
     $('#nmyes').onclick=()=>{close();claim(name)};$('#nmno').onclick=()=>{close();const i=$('#nmme');if(i){i.focus();i.select()}}};
-  sec.querySelectorAll('.nmseat[data-k]').forEach(b=>b.onclick=()=>claim(names[+b.dataset.k]));
-  if(who)$('#nmnew').onclick=()=>{sec.querySelector('.nmwho').hidden=true;const h=sec.querySelector('.nmwelcome h2');if(h)h.textContent=t('בואו נבחר שם.','Let’s pick a name.');sec.querySelector('.nmwelcome>p').hidden=true;$('#nmform').hidden=false;$('#nmme').focus()};
+  /* only one name in the room: that is usually the person who sent the invite, so make sure before connecting */
+  const showNew=()=>{sec.querySelector('.nmwho').hidden=true;const h=sec.querySelector('.nmwelcome h2');if(h)h.textContent=t('בואו נבחר שם.','Let’s pick a name.');const pp=sec.querySelector('.nmwelcome>p');if(pp)pp.hidden=true;$('#nmform').hidden=false;$('#nmme').focus()};
+  sec.querySelectorAll('.nmseat[data-k]').forEach(b=>b.onclick=()=>{const n=names[+b.dataset.k];if(names.length>1){claim(n);return}
+    const close=nmModal(`<h3>${t(`להמשיך בתור ${esc(n)}?`,`Continue as ${esc(n)}?`)}</h3><p class="sub">${t(`בחרו בזה רק אם אתם ${esc(n)} וחוזרים מדפדפן או ממכשיר אחר. אם ${esc(n)} הזמין/ה אתכם, הצטרפו כמשתתף/ת חדש/ה.`,`Only if you are ${esc(n)} coming back from another browser or device. If ${esc(n)} invited you, join as new.`)}</p>
+      <button class="next nmgo" id="nmyes">${t(`כן, אני ${esc(n)}`,`Yes, I’m ${esc(n)}`)}</button><button class="linkbtn nmno" id="nmno">${t('לא, אני מצטרף/ת בפעם הראשונה','No, I’m joining for the first time')}</button>`,'nminv');
+    $('#nmyes').onclick=()=>{close();claim(n)};$('#nmno').onclick=()=>{close();showNew()}});
+  if(who)$('#nmnew').onclick=showNew;
   $('#nmjoin').onclick=async()=>{const me=$('#nmme').value.trim();if(!me){toast(t('כתבו את השם שלכם','Enter your name'));return}
     const dup=names.find(n=>sameName(n,me));if(dup){askClaim(dup);return}
     store.set('nm_me',me);r.me=me.slice(0,30);r.invShown=1;
@@ -187,23 +193,39 @@ function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k))
     nmSave();renderMatch()}}
 function nmModal(html,cls=''){const m=$('#modal');m.hidden=false;m.innerHTML=`<div class="mbox ${cls}" role="dialog"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>${html}</div>`;
   const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};return close}
+const picksText=r=>r.pname?t(`הבחירות החדשות שלי בהתאמת השמות. פתח/י כדי לראות את ההתאמות שלנו:\n${picksLink(r)}`,`My latest picks. Open to see our matches:\n${picksLink(r)}`):t(`בואו נבחר שם לתינוק ביחד! פתח/י את הקישור, כתוב/י את השם שלך ותתחיל/י להחליק:\n${picksLink(r)}`,`Let's choose a baby name together! Open the link and start swiping:\n${picksLink(r)}`);
 function nmInvite(){const r=R();if(r.cloud)return nmInviteCloud(r);const live=!!NMX.live;
   const close=nmModal(`<h3>${r.pname?t(`החדר של ${esc(r.me)} ו${esc(r.pname)}`,`${esc(r.me)} & ${esc(r.pname)}`):t('שליחה לבן/בת הזוג','Send to your partner')}</h3>
     <p class="sub">${t('הקישור הוא גם ההזמנה וגם הבחירות שלכם. שולחים אותו בכל פעם שבחרתם עוד שמות, ובן/בת הזוג עושים אותו דבר בחזרה. כך ההתאמות מתעדכנות אצל שניכם.','The link is both the invite and your picks. Send it whenever you’ve picked more, and your partner does the same back.')}</p>
-    <button class="next nmsend" id="nmsend">${icon('link')} ${t(`העתקת הקישור לשליחה (${r.likes.length} בחירות)`,`Copy link to send (${r.likes.length} picks)`)}</button>
+    ${shareRow(picksText(r))}
     <div class="nmstate">${r.pname?`<div><b>${esc(r.pname)}</b> · ${t(`${r.plikes.length} בחירות התקבלו ${ago(r.pupd)}`,`${r.plikes.length} picks received ${ago(r.pupd)}`)}</div>`:`<div>${t('עוד לא התקבלו בחירות מבן/בת הזוג','No picks from your partner yet')}</div>`}<div>${t(`שלחת לאחרונה ${r.sent||0} מתוך ${r.likes.length} הבחירות שלך`,`You last sent ${r.sent||0} of your ${r.likes.length} picks`)}</div>${live?`<div class="liveok">${t('שניכם מחוברים עכשיו, הבחירות מסתנכרנות לבד','You’re both online, picks sync live')}</div>`:''}</div>
     <details class="nmpastebox"><summary>${t('קיבלתם קישור והוא נפתח בדפדפן אחר?','Got a link that opened in another browser?')}</summary><div class="nmpaste"><input class="inp" id="nmpaste" placeholder="${t('הדביקו כאן את הקישור','Paste the link here')}" autocomplete="off"><button class="copybtn" id="nmpastego">${t('קליטה','Import')}</button></div></details>`,'nminv');
-  $('#nmsend').onclick=()=>{r.sent=r.likes.length;nmSave();copy(r.pname?t(`הבחירות החדשות שלי בהתאמת השמות. פתח/י כדי לראות את ההתאמות שלנו:\n${picksLink(r)}`,`My latest picks. Open to see our matches:\n${picksLink(r)}`):t(`בואו נבחר שם לתינוק ביחד! פתח/י את הקישור, כתוב/י את השם שלך ותתחיל/י להחליק:\n${picksLink(r)}`,`Let's choose a baby name together! Open the link and start swiping:\n${picksLink(r)}`));nmStage();close()};
+  wireShare(picksText(r),()=>{r.sent=r.likes.length;nmSave();nmStage()},close);
   $('#nmpastego').onclick=()=>{const v=$('#nmpaste').value;const k=v.indexOf('#');const p=parseMatchHash(k>=0?v.slice(k):v);
     if(!p||!p.plikes){toast(t('זה לא נראה כמו קישור בחירות','That doesn’t look like a picks link'));return}
     if(p.code!==r.code){toast(t('הקישור שייך לחדר אחר','That link belongs to another room'));return}
     const fresh=importPartner(r,p,true);close();nmTop();if(fresh.length){r.seen.push(...fresh.filter(i=>!r.seen.includes(i)));nmSave();matchModal(fresh)}else toast(t(`נקלטו ${p.plikes.length} בחירות. עוד אין התאמות חדשות.`,`Imported ${p.plikes.length} picks. No new matches yet.`))};}
-function nmInviteCloud(r){const others=cloudOthers();
-  const close=nmModal(`<h3>${others.length?t(`החדר של ${esc(r.me)} ו${esc(others.join(' ו'))}`,`${esc(r.me)} & ${esc(others.join(' & '))}`):t('הזמנת בן/בת הזוג','Invite your partner')}</h3>
+/* share sheet for an invite / picks link: WhatsApp first (opens the app with the message ready), then copy, then the phone's own share menu */
+const waURL=text=>'https://wa.me/?text='+encodeURIComponent(text);
+function shareRow(text,onSend){return `<a class="next nmsend nmwa" id="nmwa" href="${waURL(text)}" target="_blank" rel="noopener">${icon('chat')}<span>${t('שליחה בוואטסאפ','Send on WhatsApp')}</span></a>
+    <div class="nmshare2"><button class="copybtn" id="nmcopy">${icon('link')} ${t('העתקת קישור','Copy link')}</button>${navigator.share?`<button class="copybtn" id="nmos">${t('שיתוף אחר','Other apps')}</button>`:''}</div>`}
+function wireShare(text,onSend,close){const done=()=>{if(onSend)onSend();setTimeout(close,150)};
+  const wa=$('#nmwa');if(wa)wa.onclick=()=>done();
+  const cp=$('#nmcopy');if(cp)cp.onclick=()=>{copy(text);done()};
+  const os=$('#nmos');if(os)os.onclick=()=>{navigator.share({text}).then(done).catch(()=>{})}}
+const inviteText=r=>t(`בואו נבחר שם לתינוק ביחד! פתח/י את הקישור והתחל/י להחליק. ההתאמות יופיעו לשנינו בזמן אמת:\n${inviteLink(r)}`,`Let's choose a baby name together! Open the link and start swiping. Matches show up for both of us live:\n${inviteLink(r)}`);
+function invCloudState(r){const others=cloudOthers();
+  return{h:others.length?t(`החדר של ${esc(r.me)} ו${esc(others.join(' ו'))}`,`${esc(r.me)} & ${esc(others.join(' & '))}`):t('הזמנת בן/בת הזוג','Invite your partner'),
+    st:`${others.length?`<div><b>${esc(others.join(', '))}</b> · ${CL.online?t('מחובר/ת עכשיו','online now'):t('לא מחובר/ת כרגע. הבחירות יחכו','offline, picks will wait')}</div>`:`<div>${t('עוד אף אחד לא הצטרף','Nobody has joined yet')}</div>`}<div class="${CL.live?'liveok':''}">${CL.live?t('מחובר לסנכרון חי','Live sync connected'):t('מתחבר לסנכרון…','Connecting…')}</div>`}}
+/* the open invite window follows the room live (someone joins while it is open) */
+function invCloudRefresh(){const box=document.querySelector('#modal:not([hidden]) .cloudinv');const r=R();if(!box||!r)return;const s=invCloudState(r);
+  const h=box.querySelector('#invh'),st=box.querySelector('#invst');if(h)h.innerHTML=s.h;if(st)st.innerHTML=s.st}
+function nmInviteCloud(r){const s=invCloudState(r),text=inviteText(r);
+  const close=nmModal(`<h3 id="invh">${s.h}</h3>
     <p class="sub">${t('שולחים את הקישור פעם אחת בלבד. מהרגע שבן/בת הזוג מצטרפים, כל בחירה מסתנכרנת לבד, וכשיש התאמה היא קופצת לשניכם באותו רגע.','Send the link once. After your partner joins, every swipe syncs by itself and matches pop up on both phones at the same moment.')}</p>
-    <button class="next nmsend" id="nmsend">${icon('link')} ${t('העתקת קישור ההזמנה','Copy invite link')}</button>
-    <div class="nmstate">${others.length?`<div><b>${esc(others.join(', '))}</b> · ${CL.online?t('מחובר/ת עכשיו','online now'):t('לא מחובר/ת כרגע. הבחירות יחכו','offline, picks will wait')}</div>`:`<div>${t('עוד אף אחד לא הצטרף','Nobody has joined yet')}</div>`}<div class="${CL.live?'liveok':''}">${CL.live?t('מחובר לסנכרון חי','Live sync connected'):t('מתחבר לסנכרון…','Connecting…')}</div></div>`,'nminv');
-  $('#nmsend').onclick=()=>{copy(t(`בואו נבחר שם לתינוק ביחד! פתח/י את הקישור, כתוב/י את השם שלך ותתחיל/י להחליק. ההתאמות יופיעו לשנינו בזמן אמת:\n${inviteLink(r)}`,`Let's choose a baby name together! Open the link and start swiping. Matches show up for both of us live:\n${inviteLink(r)}`));close()}}
+    ${shareRow(text)}
+    <div class="nmstate" id="invst">${s.st}</div>`,'nminv cloudinv');
+  wireShare(text,null,close);cloudSync(r,true)}
 function matchModal(ids){const r=R();const i=ids[0];const m=MEAN.get(NAMES[i]);
   const close=nmModal(`<div class="mmatch"><div class="rings"><i></i><i></i></div><div class="mk">${t('יש לנו התאמה','It’s a match')}</div>
     <div class="mname">${esc(NAMES[i])}</div>${m&&LANG!=='en'?`<p>${esc(m)}</p>`:''}
