@@ -25,6 +25,12 @@ const SECT_HE=['יהודים','מוסלמים','נוצרים ערבים','דרו
 const SECT=()=>LANG==='en'?SECT_EN:SECT_HE;
 const sectName=s=>SECT()[s];
 /* Escape closes whatever is on top: an open dialog first, then suggestion lists, then the phone search bar */
+/* "delete all my data": two taps, then device + server */
+function wipeBtn(w){if(!w)return;w.onclick=async()=>{if(!w.dataset.sure){w.dataset.sure=1;w.textContent=t('בטוח? לחצו שוב למחיקה','Sure? Tap again to delete');return}
+    if(w.disabled)return;w.disabled=true;w.textContent=t('מוחקים…','Deleting…');
+    const server=await cloudDeleteMe();   /* 'ok' | 'none' (never used couple rooms) | 'fail' */
+    store.wipe();try{sessionStorage.setItem('wiped',server)}catch(e){}
+    try{history.replaceState(null,'',HREF('home'))}catch(e){}location.reload()}}
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const m=$('#modal');
   if(m&&!m.hidden){m.hidden=true;e.preventDefault();return}
   const open=[...document.querySelectorAll('.sugg')].filter(b=>!b.hidden);if(open.length){open.forEach(b=>b.hidden=true);return}
@@ -154,15 +160,12 @@ function renderShell(){
     'Source: Israel Central Bureau of Statistics, via the babynamesIL package. The data includes every name given to at least 5 babies in a given year, sex and community, so very rare names are missing and percentages are out of the babies listed. "Typical age" uses birth years only. English spellings are approximate transliterations of the Hebrew. "2025 update" tags come from Population Authority top-10 lists, not CBS data.')}</p>
     <p>${cloudOn()?t('פרטיות: אין הרשמה. השמות ששמרתם, התשובות במחולל וההתקדמות במשחקים נשמרים רק בדפדפן במכשיר הזה. בבחירת שם בזוג, השם שבחרתם להציג בחדר והבחירות שלכם בו נשמרים בשרת מאובטח (Supabase), כדי שבן או בת הזוג יראו אותם בזמן אמת. רק מי שהצטרף לחדר יכול לראות אותם, וחדרים שלא היה בהם שימוש 90 יום נמחקים אוטומטית. הכפתור כאן מוחק את מה שנשמר במכשיר.','Privacy: no sign-up. Saved names, finder answers and game progress stay in this browser. In couple rooms, your display name and swipes are stored on a secure server (Supabase) so your partner sees them live. Only room members can see them, and rooms unused for 90 days are deleted automatically. This button deletes what is stored on this device.'):t('פרטיות: אין הרשמה ואין שרת. השמות ששמרתם, התשובות במחולל, ההתקדמות במשחקים והבחירות הזוגיות נשמרים רק בדפדפן במכשיר הזה. מה שעובר בין אנשים עובר רק בקישורים שאתם בוחרים לשלוח.','Privacy: no sign-up and no server. Saved names, finder answers, game progress and couple picks stay in this browser on this device. Only links you choose to send carry anything to others.')}</p>
     <button class="copybtn danger" id="wipeall">${cloudOn()?t('מחיקת כל הנתונים שלי (במכשיר ובשרת)','Delete all my data (device and server)'):t('מחיקת כל הנתונים השמורים במכשיר','Delete all data saved on this device')}</button></details>
+  ${docLinksHTML()}
   <div id="favbar" class="favbar" hidden></div>`;
   document.querySelector('.mainnav').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){PUSH_ONCE=true;setTab(b.dataset.tab)}});
   $('#home').onclick=()=>{PUSH_ONCE=true;setTab('home')};
   $('#favtop').onclick=openFavPanel;
-  {const w=$('#wipeall');if(w)w.onclick=async()=>{if(!w.dataset.sure){w.dataset.sure=1;w.textContent=t('בטוח? לחצו שוב למחיקה','Sure? Tap again to delete');return}
-    if(w.disabled)return;w.disabled=true;w.textContent=t('מוחקים…','Deleting…');
-    const server=await cloudDeleteMe();   /* 'ok' | 'none' (never used couple rooms) | 'fail' */
-    store.wipe();try{sessionStorage.setItem('wiped',server)}catch(e){}
-    try{history.replaceState(null,'',HREF('home'))}catch(e){}location.reload()}}
+  wipeBtn($('#wipeall'));
   $('#srchbtn').onclick=()=>{const bar=document.querySelector('.bar');bar.classList.toggle('sopen');if(bar.classList.contains('sopen'))setTimeout(()=>$('#q').focus(),50)};
   $('#lang').onclick=()=>{LANG=LANG==='en'?'he':'en';store.set('lang',LANG);GAME_BUILT=null;renderShell();setTab(TAB)};
   wireSearch($('#q'),$('#sugg'),pick);

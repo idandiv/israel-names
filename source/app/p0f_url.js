@@ -45,7 +45,7 @@ function setMeta(){const onName=TAB==='names'&&NSUB==='file';const m=onName?name
   document.title=m.title;metaTag('meta[name="description"]','name','description',m.desc);
   metaTag('meta[property="og:title"]','property','og:title',m.title);metaTag('meta[property="og:description"]','property','og:description',m.desc);
   if(SITE.base&&SITE.routing==='path'){const u=onName?nameURL(CUR):SITE.root;metaTag('link[rel="canonical"]','rel','canonical',u);metaTag('meta[property="og:url"]','property','og:url',u)}}
-addEventListener('popstate',()=>{const h=(location.hash||'').slice(1);
+addEventListener('popstate',()=>{if(docFromURL())return;const h=(location.hash||'').slice(1);
   if(/^(match|saved\.|compare=)/.test(h))return;                 /* handled by their own hashchange listeners */
   const i=nameFromURL();if(i!=null){CUR=i;store.set('name',NAMES[i]);if(TAB!=='names'||NSUB!=='file')setTab('names','file');else{renderNames();setMeta()}return}
   if(URL_MISS){setTab('home');notFound(URL_MISS);return}

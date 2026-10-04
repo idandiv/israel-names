@@ -1075,6 +1075,37 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .nmseat[disabled]{opacity:.55;cursor:default}
 .nmno{display:block;margin:10px auto 0}
 
+/* v24 info pages: about / privacy / terms */
+.doclinks{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 10px;margin:10px 0 0;font-size:12.5px}
+.doclinks a{color:var(--muted);text-decoration:none;padding:6px 2px}
+.doclinks a:hover{color:var(--ink-2);text-decoration:underline}
+.doclinks span{color:var(--line)}
+@media (pointer:coarse){.doclinks a{min-height:36px;display:inline-flex;align-items:center}}
+.docpage{position:fixed;inset:0;z-index:90;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);color:var(--ink)}
+.docpage[hidden]{display:none}
+body.docopen{overflow:hidden}
+.docin{max-width:760px;margin:0 auto;padding:max(14px,env(safe-area-inset-top)) 18px 48px}
+.doctop{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:1}
+.docback{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:14px;color:var(--ink)}
+.docback:hover,.docback:focus-visible{border-color:var(--accent)}
+.docback .ic{width:18px;height:18px}
+.docbrand{font-family:var(--f-display);font-weight:700;font-size:26px;color:var(--accent);line-height:1}
+.docbody{padding-top:18px;line-height:1.75;font-size:16px;color:var(--ink-2)}
+.docbody h1{font-family:var(--f-display);font-weight:700;font-size:clamp(52px,12vw,76px);line-height:.95;margin:6px 0 14px;color:var(--ink)}
+.docbody h2{font-size:19px;color:var(--ink);margin:28px 0 6px}
+.docbody p{margin:0 0 12px}.docbody ul{margin:0 0 12px;padding-inline-start:20px}.docbody li{margin-bottom:6px}
+.docbody b{color:var(--ink)}
+.docbody a{color:var(--accent);font-weight:600;text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 40%,transparent)}
+.docbody a:hover{border-bottom-color:var(--accent)}
+.docbody .dlead{font-size:18px;color:var(--ink)}
+.docbody .dmeta{font-size:13px;color:var(--muted);margin-top:-6px}
+.docbody .dwipe{margin:6px 0 4px}
+.docnav{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
+.docnav a{padding:8px 14px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);text-decoration:none;font-size:14px;font-weight:600;min-height:40px;display:inline-flex;align-items:center}
+.docnav a[aria-current]{border-color:var(--accent);color:var(--accent)}
+.docfoot{margin-top:18px;font-size:13px;color:var(--muted)}.docfoot a{color:var(--accent);text-decoration:none;font-weight:700}
+@media (max-width:520px){.docbody{font-size:15.5px}.docbrand{font-size:22px}}
+
 /* static fallback content (visible until the app boots, and to crawlers) */
 .seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;line-height:1.7}
 .seo h1{font-family:'Karantina',system-ui;font-size:56px;line-height:1;margin:8px 0 12px}

@@ -110,7 +110,7 @@ def page(title, desc, path, body, noindex=False, jsonld=None):
 
 
 def nav_links():
-    return '<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a></p>'
+    return '<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a></p>'
 
 
 # ---- name pages ----
@@ -166,10 +166,16 @@ home_body = f'''<article class="seo"><h1>השמות של ישראל</h1><p>{H.es
 <p><a href="/names">לכל {fmt(len(NAMES))} השמות</a></p></article>'''
 open(SRC + 'index.html', 'w').write(page(SITE_T, SITE_D, '/', home_body,
     jsonld={"@context": "https://schema.org", "@type": "WebSite", "name": "השמות של ישראל", "url": PH + "/", "inLanguage": "he"}))
+# ---- info pages (same content the app shows at /about, /privacy, /terms) ----
+PAGES = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'pages.json'), encoding='utf-8'))
+for k, P in PAGES.items():
+    body_html = P['html'].replace('<div class="dwipe" data-wipe></div>', '')
+    open(SRC + k + '.html', 'w').write(page(P['title'] + ' | השמות של ישראל', P['desc'], '/' + k,
+        '<article class="seo"><p class="k">השמות של ישראל</p><h1>' + H.escape(P['title']) + '</h1>' + body_html + nav_links() + '</article>'))
 open(SRC + '404.html', 'w').write(page('הדף לא נמצא | השמות של ישראל', SITE_D, '/', '<article class="seo"><h1>הדף לא נמצא</h1>' + nav_links() + '</article>', noindex=True))
 
 # list of indexable paths for the sitemap (finalize.mjs adds the base URL)
-paths = ['/', '/names'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
+paths = ['/', '/names', '/about', '/privacy', '/terms'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
 json.dump(paths, open(OUT + 'scripts/paths.json', 'w'), ensure_ascii=False)
 # runtime config as an external file (filled by finalize.mjs) so the CSP needs no inline scripts
 open(SRC + 'site-config.js', 'w').write('window.SITE_CONFIG={baseUrl:"__RUNTIME_BASE_URL__",routing:"path",supabase:{url:"__SUPABASE_URL__",key:"__SUPABASE_KEY__",lib:"' + A_SB + '"}};\n')
