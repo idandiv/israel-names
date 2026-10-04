@@ -1581,7 +1581,7 @@ function renderHome(){
   <div class="card homesaved" id="homesaved" hidden></div>
   <div class="ctapair">
   <button class="gencta" id="gencta"><span class="gl1">${icon('gen')}</span><span><b>${t('מחפשים שם לתינוק?','Looking for a baby name?')}</b><span>${t('פתחו את מחולל השמות: לפי משמעות, אופי ומגמה, עם רשימת מועדפים לשיתוף.','Open the name finder: by meaning, vibe and trend, with a shareable shortlist.')}</span></span><span class="go">${t('למחולל','Open')} ${icon('arrow')}</span></button>
-  <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם בזוג?','Choosing a name as a couple?')}</b><span>${t('התאמת שמות: כל אחד מחליק לבד, ורואים על אילו שמות שניכם מסכימים.','NameMatch: each of you swipes alone, then see the names you both love.')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}</button>
+  <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
   </div>
   <div class="tiles3 two">
     <button class="tilec" data-go="games"><span class="k">${t('משחק יומי','Daily game')}</span><b>${t('השם הסודי','The secret name')}</b><span>${t('נחשו את השם של היום ב-10 ניסיונות','Guess today’s name in 10 tries')}</span></button>
@@ -2681,19 +2681,44 @@ function nmOnboard(sec){const rooms=Object.values(NMX.rooms).filter(x=>x.me).sor
       if(cloudOn()&&!(await cloudCreate(r))){delete NMX.rooms[code];code=newCode();r=ensureRoom(code,o.f,o.sec,o.uni);r.me=me.slice(0,30);r.host=1;toast(t('אין חיבור לשרת כרגע. החדר יעבוד בשליחת קישורים.','No connection right now. The room will sync by links.'))}
       NMX.active=code;nmSave();try{history.replaceState(null,'',HREF('match.'+code+'.'+rTok(r)))}catch(e){}renderMatch();if(r.cloud)setTimeout(nmInvite,350)})()};
   sec.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{NMX.active=b.dataset.room;const r=R();nmSave();try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}renderMatch()});}
-function nmJoin(sec,r){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k)).join(', ');
+function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k)).join(', ');
+  /* a shared room link: first ask who is connecting, so a returning participant is never added twice */
+  if(r.cloudInvite&&cloudOn()&&roster===undefined){
+    sec.innerHTML=`<div class="nmapp"><div class="nmtop"><button class="nmback" id="nmback">${icon('back')}<span>${t('לאתר הראשי','Main site')}</span></button></div><div class="nmwelcome"><p class="sub">${t('טוענים את החדר…','Loading the room…')}</p></div></div>`;
+    $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};
+    cloudRoster(r.code).then(L=>{if(TAB==='match'&&R()===r&&!r.me)nmJoin(sec,r,L||[])});return}
+  const names=roster||[];const who=names.length>0;
   sec.innerHTML=`<div class="nmapp"><div class="nmtop"><button class="nmback" id="nmback">${icon('back')}<span>${t('לאתר הראשי','Main site')}</span></button></div>
   <div class="nmwelcome fade"><div class="nmlogo">${icon('users')}</div><div class="k">${t('הוזמנת לבחור שם יחד','You’re invited to choose a name together')}</div>
-    <h2>${r.pname?t(`${esc(r.pname)} מחכה לך.`,`${esc(r.pname)} is waiting.`):t('בואו נבחר שם.','Let’s pick a name.')}</h2>
+    ${who?`<h2>${t('מי מתחבר כרגע?','Who’s connecting?')}</h2>
+    <p>${t('בחרו את השם שלכם כדי להמשיך מאיפה שעצרתם.','Pick your name to continue where you left off.')}</p>
+    <div class="nmwho">${names.map((n,k)=>`<button class="nmseat" data-k="${k}">${icon('users')}<span>${esc(n)}</span></button>`).join('')}
+      <button class="nmseat nmnew" id="nmnew">${t('משתתף/ת חדש/ה','I’m new here')}</button></div>`
+    :`<h2>${r.pname?t(`${esc(r.pname)} מחכה לך.`,`${esc(r.pname)} is waiting.`):t('בואו נבחר שם.','Let’s pick a name.')}</h2>`}
+    <div class="nmform" id="nmform" ${who?'hidden':''}>
     <p>${t(`${fLabel(r.f)} · ${secs}${r.uni?' · כולל יוניסקס':''}. החליקו ימינה על שמות שאתם אוהבים${r.plikes.length?`, ו${esc(r.pname||'בן/בת הזוג')} כבר בחר/ה ${r.plikes.length} שמות. נגלה איפה אתם מסכימים`:''}.`,`${fLabel(r.f)} · ${secs}. Swipe right on names you love.`)}</p>
-    <label class="nml" for="nmme">${t('השם שלך','Your name')}</label><input class="inp nmin" id="nmme" maxlength="30" autocomplete="off" value="${esc(store.get('nm_me',''))}">
-    <button class="next nmgo" id="nmjoin">${t('הצטרפות לחדר','Join the room')}</button></div></div>`;
+    <label class="nml" for="nmme">${t('השם שלך','Your name')}</label><input class="inp nmin" id="nmme" maxlength="30" autocomplete="off" value="${who?'':esc(store.get('nm_me',''))}">
+    <button class="next nmgo" id="nmjoin">${t('הצטרפות לחדר','Join the room')}</button></div></div></div>`;
   $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};
-  $('#nmjoin').onclick=async()=>{const me=$('#nmme').value.trim();if(!me){toast(t('כתבו את השם שלכם','Enter your name'));return}store.set('nm_me',me);r.me=me.slice(0,30);r.invShown=1;
+  const done=()=>{r.invShown=1;delete r.cloudInvite;try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}nmSave();renderMatch()};
+  const claim=async name=>{sec.querySelectorAll('button').forEach(b=>b.disabled=true);const res=await cloudClaim(r,name);
+    if(res==='ok'){store.set('nm_me',name);done();toast(t(`שמחים שחזרת, ${name}. ממשיכים מאיפה שעצרת.`,`Welcome back, ${name}.`));return}
+    r.me='';toast(res==='missing'?t('השם הזה כבר לא נמצא בחדר','That name is no longer in the room'):res==='full'?t('החדר הזה כבר מלא','This room is already full'):t('אין חיבור לשרת כרגע. נסו שוב בעוד רגע.','No connection right now. Try again in a moment.'));nmJoin(sec,r,res==='missing'?undefined:names)};
+  const askClaim=name=>{const close=nmModal(`<h3>${t('השם הזה כבר בחדר, לחבר אותך אליו?','That name is already in the room. Connect you to it?')}</h3>
+      <p class="sub">${t(`אם זה את/ה, ${esc(name)} ימשיך מאיפה שעצר, בלי ליצור משתתף כפול.`,`If it’s you, ${esc(name)} continues where it left off, without a duplicate.`)}</p>
+      <button class="next nmgo" id="nmyes">${t(`כן, אני ${esc(name)}`,`Yes, I’m ${esc(name)}`)}</button><button class="linkbtn nmno" id="nmno">${t('לא, אבחר שם אחר','No, I’ll pick another name')}</button>`,'nminv');
+    $('#nmyes').onclick=()=>{close();claim(name)};$('#nmno').onclick=()=>{close();const i=$('#nmme');if(i){i.focus();i.select()}}};
+  sec.querySelectorAll('.nmseat[data-k]').forEach(b=>b.onclick=()=>claim(names[+b.dataset.k]));
+  if(who)$('#nmnew').onclick=()=>{sec.querySelector('.nmwho').hidden=true;const h=sec.querySelector('.nmwelcome h2');if(h)h.textContent=t('בואו נבחר שם.','Let’s pick a name.');sec.querySelector('.nmwelcome>p').hidden=true;$('#nmform').hidden=false;$('#nmme').focus()};
+  $('#nmjoin').onclick=async()=>{const me=$('#nmme').value.trim();if(!me){toast(t('כתבו את השם שלכם','Enter your name'));return}
+    const dup=names.find(n=>sameName(n,me));if(dup){askClaim(dup);return}
+    store.set('nm_me',me);r.me=me.slice(0,30);r.invShown=1;
     if(r.cloudInvite){const b=$('#nmjoin');b.disabled=true;b.textContent=t('מצטרפים…','Joining…');const res=await cloudJoin(r);
-      if(res==='full'){r.me='';b.disabled=false;b.textContent=t('הצטרפות לחדר','Join the room');toast(t('החדר הזה כבר מלא','This room is already full'));return}
+      const reset=()=>{r.me='';b.disabled=false;b.textContent=t('הצטרפות לחדר','Join the room')};
+      if(res==='full'){reset();toast(t('החדר הזה כבר מלא','This room is already full'));return}
+      if(res==='taken'){reset();askClaim(me);return}
       if(res!=='ok')toast(t('אין חיבור לשרת כרגע. ממשיכים בשליחת קישורים.','No connection right now. Using links instead.'));
-      delete r.cloudInvite;try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}}
+      done();return}
     nmSave();renderMatch()}}
 function nmModal(html,cls=''){const m=$('#modal');m.hidden=false;m.innerHTML=`<div class="mbox ${cls}" role="dialog"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>${html}</div>`;
   const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};return close}
@@ -2708,7 +2733,7 @@ function nmInvite(){const r=R();if(r.cloud)return nmInviteCloud(r);const live=!!
     if(!p||!p.plikes){toast(t('זה לא נראה כמו קישור בחירות','That doesn’t look like a picks link'));return}
     if(p.code!==r.code){toast(t('הקישור שייך לחדר אחר','That link belongs to another room'));return}
     const fresh=importPartner(r,p,true);close();nmTop();if(fresh.length){r.seen.push(...fresh.filter(i=>!r.seen.includes(i)));nmSave();matchModal(fresh)}else toast(t(`נקלטו ${p.plikes.length} בחירות. עוד אין התאמות חדשות.`,`Imported ${p.plikes.length} picks. No new matches yet.`))};}
-function nmInviteCloud(r){const others=[...CL.members].filter(([u])=>u!==CL.uid).map(([,n])=>n);
+function nmInviteCloud(r){const others=cloudOthers();
   const close=nmModal(`<h3>${others.length?t(`החדר של ${esc(r.me)} ו${esc(others.join(' ו'))}`,`${esc(r.me)} & ${esc(others.join(' & '))}`):t('הזמנת בן/בת הזוג','Invite your partner')}</h3>
     <p class="sub">${t('שולחים את הקישור פעם אחת בלבד. מהרגע שבן/בת הזוג מצטרפים, כל בחירה מסתנכרנת לבד, וכשיש התאמה היא קופצת לשניכם באותו רגע.','Send the link once. After your partner joins, every swipe syncs by itself and matches pop up on both phones at the same moment.')}</p>
     <button class="next nmsend" id="nmsend">${icon('link')} ${t('העתקת קישור ההזמנה','Copy invite link')}</button>
@@ -2742,7 +2767,7 @@ addEventListener('hashchange',()=>{const h=(location.hash||'').slice(1);if(/^mat
    - Falls back to the link-exchange mode when Supabase is not configured or unreachable.
    ========================================================= */
 const SBC=(window.SITE_CONFIG||{}).supabase||null;
-const CL={client:null,loading:null,uid:null,ch:null,room:null,members:new Map(),p:new Map(),online:false,live:false,flushing:false};
+const CL={client:null,loading:null,uid:null,seat:null,ch:null,room:null,members:new Map(),p:new Map(),online:false,live:false,flushing:false};
 const cloudOn=()=>!!(SBC&&SBC.url&&SBC.key&&SBC.lib);
 function sbLoad(){if(!cloudOn())return Promise.resolve(null);if(CL.loading)return CL.loading;
   CL.loading=new Promise(res=>{if(window.supabase&&window.supabase.createClient)return res(window.supabase);
@@ -2761,43 +2786,59 @@ async function cloudCreate(r){const c=await sbLoad();if(!c)return false;
   if(error){console.warn('[namematch] create',error.message);return false}r.cloud=1;nmSave();return true}
 async function cloudJoin(r){const c=await sbLoad();if(!c)return 'off';
   const {data,error}=await c.rpc('join_room',{p_code:r.code,p_name:r.me});
-  if(error)return error.code==='P0002'?'missing':error.code==='P0001'?'full':'off';
+  if(error)return error.code==='P0002'?'missing':error.code==='P0001'?'full':error.code==='P0003'?'taken':'off';
   r.cloud=1;if(data){r.f=data.sex;r.sec=data.sectors;r.uni=data.unisex;NMX.deckFor=null}nmSave();return 'ok'}
+/* returning participants: the names already in a room, and "I'm <name>" on a new device / browser */
+async function cloudRoster(code){const c=await sbLoad();if(!c)return null;const {data,error}=await c.rpc('room_roster',{p_code:code});
+  if(error){console.warn('[namematch] roster',error.message);return null}return (data||[]).map(x=>x.display_name).filter(Boolean)}
+async function cloudClaim(r,name){const c=await sbLoad();if(!c)return 'off';
+  const {data,error}=await c.rpc('claim_seat',{p_code:r.code,p_name:name});
+  if(error)return error.code==='P0002'||error.code==='P0004'?'missing':error.code==='P0001'?'full':'off';
+  r.cloud=1;r.me=name;r.restore=1;if(data){r.f=data.sex;r.sec=data.sectors;r.uni=data.unisex}NMX.deckFor=null;nmSave();return 'ok'}
+const sameName=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase();
+/* partner names: every participant except me (my other devices are not partners) */
+const cloudOthers=()=>{const out=[];CL.members.forEach((m,u)=>{if(m.seat===CL.seat||m.seat!==u)return;if(!out.includes(m.n))out.push(m.n)});return out};
 
 /* outgoing: a small persistent queue so swipes made offline are sent later */
 function cloudQueue(r,i,kind){if(!r.cloud)return;(r.q=r.q||[]).push([NAMES[i],kind]);nmSave();cloudFlush(r)}
-async function cloudFlush(r){if(!r||!r.cloud||!CL.client||!CL.uid||CL.room!==r.code||CL.flushing||!(r.q&&r.q.length))return;CL.flushing=true;
+async function cloudFlush(r){if(!r||!r.cloud||!CL.client||!CL.seat||CL.room!==r.code||CL.flushing||!(r.q&&r.q.length))return;CL.flushing=true;
   const batch=r.q.slice(0,300);const last=new Map();batch.forEach(([n,k])=>last.set(n,k));
-  const rows=[...last].map(([name,kind])=>({room_code:r.code,user_id:CL.uid,name,kind}));
+  const rows=[...last].map(([name,kind])=>({room_code:r.code,user_id:CL.seat,name,kind}));
   const {error}=await CL.client.from('swipes').upsert(rows,{onConflict:'room_code,user_id,name'});CL.flushing=false;
   if(!error){r.q.splice(0,batch.length);nmSave();if(r.q.length)cloudFlush(r)}else{console.warn('[namematch] send',error.message);setTimeout(()=>cloudFlush(r),4000)}}
 
 /* incoming: partner state is rebuilt from everyone else's rows */
 function cloudApply(r,silent){const pl=new Set(),ps=new Set();
   CL.p.forEach(m=>m.forEach((k,n)=>{const i=IDX.get(n);if(i==null)return;if(k==='like'||k==='super')pl.add(i);if(k==='super')ps.add(i)}));
-  const names=[...CL.members].filter(([u])=>u!==CL.uid).map(([,n])=>n).filter((n,k,a)=>a.indexOf(n)===k);
+  const names=cloudOthers();
   importPartner(r,{pname:names.join(t(' ו',' & ')),plikes:[...pl],psupers:[...ps]},silent);if(TAB==='match')nmTop()}
 async function cloudPull(r){const c=CL.client;if(!c||CL.room!==r.code)return;
-  const [m,s]=await Promise.all([c.from('room_members').select('user_id,display_name').eq('room_code',r.code),c.from('swipes').select('user_id,name,kind').eq('room_code',r.code)]);
+  const [m,s]=await Promise.all([c.from('room_members').select('user_id,display_name,seat_of').eq('room_code',r.code),c.from('swipes').select('user_id,name,kind').eq('room_code',r.code)]);
   if(m.error||s.error){console.warn('[namematch] pull',(m.error||s.error).message);return}
-  CL.members=new Map(m.data.map(x=>[x.user_id,x.display_name]));CL.p=new Map();
-  s.data.forEach(x=>{if(x.user_id===CL.uid)return;if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind)});
-  cloudApply(r,false)}
+  CL.members=new Map(m.data.map(x=>[x.user_id,{n:x.display_name,seat:x.seat_of||x.user_id}]));const mine=CL.members.get(CL.uid);CL.seat=mine?mine.seat:CL.uid;CL.p=new Map();
+  const restoring=!!r.restore;if(restoring){cloudRestore(r,s.data.filter(x=>x.user_id===CL.seat));delete r.restore}
+  s.data.forEach(x=>{if(x.user_id===CL.seat)return;if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind)});
+  cloudApply(r,restoring);
+  if(restoring){r.seen=[...new Set([...r.seen,...matchesOf(r)])];nmSave();if(TAB==='match'&&R()===r)nmStage()}}
+/* a device that just connected to an existing participant continues from that participant's swipes */
+function cloudRestore(r,rows){const L=new Set(),S=new Set(),P=new Set();
+  rows.forEach(x=>{const i=IDX.get(x.name);if(i==null)return;if(x.kind==='like'||x.kind==='super')L.add(i);if(x.kind==='super')S.add(i);if(x.kind==='pass')P.add(i)});
+  r.likes=[...L];r.supers=[...S];r.passes=[...P];r.hist=[];r.q=[];NMX.deckFor=null;nmSave()}
 function cloudClose(){if(CL.ch&&CL.client){try{CL.ch.untrack()}catch(e){}try{CL.client.removeChannel(CL.ch)}catch(e){}}CL.ch=null;CL.room=null;CL.live=false;CL.online=false}
 async function cloudOpen(r){if(!r||!r.cloud)return;if(CL.room===r.code&&CL.ch)return;const c=await sbLoad();if(!c){if(TAB==='match')nmTop();return}
-  cloudClose();CL.room=r.code;
+  cloudClose();CL.room=r.code;CL.seat=null;
   const {error}=await c.rpc('join_room',{p_code:r.code,p_name:r.me});   /* idempotent: refreshes membership/display name */
   if(error&&error.code==='P0002'){toast(t('החדר לא נמצא בשרת. ממשיכים במצב קישורים.','Room not found online. Using links instead.'));r.cloud=0;nmSave();CL.room=null;return}
-  await cloudFlush(r);await cloudPull(r);   /* show the room right away, even before the socket is up */
+  await cloudPull(r);await cloudFlush(r);   /* show the room right away, even before the socket is up */
   if(CL.room!==r.code)return;
   const ch=c.channel('nm:'+r.code,{config:{presence:{key:CL.uid}}});CL.ch=ch;
-  ch.on('postgres_changes',{event:'*',schema:'public',table:'swipes',filter:'room_code=eq.'+r.code},p=>{if(store.get('debug',0))console.log('[namematch] change',p.eventType);const x=p.new;if(!x||!x.user_id||x.user_id===CL.uid)return;
+  ch.on('postgres_changes',{event:'*',schema:'public',table:'swipes',filter:'room_code=eq.'+r.code},p=>{if(store.get('debug',0))console.log('[namematch] change',p.eventType);const x=p.new;if(!x||!x.user_id||x.user_id===CL.seat)return;
       if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind);const rr=R();if(rr&&rr.code===r.code)cloudApply(rr,false)})
     .on('postgres_changes',{event:'*',schema:'public',table:'room_members',filter:'room_code=eq.'+r.code},p=>{const x=p.new;if(!x||!x.user_id||x.user_id===CL.uid)return;
-      const isNew=!CL.members.has(x.user_id);CL.members.set(x.user_id,x.display_name);const rr=R();if(rr&&rr.code===r.code){cloudApply(rr,true);if(isNew)toast(t(`${x.display_name} הצטרף/ה לחדר`,`${x.display_name} joined`))}})
-    .on('presence',{event:'sync'},()=>{CL.online=Object.keys(ch.presenceState()).some(k=>k!==CL.uid);if(TAB==='match')nmTop()})
+      const isNew=!CL.members.has(x.user_id)&&!x.seat_of;const rr=R();if(rr&&rr.code===r.code){if(isNew)toast(t(`${x.display_name} הצטרף/ה לחדר`,`${x.display_name} joined`));cloudPull(rr)}})
+    .on('presence',{event:'sync'},()=>{const ps=ch.presenceState();CL.online=Object.keys(ps).some(k=>k!==CL.uid&&!(ps[k]||[]).some(m=>m&&m.s&&m.s===CL.seat));if(TAB==='match')nmTop()})
     .subscribe(async (st,err)=>{if(store.get('debug',0))console.log('[namematch] channel',st,err&&err.message);if(CL.ch!==ch)return;
-      if(st==='SUBSCRIBED'){CL.live=true;try{await ch.track({n:r.me})}catch(e){}const rr=R();if(rr&&rr.code===r.code){await cloudFlush(rr);await cloudPull(rr)}}
+      if(st==='SUBSCRIBED'){CL.live=true;try{await ch.track({n:r.me,s:CL.seat})}catch(e){}const rr=R();if(rr&&rr.code===r.code){await cloudFlush(rr);await cloudPull(rr)}}
       else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){CL.live=false;CL.online=false}
       if(TAB==='match')nmTop()});}
 /* safety net: if the WebSocket can't connect (strict networks), poll every few seconds instead */

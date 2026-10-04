@@ -1044,6 +1044,37 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .prcard .pl{font-size:12px;color:var(--ink-2)}
 .prcard.on{border-color:color-mix(in srgb,var(--stamp) 45%,transparent)}.prcard.on .pk,.prcard.on .pl{color:var(--stamp)}
 
+/* v23 home: "choosing a name together" card with color and a small swipe demo */
+.ctapair .matchcta,.matchcta{position:relative;overflow:hidden;border:0;color:#fff;background:linear-gradient(110deg,#b8336a,#6a2fa6);padding-inline-end:116px}
+.matchcta *{color:#fff}
+.matchcta:hover{filter:brightness(1.06)}
+.matchcta:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.matchcta .gl1{background:rgba(255,255,255,.16);color:#fff}
+.matchcta>span:nth-child(2)>span{color:#fff;opacity:.92}
+.matchcta .go{background:rgba(255,255,255,.16);padding:8px 14px;border-radius:999px;color:#fff}
+.nmdemo{position:absolute;inset-inline-end:22px;top:50%;width:70px;height:88px;transform:translateY(-50%);pointer-events:none}
+.nmdemo i{position:absolute;inset:6px 8px;border-radius:12px;background:rgba(255,255,255,.92);box-shadow:0 6px 16px rgba(20,8,40,.28);display:grid;place-items:center}
+.nmdemo i.c2{background:rgba(255,255,255,.35);transform:rotate(-7deg) translateY(3px);box-shadow:none}
+.nmdemo i em{font-style:normal;font-family:var(--f-display);font-weight:700;font-size:17px;color:#6a2fa6}
+.nmdemo .mk{position:absolute;top:-2px;inset-inline-start:-4px;width:26px;height:26px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 3px 10px rgba(20,8,40,.3);opacity:0;transform:scale(.4)}
+.nmdemo .mk .ic{width:15px;height:15px;color:#d23f72;fill:#d23f72}
+@media (prefers-reduced-motion:no-preference){
+  .nmdemo .c1{animation:nmSwipe 3.6s ease-in-out infinite}
+  .nmdemo .mk{animation:nmMark 3.6s ease-in-out infinite}
+}
+@media (prefers-reduced-motion:reduce){.nmdemo .mk{opacity:1;transform:none}}
+@keyframes nmSwipe{0%,30%{transform:none;opacity:1}58%{transform:translateX(46px) rotate(16deg);opacity:0}59%,72%{transform:translateY(8px) scale(.94);opacity:0}86%,100%{transform:none;opacity:1}}
+@keyframes nmMark{0%,38%{opacity:0;transform:scale(.4)}48%{opacity:1;transform:scale(1.15)}54%,70%{opacity:1;transform:scale(1)}80%,100%{opacity:0;transform:scale(.6)}}
+@media (max-width:640px){.ctapair .matchcta,.matchcta{padding-inline-end:100px}.nmdemo{inset-inline-end:16px;width:62px;height:80px}}
+/* v23 NameMatch: who is connecting */
+.nmwho{display:grid;gap:10px;margin-top:6px}
+.nmseat{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;padding:16px 18px;border-radius:16px;background:var(--surface-2);border:1.5px solid var(--line);font-size:18px;font-weight:700;color:var(--ink);min-height:56px}
+.nmseat .ic{width:20px;height:20px;color:var(--accent)}
+.nmseat:hover,.nmseat:focus-visible{border-color:var(--accent)}
+.nmseat.nmnew{justify-content:center;background:transparent;border-style:dashed;color:var(--ink-2);font-size:16px}
+.nmseat[disabled]{opacity:.55;cursor:default}
+.nmno{display:block;margin:10px auto 0}
+
 /* static fallback content (visible until the app boots, and to crawlers) */
 .seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;line-height:1.7}
 .seo h1{font-family:'Karantina',system-ui;font-size:56px;line-height:1;margin:8px 0 12px}

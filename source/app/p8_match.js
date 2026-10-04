@@ -146,19 +146,44 @@ function nmOnboard(sec){const rooms=Object.values(NMX.rooms).filter(x=>x.me).sor
       if(cloudOn()&&!(await cloudCreate(r))){delete NMX.rooms[code];code=newCode();r=ensureRoom(code,o.f,o.sec,o.uni);r.me=me.slice(0,30);r.host=1;toast(t('אין חיבור לשרת כרגע. החדר יעבוד בשליחת קישורים.','No connection right now. The room will sync by links.'))}
       NMX.active=code;nmSave();try{history.replaceState(null,'',HREF('match.'+code+'.'+rTok(r)))}catch(e){}renderMatch();if(r.cloud)setTimeout(nmInvite,350)})()};
   sec.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{NMX.active=b.dataset.room;const r=R();nmSave();try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}renderMatch()});}
-function nmJoin(sec,r){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k)).join(', ');
+function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k)).join(', ');
+  /* a shared room link: first ask who is connecting, so a returning participant is never added twice */
+  if(r.cloudInvite&&cloudOn()&&roster===undefined){
+    sec.innerHTML=`<div class="nmapp"><div class="nmtop"><button class="nmback" id="nmback">${icon('back')}<span>${t('לאתר הראשי','Main site')}</span></button></div><div class="nmwelcome"><p class="sub">${t('טוענים את החדר…','Loading the room…')}</p></div></div>`;
+    $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};
+    cloudRoster(r.code).then(L=>{if(TAB==='match'&&R()===r&&!r.me)nmJoin(sec,r,L||[])});return}
+  const names=roster||[];const who=names.length>0;
   sec.innerHTML=`<div class="nmapp"><div class="nmtop"><button class="nmback" id="nmback">${icon('back')}<span>${t('לאתר הראשי','Main site')}</span></button></div>
   <div class="nmwelcome fade"><div class="nmlogo">${icon('users')}</div><div class="k">${t('הוזמנת לבחור שם יחד','You’re invited to choose a name together')}</div>
-    <h2>${r.pname?t(`${esc(r.pname)} מחכה לך.`,`${esc(r.pname)} is waiting.`):t('בואו נבחר שם.','Let’s pick a name.')}</h2>
+    ${who?`<h2>${t('מי מתחבר כרגע?','Who’s connecting?')}</h2>
+    <p>${t('בחרו את השם שלכם כדי להמשיך מאיפה שעצרתם.','Pick your name to continue where you left off.')}</p>
+    <div class="nmwho">${names.map((n,k)=>`<button class="nmseat" data-k="${k}">${icon('users')}<span>${esc(n)}</span></button>`).join('')}
+      <button class="nmseat nmnew" id="nmnew">${t('משתתף/ת חדש/ה','I’m new here')}</button></div>`
+    :`<h2>${r.pname?t(`${esc(r.pname)} מחכה לך.`,`${esc(r.pname)} is waiting.`):t('בואו נבחר שם.','Let’s pick a name.')}</h2>`}
+    <div class="nmform" id="nmform" ${who?'hidden':''}>
     <p>${t(`${fLabel(r.f)} · ${secs}${r.uni?' · כולל יוניסקס':''}. החליקו ימינה על שמות שאתם אוהבים${r.plikes.length?`, ו${esc(r.pname||'בן/בת הזוג')} כבר בחר/ה ${r.plikes.length} שמות. נגלה איפה אתם מסכימים`:''}.`,`${fLabel(r.f)} · ${secs}. Swipe right on names you love.`)}</p>
-    <label class="nml" for="nmme">${t('השם שלך','Your name')}</label><input class="inp nmin" id="nmme" maxlength="30" autocomplete="off" value="${esc(store.get('nm_me',''))}">
-    <button class="next nmgo" id="nmjoin">${t('הצטרפות לחדר','Join the room')}</button></div></div>`;
+    <label class="nml" for="nmme">${t('השם שלך','Your name')}</label><input class="inp nmin" id="nmme" maxlength="30" autocomplete="off" value="${who?'':esc(store.get('nm_me',''))}">
+    <button class="next nmgo" id="nmjoin">${t('הצטרפות לחדר','Join the room')}</button></div></div></div>`;
   $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};
-  $('#nmjoin').onclick=async()=>{const me=$('#nmme').value.trim();if(!me){toast(t('כתבו את השם שלכם','Enter your name'));return}store.set('nm_me',me);r.me=me.slice(0,30);r.invShown=1;
+  const done=()=>{r.invShown=1;delete r.cloudInvite;try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}nmSave();renderMatch()};
+  const claim=async name=>{sec.querySelectorAll('button').forEach(b=>b.disabled=true);const res=await cloudClaim(r,name);
+    if(res==='ok'){store.set('nm_me',name);done();toast(t(`שמחים שחזרת, ${name}. ממשיכים מאיפה שעצרת.`,`Welcome back, ${name}.`));return}
+    r.me='';toast(res==='missing'?t('השם הזה כבר לא נמצא בחדר','That name is no longer in the room'):res==='full'?t('החדר הזה כבר מלא','This room is already full'):t('אין חיבור לשרת כרגע. נסו שוב בעוד רגע.','No connection right now. Try again in a moment.'));nmJoin(sec,r,res==='missing'?undefined:names)};
+  const askClaim=name=>{const close=nmModal(`<h3>${t('השם הזה כבר בחדר, לחבר אותך אליו?','That name is already in the room. Connect you to it?')}</h3>
+      <p class="sub">${t(`אם זה את/ה, ${esc(name)} ימשיך מאיפה שעצר, בלי ליצור משתתף כפול.`,`If it’s you, ${esc(name)} continues where it left off, without a duplicate.`)}</p>
+      <button class="next nmgo" id="nmyes">${t(`כן, אני ${esc(name)}`,`Yes, I’m ${esc(name)}`)}</button><button class="linkbtn nmno" id="nmno">${t('לא, אבחר שם אחר','No, I’ll pick another name')}</button>`,'nminv');
+    $('#nmyes').onclick=()=>{close();claim(name)};$('#nmno').onclick=()=>{close();const i=$('#nmme');if(i){i.focus();i.select()}}};
+  sec.querySelectorAll('.nmseat[data-k]').forEach(b=>b.onclick=()=>claim(names[+b.dataset.k]));
+  if(who)$('#nmnew').onclick=()=>{sec.querySelector('.nmwho').hidden=true;const h=sec.querySelector('.nmwelcome h2');if(h)h.textContent=t('בואו נבחר שם.','Let’s pick a name.');sec.querySelector('.nmwelcome>p').hidden=true;$('#nmform').hidden=false;$('#nmme').focus()};
+  $('#nmjoin').onclick=async()=>{const me=$('#nmme').value.trim();if(!me){toast(t('כתבו את השם שלכם','Enter your name'));return}
+    const dup=names.find(n=>sameName(n,me));if(dup){askClaim(dup);return}
+    store.set('nm_me',me);r.me=me.slice(0,30);r.invShown=1;
     if(r.cloudInvite){const b=$('#nmjoin');b.disabled=true;b.textContent=t('מצטרפים…','Joining…');const res=await cloudJoin(r);
-      if(res==='full'){r.me='';b.disabled=false;b.textContent=t('הצטרפות לחדר','Join the room');toast(t('החדר הזה כבר מלא','This room is already full'));return}
+      const reset=()=>{r.me='';b.disabled=false;b.textContent=t('הצטרפות לחדר','Join the room')};
+      if(res==='full'){reset();toast(t('החדר הזה כבר מלא','This room is already full'));return}
+      if(res==='taken'){reset();askClaim(me);return}
       if(res!=='ok')toast(t('אין חיבור לשרת כרגע. ממשיכים בשליחת קישורים.','No connection right now. Using links instead.'));
-      delete r.cloudInvite;try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}}
+      done();return}
     nmSave();renderMatch()}}
 function nmModal(html,cls=''){const m=$('#modal');m.hidden=false;m.innerHTML=`<div class="mbox ${cls}" role="dialog"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>${html}</div>`;
   const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};return close}
@@ -173,7 +198,7 @@ function nmInvite(){const r=R();if(r.cloud)return nmInviteCloud(r);const live=!!
     if(!p||!p.plikes){toast(t('זה לא נראה כמו קישור בחירות','That doesn’t look like a picks link'));return}
     if(p.code!==r.code){toast(t('הקישור שייך לחדר אחר','That link belongs to another room'));return}
     const fresh=importPartner(r,p,true);close();nmTop();if(fresh.length){r.seen.push(...fresh.filter(i=>!r.seen.includes(i)));nmSave();matchModal(fresh)}else toast(t(`נקלטו ${p.plikes.length} בחירות. עוד אין התאמות חדשות.`,`Imported ${p.plikes.length} picks. No new matches yet.`))};}
-function nmInviteCloud(r){const others=[...CL.members].filter(([u])=>u!==CL.uid).map(([,n])=>n);
+function nmInviteCloud(r){const others=cloudOthers();
   const close=nmModal(`<h3>${others.length?t(`החדר של ${esc(r.me)} ו${esc(others.join(' ו'))}`,`${esc(r.me)} & ${esc(others.join(' & '))}`):t('הזמנת בן/בת הזוג','Invite your partner')}</h3>
     <p class="sub">${t('שולחים את הקישור פעם אחת בלבד. מהרגע שבן/בת הזוג מצטרפים, כל בחירה מסתנכרנת לבד, וכשיש התאמה היא קופצת לשניכם באותו רגע.','Send the link once. After your partner joins, every swipe syncs by itself and matches pop up on both phones at the same moment.')}</p>
     <button class="next nmsend" id="nmsend">${icon('link')} ${t('העתקת קישור ההזמנה','Copy invite link')}</button>
