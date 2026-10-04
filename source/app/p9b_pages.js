@@ -4,10 +4,10 @@
    #about etc. in the single-file preview. Shown as a full-screen page over the app;
    the back button or Escape returns to where you were (or to the home page).
    ========================================================= */
-const DOCS=['about','privacy','terms'];
+const DOCS=['about','privacy','terms','accessibility'];
 const docHref=k=>SITE.routing==='path'?'/'+k:'#'+k;
 function docFromURL(){
-  if(SITE.routing==='path'){const m=/^\/(about|privacy|terms)(?:\.html)?\/?$/.exec(location.pathname);return m?m[1]:null}
+  if(SITE.routing==='path'){const m=/^\/(about|privacy|terms|accessibility)(?:\.html)?\/?$/.exec(location.pathname);return m?m[1]:null}
   const h=(location.hash||'').slice(1);return DOCS.includes(h)?h:null}
 let DOC=null,DOC_PUSHED=false,DOC_PREV_TITLE='';
 function openDoc(k,push){const P=PAGES[k];if(!P)return;

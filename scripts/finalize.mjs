@@ -41,5 +41,12 @@ if (base) {
     paths.map(p => `<url><loc>${base}${p}</loc><lastmod>${today}</lastmod></url>`).join('\n') + '\n</urlset>\n';
   fs.writeFileSync(path.join(out, 'sitemap.xml'), xml);
 }
+// ads.txt (AdSense): the committed ads.txt at the repo root is served as /ads.txt.
+// If it is still empty and ADSENSE_PUBLISHER_ID is set in Vercel (e.g. pub-1234567890123456), the standard Google line is written.
+let ads = '';
+try { ads = fs.readFileSync(path.join(root, 'ads.txt'), 'utf8'); } catch {}
+const pub = (process.env.ADSENSE_PUBLISHER_ID || '').trim().replace(/^ca-/, '');
+if (!ads.trim() && /^pub-\d{10,20}$/.test(pub)) ads = `google.com, ${pub}, DIRECT, f08c47fec0942fa0\n`;
+fs.writeFileSync(path.join(out, 'ads.txt'), ads);
 fs.writeFileSync(path.join(out, 'robots.txt'), `User-agent: *\nAllow: /\n${base ? `Sitemap: ${base}/sitemap.xml\n` : ''}`);
 console.log(`finalize: base="${base || '(current origin)'}" pages=${paths.length} realtime=${sbUrl && sbKey ? 'on' : 'off'}`);

@@ -110,7 +110,7 @@ def page(title, desc, path, body, noindex=False, jsonld=None):
 
 
 def nav_links():
-    return '<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a></p>'
+    return '<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
 
 
 # ---- name pages ----
@@ -175,7 +175,7 @@ for k, P in PAGES.items():
 open(SRC + '404.html', 'w').write(page('הדף לא נמצא | השמות של ישראל', SITE_D, '/', '<article class="seo"><h1>הדף לא נמצא</h1>' + nav_links() + '</article>', noindex=True))
 
 # list of indexable paths for the sitemap (finalize.mjs adds the base URL)
-paths = ['/', '/names', '/about', '/privacy', '/terms'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
+paths = ['/', '/names', '/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
 json.dump(paths, open(OUT + 'scripts/paths.json', 'w'), ensure_ascii=False)
 # runtime config as an external file (filled by finalize.mjs) so the CSP needs no inline scripts
 open(SRC + 'site-config.js', 'w').write('window.SITE_CONFIG={baseUrl:"__RUNTIME_BASE_URL__",routing:"path",supabase:{url:"__SUPABASE_URL__",key:"__SUPABASE_KEY__",lib:"' + A_SB + '"}};\n')
