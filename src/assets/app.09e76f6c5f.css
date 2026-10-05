@@ -1113,6 +1113,16 @@ body.docopen{overflow:hidden}
 .nmwa .ic{width:20px;height:20px}
 .nmshare2{display:flex;gap:8px;margin-top:8px}
 .nmshare2 .copybtn{flex:1;justify-content:center;display:inline-flex;align-items:center;gap:6px;min-height:44px}
+/* v27 NameMatch: my rooms */
+.nmroom{display:flex;gap:6px;align-items:stretch}
+.nmroom>button[data-room]{flex:1;min-width:0}
+.nmdel{all:unset;box-sizing:border-box;cursor:pointer;flex:none;min-width:44px;display:grid;place-items:center;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--muted);padding:0 10px}
+.nmdel .ic{width:16px;height:16px}
+.nmdel:hover{color:var(--ink);border-color:var(--ink-2)}
+.nmdel.sure{color:#fff;background:#b8334f;border-color:#b8334f;font-weight:700;font-size:13px}
+.nmrooms{all:unset;box-sizing:border-box;cursor:pointer;flex:none;width:40px;height:40px;display:grid;place-items:center;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2)}
+.nmrooms .ic{width:18px;height:18px}
+.nmnewwrap{text-align:center;margin-top:4px}
 
 /* static fallback content (visible until the app boots, and to crawlers) */
 .seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;line-height:1.7}

@@ -40,6 +40,9 @@ const sameName=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().
 /* partner names: every participant except me (my other devices are not partners) */
 const cloudOthers=()=>{const out=[];CL.members.forEach((m,u)=>{if(m.seat===CL.seat||m.seat!==u)return;if(!out.includes(m.n))out.push(m.n)});return out};
 
+/* leave a room on the server (my participant and its swipes); a room nobody is left in is deleted */
+async function cloudLeave(r){const c=await sbLoad();if(!c)return false;if(CL.room===r.code)cloudClose();
+  try{const {error}=await c.rpc('leave_room',{p_code:r.code});return !error}catch(e){return false}}
 /* outgoing: a small persistent queue so swipes made offline are sent later */
 function cloudQueue(r,i,kind){if(!r.cloud)return;(r.q=r.q||[]).push([NAMES[i],kind]);nmSave();cloudFlush(r)}
 async function cloudFlush(r){if(!r||!r.cloud||!CL.client||!CL.seat||CL.room!==r.code||CL.flushing||!(r.q&&r.q.length))return;CL.flushing=true;
@@ -52,7 +55,7 @@ async function cloudFlush(r){if(!r||!r.cloud||!CL.client||!CL.seat||CL.room!==r.
 function cloudApply(r,silent){const pl=new Set(),ps=new Set();
   CL.p.forEach(m=>m.forEach((k,n)=>{const i=IDX.get(n);if(i==null)return;if(k==='like'||k==='super')pl.add(i);if(k==='super')ps.add(i)}));
   const names=cloudOthers();
-  importPartner(r,{pname:names.join(t(' ו',' & ')),plikes:[...pl],psupers:[...ps]},silent);if(TAB==='match')nmTop();invCloudRefresh()}
+  importPartner(r,{pname:names.join(t(' ו',' & ')),plikes:[...pl],psupers:[...ps]},silent);r.pname=names.join(t(' ו',' & '));   /* someone left: their name goes too */if(TAB==='match')nmTop();invCloudRefresh()}
 /* full snapshot of the room (members + swipes). Returns false when it failed, so the caller can retry.
    Responses are sequenced (an older one never overwrites a newer one), and realtime swipes that
    arrive while a snapshot is in flight are re-applied on top of it. */
@@ -61,11 +64,13 @@ async function cloudPull(r){const c=CL.client;if(!c||CL.room!==r.code)return tru
   catch(e){m={error:e}}finally{CL.pulling--}
   if(seq!==CL.pullSeq||CL.room!==r.code)return true;
   if(m.error||(s&&s.error)){console.warn('[namematch] pull',((m.error||s.error)||{}).message);return false}
-  CL.members=new Map(m.data.map(x=>[x.user_id,{n:x.display_name,seat:x.seat_of||x.user_id}]));const mine=CL.members.get(CL.uid);CL.seat=mine?mine.seat:CL.uid;CL.p=new Map();
+  const before=CL.membersRoom===r.code?cloudOthers():[];
+  CL.members=new Map(m.data.map(x=>[x.user_id,{n:x.display_name,seat:x.seat_of||x.user_id}]));CL.membersRoom=r.code;const mine=CL.members.get(CL.uid);CL.seat=mine?mine.seat:CL.uid;CL.p=new Map();
   const restoring=!!r.restore;if(restoring){cloudRestore(r,s.data.filter(x=>x.user_id===CL.seat));delete r.restore}
   const put=x=>{if(x.user_id===CL.seat)return;if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind)};
   s.data.forEach(put);if(!CL.pulling){CL.evq.forEach(put);CL.evq=[]}
   CL.lastSync=Date.now();cloudApply(r,restoring);
+  {const now=cloudOthers();before.filter(n=>!now.includes(n)).forEach(n=>toast(t(`${n} יצא/ה מהחדר`,`${n} left the room`)))}
   if(restoring){r.seen=[...new Set([...r.seen,...matchesOf(r)])];nmSave();if(TAB==='match'&&R()===r)nmStage()}
   return true}
 /* all swipes of a room, page by page (the API returns at most 1,000 rows per request) */

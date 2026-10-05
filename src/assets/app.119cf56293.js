@@ -1388,7 +1388,7 @@ function peakDesc(i){const st=stats(-1),c=comb(st,i);let tot=0;for(let y=0;y<NY;
 function share(st,i){const a=comb(st,i);for(let y=0;y<NY;y++){const d=st.DD[y];a[y]=d?a[y]/d*1000:0}return a}
 const T=(st,i)=>st.tot[0][i]+st.tot[1][i];
 function peakDec(st,i){const c=comb(st,i);const dec={};c.forEach((q,y)=>{const d=Math.floor((Y0+y)/10)*10;dec[d]=(dec[d]||0)+q});return +Object.entries(dec).sort((a,b)=>b[1]-a[1])[0][0]}
-const decLabel=d=>d===1940?t(`שנות ה-40`,`1940s`):t(`שנות ה-${String(d).slice(2)}`,`${d}s`);
+const decLabel=d=>d===1940?t(`שנות ה-40`,`1940s`):d>=2000?t(`שנות ה-${d}`,`${d}s`):t(`שנות ה-${String(d).slice(2)}`,`${d}s`);   /* 2000 and later in full: "שנות ה-2010", not "שנות ה-10" */
 function generation(y){if(y<1965)return t('דור הבייבי בום','Baby boomers');if(y<1981)return t('דור ה-X','Gen X');if(y<1997)return t('דור ה-Y','Millennials');if(y<2013)return t('דור ה-Z','Gen Z');return t('דור האלפא','Gen Alpha')}
 function ed1(a,b){if(a===b)return false;const la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;let i=0,j=0,e=0;
   while(i<la&&j<lb){if(a[i]===b[j]){i++;j++;continue}if(++e>1)return false;if(la>lb)i++;else if(lb>la)j++;else{i++;j++}}return e+(la-i)+(lb-j)<=1}
@@ -1469,7 +1469,7 @@ const LEGACY={name:['names','file'],me:['names','me'],compare:['names','compare'
 function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
   TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
-  if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
+  if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=NMX.showRooms?null:R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
   stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
 function renderNames(){const sec=$('#tab-names');
@@ -1587,6 +1587,7 @@ function renderHome(){
   <button class="gencta" id="gencta"><span class="gl1">${icon('gen')}</span><span><b>${t('מחפשים שם לתינוק?','Looking for a baby name?')}</b><span>${t('פתחו את מחולל השמות: לפי משמעות, אופי ומגמה, עם רשימת מועדפים לשיתוף.','Open the name finder: by meaning, vibe and trend, with a shareable shortlist.')}</span></span><span class="go">${t('למחולל','Open')} ${icon('arrow')}</span></button>
   <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
   </div>
+  ${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<div class="nmnewwrap"><button class="linkbtn" id="nmnewroom">${t('או פתיחת חדר חדש','Or open a new room')}</button></div>`:''})()}
   <div class="tiles3 two">
     <button class="tilec" data-go="games"><span class="k">${t('משחק יומי','Daily game')}</span><b>${t('השם הסודי','The secret name')}</b><span>${t('נחשו את השם של היום ב-10 ניסיונות','Guess today’s name in 10 tries')}</span></button>
     <button class="tilec" data-go="me"><span class="k">${t('פרופיל אישי','Personal profile')}</span><b>${t('מה השם שלי אומר עליי','What my name says')}</b><span>${t('כמה הוא נדיר בשנתון שלכם ומה התואר שלכם','How rare it was in your year, and your title')}</span></button>
@@ -1597,7 +1598,7 @@ function renderHome(){
   openOn(sec.querySelector('.quick'));
   $('#rnd2').onclick=()=>{const pool=[];for(let i=0;i<N;i++)if(T(st,i)>=400&&MEAN.has(NAMES[i]))pool.push(i);pick(rand(pool))};
   drawHomeSaved();
-  $('#gencta').onclick=()=>setTab('gen');$('#matchcta').onclick=()=>setTab('match');
+  $('#gencta').onclick=()=>setTab('gen');$('#matchcta').onclick=()=>setTab('match');{const nr=$('#nmnewroom');if(nr)nr.onclick=()=>{NMX.showRooms=true;NMX.newRoom=true;setTab('match')}}
   sec.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='me'?setTab('names','me'):setTab(b.dataset.go));
 
 }
@@ -1659,7 +1660,7 @@ let DECX=store.get('decx',0);
 function drawDecades(st){const box=$('#decgrid');if(!box)return;const x=DECX;
   const rows=[];for(let d=1950;d<=2020;d+=10){const ys=YEARS.map((y,k)=>k).filter(k=>Y0+k>=d&&Y0+k<d+10);const sc=[];
     for(let i=0;i<N;i++){let v=0;for(const k of ys)v+=st.Y[x][i*NY+k];if(v)sc.push([i,v])}sc.sort((a,b)=>b[1]-a[1]);rows.push([d,sc.slice(0,5)])}
-  box.innerHTML=`<div class="decgrid">${rows.map(([d,top])=>`<div class="decrow"><div class="declab">${d===2020?t(`2020–${Y1}`,`2020–${String(Y1).slice(2)}`):t(`שנות ה-${String(d).slice(2)}`,`${d}s`)}</div><div class="decnames">${top.map(([i,v],k)=>`<button data-di="${i}" class="${k===0?'first':''}"><em>${k+1}</em><b>${nmh(i)}</b><small>${kfmt(v)}</small></button>`).join('')}</div></div>`).join('')}</div>`;
+  box.innerHTML=`<div class="decgrid">${rows.map(([d,top])=>`<div class="decrow"><div class="declab">${d===2020?t(`2020–${Y1}`,`2020–${String(Y1).slice(2)}`):decLabel(d)}</div><div class="decnames">${top.map(([i,v],k)=>`<button data-di="${i}" class="${k===0?'first':''}"><em>${k+1}</em><b>${nmh(i)}</b><small>${kfmt(v)}</small></button>`).join('')}</div></div>`).join('')}</div>`;
   let sel=null;
   box.onclick=e=>{const b=e.target.closest('[data-di]');if(!b)return;const i=b.dataset.di;
     if(sel===i){pick(+i);return}sel=i;box.querySelectorAll('[data-di]').forEach(q=>q.classList.toggle('hl',q.dataset.di===i));box.classList.add('focus');
@@ -1678,7 +1679,7 @@ function drawLeaders(st){const box=$('#ldbody');if(!box)return;const x=DECX;cons
     <div class="ldaxis">${[1950,1960,1970,1980,1990,2000,2010,2020].map(y=>`<span style="inset-inline-start:${pos(y)}">${y}</span>`).join('')}</div>
     <div class="ldfacts"><span><b>${Object.keys(tot).length}</b> ${t('שמות שונים הגיעו למקום הראשון','names reached #1')}</span><span>${t('השלטון הארוך:','Longest reign:')} <b>${nmh(longest.i)}</b> ${longest.b-longest.a+1} ${t('שנים','years')}</span></div>
     <div class="ldsel" id="ldsel" hidden></div>
-    <div class="ldrows">${rows.map(([d,top])=>`<div class="ldrow"><span class="ldlab">${d===2020?'2020–24':t(`שנות ה-${String(d).slice(2)}`,`${d}s`)}</span>
+    <div class="ldrows">${rows.map(([d,top])=>`<div class="ldrow"><span class="ldlab">${d===2020?'2020–24':decLabel(d)}</span>
       ${top[0]?`<button class="ld1" data-di="${top[0][0]}" style="--c:var(${col})"><b>${nmh(top[0][0])}</b><small>${kfmt(top[0][1])}</small></button>`:''}
       <span class="ldrest">${top.slice(1).map(([i,v],k)=>`<button data-di="${i}"><em>${k+2}</em>${nmh(i)}</button>`).join('')}</span></div>`).join('')}</div>`;
   const wrap=$('#leaders');let sel=null;
@@ -2346,7 +2347,7 @@ function wzCandidates(){const st=stats(-1);const out=[];const GUT=/[חעצץ]/;
 function genWizard(){store.set('wz',WZ);const body=$('#gbody');const TL=THEME_LAB();const st=stats(-1);const AB='אבגדהוזחטיכלמנסעפצקרשת'.split('');
   const steps=[
     {k:'sex',q:t('למי השם?','Who is the name for?'),o:[['F',t('בת','A girl')],['M',t('בן','A boy')],['U',t('יוניסקס','Unisex'),t('שם שמתאים גם לבת וגם לבן','A name that fits both')]],any:1},
-    {k:'themes',multi:3,q:t('איזו אווירה אתם מחפשים?','What feeling are you after?'),sub:t('אפשר לבחור עד 3 סגנונות. שמות שמתאימים לכמה מהם יופיעו ראשונים.','Pick up to 3. Names that fit several come first.'),o:['nature','light','bible','intl','strength'].map(k=>[k,TL[k],THEME_EX[k]]),any:1},
+    {k:'themes',multi:5,q:t('איזו אווירה אתם מחפשים?','What feeling are you after?'),sub:t('אפשר לבחור כמה סגנונות שרוצים. שמות שמתאימים לכמה מהם יופיעו ראשונים.','Pick as many as you like. Names that fit several come first.'),o:['nature','light','bible','intl','strength'].map(k=>[k,TL[k],THEME_EX[k]]),any:1},
     {k:'len',q:t('מה אורך השם המועדף עליכם?','Preferred length?'),o:[['s',t('קצר וקולע','Short & sharp'),t('2–3 אותיות: תום, שי, גל, מאי','2–3 letters: Tom, Shai, Gal')],['m',t('קלאסי ומאוזן','Balanced'),t('4 אותיות: איתמר, לביא, אביגיל','4 letters')],['l',t('ארוך ונוכח','Long & present'),t('5 אותיות ומעלה','5+ letters')]],any:1},
     {k:'pop',q:t('כמה נפוץ שיהיה?','How common should it be?'),o:[['pop',t('מוכר ואהוב','Well known'),t('מהשמות הנפוצים היום','Among today’s most common')],['mid',t('באמצע','In between'),t('מוכר, אבל לא בכל כיתה','Familiar, not in every class')],['rare',t('נדיר ומיוחד','Rare & special'),t('כמעט אף אחד לא נקרא ככה','Hardly anyone has it')]],any:1},
     {k:'sound',q:t('אותיות או צלילים מיוחדים?','Special letters or sounds?'),sub:t('שלב אופציונלי. אפשר לדלג.','Optional step. You can skip it.')}];
@@ -2612,9 +2613,9 @@ let nmPT;function nmPresence(){clearTimeout(nmPT);nmPT=setTimeout(()=>{const r=R
 /* ---------- views ---------- */
 function renderMatch(){document.body.classList.add('matchmode');const sec=$('#tab-match');
   const h=parseMatchHash(location.hash);
-  if(h){const r=ensureRoom(h.code,h.f,h.sec,h.uni);if(h.cloud&&!r.me)r.cloudInvite=1;NMX.active=h.code;if(h.plikes){importPartner(r,h,!r.me);try{history.replaceState(null,'',HREF('match.'+h.code+'.'+rTok(r)))}catch(e){}}nmSave()}
+  if(h){NMX.showRooms=false;const r=ensureRoom(h.code,h.f,h.sec,h.uni);if(h.cloud&&!r.me)r.cloudInvite=1;NMX.active=h.code;if(h.plikes){importPartner(r,h,!r.me);try{history.replaceState(null,'',HREF('match.'+h.code+'.'+rTok(r)))}catch(e){}}nmSave()}
   const r=R();
-  if(!r){nmOnboard(sec);return}
+  if(!r||NMX.showRooms){nmOnboard(sec);return}
   if(!r.me){nmJoin(sec,r);return}
   sec.innerHTML=`<div class="nmapp"><div class="nmtop" id="nmtop"></div><div class="nmstage" id="nmstage"></div>
     <div class="nmbtns" dir="ltr"><button class="nmb sm" id="nb-undo" aria-label="${t('ביטול הפעולה האחרונה','Undo')}">${icon('undo')}</button><button class="nmb no" id="nb-no" aria-label="${t('לא בשבילנו','Pass')}">${icon('x')}</button><button class="nmb sup" id="nb-sup" aria-label="${t('מועדף עליון','Super like')}">${icon('star',1)}</button><button class="nmb yes" id="nb-yes" aria-label="${t('אהבתי','Like')}">${icon('v')}</button></div>
@@ -2622,12 +2623,20 @@ function renderMatch(){document.body.classList.add('matchmode');const sec=$('#ta
   $('#nb-yes').onclick=()=>nmFly('like');$('#nb-no').onclick=()=>nmFly('pass');$('#nb-sup').onclick=()=>nmFly('super');$('#nb-undo').onclick=nmUndo;
   nmTop();nmStage();if(r.cloud)cloudOpen(r);else nmLive();
 }
+/* "my rooms": every room on this device, open one, start a new one, or delete one */
+function nmRooms(){NMX.showRooms=true;try{history.replaceState(null,'',HREF('match'))}catch(e){}cloudClose();renderMatch();window.scrollTo(0,0)}
+async function nmDelRoom(b,sec){const code=b.dataset.del,r=NMX.rooms[code];if(!r)return;
+  if(!b.dataset.sure){b.dataset.sure=1;b.classList.add('sure');b.innerHTML=`<span>${t('למחוק?','Delete?')}</span>`;setTimeout(()=>{if(b.isConnected&&b.dataset.sure){delete b.dataset.sure;b.classList.remove('sure');b.innerHTML=icon('close')}},4000);return}
+  b.disabled=true;let ok=true;if(r.cloud)ok=await cloudLeave(r);
+  delete NMX.rooms[code];if(NMX.active===code)NMX.active=null;nmSave();
+  toast(ok?t('החדר נמחק','Room deleted'):t('החדר הוסר מהמכשיר. לשרת לא הצלחנו להגיע כרגע','Removed from this device; the server was unreachable'));
+  NMX.showRooms=true;nmOnboard(sec)}
 const ago=ts=>{if(!ts)return'';const m=Math.round((Date.now()-ts)/60000);return m<1?t('עכשיו','just now'):m<60?t(`לפני ${m} דק׳`,`${m}m ago`):m<1440?t(`לפני ${Math.round(m/60)} שע׳`,`${Math.round(m/60)}h ago`):t(`לפני ${Math.round(m/1440)} ימים`,`${Math.round(m/1440)}d ago`)};
 function nmTop(){const r=R(),el=$('#nmtop');if(!el||!r)return;const ms=matchesOf(r).length;const live=r.cloud?CL.online:!!NMX.peer;
-  el.innerHTML=`<button class="nmback" id="nmback" aria-label="${t('חזרה לאתר הראשי','Back to main site')}">${icon('back')}<span>${t('לאתר','Site')}</span></button>
+  el.innerHTML=`<button class="nmback" id="nmback" aria-label="${t('חזרה לאתר הראשי','Back to main site')}">${icon('back')}<span>${t('לאתר','Site')}</span></button><button class="nmrooms" id="nmrooms" aria-label="${t('החדרים שלי','My rooms')}">${icon('list')}</button>
     <button class="nmstatus" id="nmstat">${r.pname?`<i class="dot ${live?'on':''}"></i><span><b>${esc(r.me)}</b> ${t('ו','& ')}<b>${esc(r.pname)}</b>${live?'':r.cloud?'':` · <small>${ago(r.pupd)}</small>`}</span>`:`${icon('users')}<span>${r.cloud?t('הזמנת בן/בת הזוג','Invite your partner'):t('שליחה לבן/בת הזוג','Send to partner')}</span>`}</button>
     <button class="nmmatches" id="nmms" aria-label="${t('ההתאמות שלנו','Our matches')}">${icon('heart',ms>0)}<span>${t('התאמות','Matches')}</span><b>${ms}</b></button>`;
-  $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};$('#nmstat').onclick=nmInvite;$('#nmms').onclick=nmMatches;}
+  $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};$('#nmstat').onclick=nmInvite;$('#nmms').onclick=nmMatches;$('#nmrooms').onclick=nmRooms;}
 function nmNudge(r){if(r.cloud&&r.pname)return'';if(r.cloud){const n=r.likes.length;return n>=3&&n%3===0?`<button class="nmnudge" id="nmnudge">${icon('link')}<span>${t('בן/בת הזוג עוד לא בחדר. שלחו להם את הקישור','Your partner hasn’t joined yet. Send them the link')}</span></button>`:''}const fresh=r.likes.length-(r.sent||0);if(fresh<8)return'';return `<button class="nmnudge" id="nmnudge">${icon('link')}<span>${r.pname?t(`יש לך ${fresh} בחירות חדשות. שלחו ל${esc(r.pname)} כדי לגלות התאמות`,`${fresh} new picks. Send them to ${esc(r.pname)}`):t(`בחרת ${fresh} שמות. שלחו לבן/בת הזוג כדי שיצטרפו`,`You picked ${fresh}. Send them to your partner`)}</span></button>`}
 function nmCardHTML(i,cls){const st=stats(-1),c=comb(st,i);const pd=peakDec(st,i);const m=MEAN.get(NAMES[i])||'';
   return `<div class="nmcard ${cls}" data-i="${i}"><div class="stampl like">${t('אהבתי','LIKE')}</div><div class="stampl pass">${t('לא','NOPE')}</div><div class="stampl sup">${t('מועדף','SUPER')}</div>
@@ -2674,7 +2683,7 @@ function nmOnboard(sec){const rooms=Object.values(NMX.rooms).filter(x=>x.me).sor
     <div class="nmwelcome fade"><div class="nmlogo">${icon('heart',1)}</div><div class="k">${t('התאמת שמות זוגית','NameMatch for couples')}</div>
       <h2>${t('בוחרים שם<br>ביחד.','Choose a name<br>together.')}</h2>
       <p>${t('כל אחד מחליק לבד, מתי שנוח לו. כששניכם אוהבים את אותו שם, יש התאמה. בלי הרשמה, ואפשר לחזור לחדר בכל רגע.','Each of you swipes alone, whenever it suits. When you both like a name, it’s a match. No sign-up, and you can come back to the room anytime.')}</p>
-      ${rooms.length?`<div class="nmprev"><div class="nml">${t('להמשיך מאיפה שעצרתם','Pick up where you left off')}</div>${rooms.map(x=>`<button data-room="${x.code}"><b>${x.pname?t(`${esc(x.me)} ו${esc(x.pname)}`,`${esc(x.me)} & ${esc(x.pname)}`):esc(x.me)}</b><span>${fLabel(x.f)} · ${x.likes.length} ${t('אהבתם','liked')} · ${matchesOf(x).length} ${t('התאמות','matches')}</span></button>`).join('')}<div class="nml" style="margin-top:14px">${t('או חדר חדש','Or a new room')}</div></div>`:''}
+      ${rooms.length?`<div class="nmprev"><div class="nml">${t('החדרים שלי','My rooms')}</div>${rooms.map(x=>`<div class="nmroom"><button data-room="${x.code}"><b>${x.pname?t(`${esc(x.me)} ו${esc(x.pname)}`,`${esc(x.me)} & ${esc(x.pname)}`):esc(x.me)}</b><span>${fLabel(x.f)} · ${x.likes.length} ${t('אהבתם','liked')} · ${matchesOf(x).length} ${t('התאמות','matches')}</span></button><button class="nmdel" data-del="${x.code}" aria-label="${t('מחיקת החדר','Delete room')}">${icon('close')}</button></div>`).join('')}<div class="nml" id="nmnewlab" style="margin-top:14px">${t('פתיחת חדר חדש','Open a new room')}</div></div>`:''}
       <label class="nml" for="nmme">${t('השם שלך','Your name')}</label><input class="inp nmin" id="nmme" maxlength="30" autocomplete="off" placeholder="${t('למשל: עידן','e.g. Dana')}" value="${esc(store.get('nm_me',''))}">
       ${nmSetupForm({})}
       <button class="next nmgo" id="nmcreate">${t('יצירת חדר משותף','Create a shared room')}</button>
@@ -2682,10 +2691,12 @@ function nmOnboard(sec){const rooms=Object.values(NMX.rooms).filter(x=>x.me).sor
   $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};nmWireForm();
   $('#nmcreate').onclick=()=>{const me=$('#nmme').value.trim();if(!me){toast(t('כתבו את השם שלכם','Enter your name'));$('#nmme').focus();return}store.set('nm_me',me);
     const o=nmReadForm();const btn=$('#nmcreate');btn.disabled=true;btn.textContent=t('יוצרים חדר…','Creating…');
-    (async()=>{let code=cloudOn()?cloudCode():newCode();let r=ensureRoom(code,o.f,o.sec,o.uni);r.me=me.slice(0,30);r.host=1;
+    NMX.showRooms=false;(async()=>{let code=cloudOn()?cloudCode():newCode();let r=ensureRoom(code,o.f,o.sec,o.uni);r.me=me.slice(0,30);r.host=1;
       if(cloudOn()&&!(await cloudCreate(r))){delete NMX.rooms[code];code=newCode();r=ensureRoom(code,o.f,o.sec,o.uni);r.me=me.slice(0,30);r.host=1;toast(t('אין חיבור לשרת כרגע. החדר יעבוד בשליחת קישורים.','No connection right now. The room will sync by links.'))}
       NMX.active=code;nmSave();try{history.replaceState(null,'',HREF('match.'+code+'.'+rTok(r)))}catch(e){}renderMatch();if(r.cloud)setTimeout(nmInvite,350)})()};
-  sec.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{NMX.active=b.dataset.room;const r=R();nmSave();try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}renderMatch()});}
+  sec.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>nmDelRoom(b,sec));
+  if(NMX.newRoom){NMX.newRoom=false;setTimeout(()=>{const l=$('#nmnewlab')||$('#nmme');if(l)l.scrollIntoView({block:'center'});const i=$('#nmme');if(i)i.focus({preventScroll:true})},60)}
+  sec.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{NMX.showRooms=false;NMX.active=b.dataset.room;const r=R();nmSave();try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}renderMatch()});}
 function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k)).join(', ');
   /* a shared room link: first ask who is connecting, so a returning participant is never added twice */
   if(r.cloudInvite&&cloudOn()&&roster===undefined){
@@ -2826,6 +2837,9 @@ const sameName=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().
 /* partner names: every participant except me (my other devices are not partners) */
 const cloudOthers=()=>{const out=[];CL.members.forEach((m,u)=>{if(m.seat===CL.seat||m.seat!==u)return;if(!out.includes(m.n))out.push(m.n)});return out};
 
+/* leave a room on the server (my participant and its swipes); a room nobody is left in is deleted */
+async function cloudLeave(r){const c=await sbLoad();if(!c)return false;if(CL.room===r.code)cloudClose();
+  try{const {error}=await c.rpc('leave_room',{p_code:r.code});return !error}catch(e){return false}}
 /* outgoing: a small persistent queue so swipes made offline are sent later */
 function cloudQueue(r,i,kind){if(!r.cloud)return;(r.q=r.q||[]).push([NAMES[i],kind]);nmSave();cloudFlush(r)}
 async function cloudFlush(r){if(!r||!r.cloud||!CL.client||!CL.seat||CL.room!==r.code||CL.flushing||!(r.q&&r.q.length))return;CL.flushing=true;
@@ -2838,7 +2852,7 @@ async function cloudFlush(r){if(!r||!r.cloud||!CL.client||!CL.seat||CL.room!==r.
 function cloudApply(r,silent){const pl=new Set(),ps=new Set();
   CL.p.forEach(m=>m.forEach((k,n)=>{const i=IDX.get(n);if(i==null)return;if(k==='like'||k==='super')pl.add(i);if(k==='super')ps.add(i)}));
   const names=cloudOthers();
-  importPartner(r,{pname:names.join(t(' ו',' & ')),plikes:[...pl],psupers:[...ps]},silent);if(TAB==='match')nmTop();invCloudRefresh()}
+  importPartner(r,{pname:names.join(t(' ו',' & ')),plikes:[...pl],psupers:[...ps]},silent);r.pname=names.join(t(' ו',' & '));   /* someone left: their name goes too */if(TAB==='match')nmTop();invCloudRefresh()}
 /* full snapshot of the room (members + swipes). Returns false when it failed, so the caller can retry.
    Responses are sequenced (an older one never overwrites a newer one), and realtime swipes that
    arrive while a snapshot is in flight are re-applied on top of it. */
@@ -2847,11 +2861,13 @@ async function cloudPull(r){const c=CL.client;if(!c||CL.room!==r.code)return tru
   catch(e){m={error:e}}finally{CL.pulling--}
   if(seq!==CL.pullSeq||CL.room!==r.code)return true;
   if(m.error||(s&&s.error)){console.warn('[namematch] pull',((m.error||s.error)||{}).message);return false}
-  CL.members=new Map(m.data.map(x=>[x.user_id,{n:x.display_name,seat:x.seat_of||x.user_id}]));const mine=CL.members.get(CL.uid);CL.seat=mine?mine.seat:CL.uid;CL.p=new Map();
+  const before=CL.membersRoom===r.code?cloudOthers():[];
+  CL.members=new Map(m.data.map(x=>[x.user_id,{n:x.display_name,seat:x.seat_of||x.user_id}]));CL.membersRoom=r.code;const mine=CL.members.get(CL.uid);CL.seat=mine?mine.seat:CL.uid;CL.p=new Map();
   const restoring=!!r.restore;if(restoring){cloudRestore(r,s.data.filter(x=>x.user_id===CL.seat));delete r.restore}
   const put=x=>{if(x.user_id===CL.seat)return;if(!CL.p.has(x.user_id))CL.p.set(x.user_id,new Map());CL.p.get(x.user_id).set(x.name,x.kind)};
   s.data.forEach(put);if(!CL.pulling){CL.evq.forEach(put);CL.evq=[]}
   CL.lastSync=Date.now();cloudApply(r,restoring);
+  {const now=cloudOthers();before.filter(n=>!now.includes(n)).forEach(n=>toast(t(`${n} יצא/ה מהחדר`,`${n} left the room`)))}
   if(restoring){r.seen=[...new Set([...r.seen,...matchesOf(r)])];nmSave();if(TAB==='match'&&R()===r)nmStage()}
   return true}
 /* all swipes of a room, page by page (the API returns at most 1,000 rows per request) */

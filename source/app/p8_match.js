@@ -73,9 +73,9 @@ let nmPT;function nmPresence(){clearTimeout(nmPT);nmPT=setTimeout(()=>{const r=R
 /* ---------- views ---------- */
 function renderMatch(){document.body.classList.add('matchmode');const sec=$('#tab-match');
   const h=parseMatchHash(location.hash);
-  if(h){const r=ensureRoom(h.code,h.f,h.sec,h.uni);if(h.cloud&&!r.me)r.cloudInvite=1;NMX.active=h.code;if(h.plikes){importPartner(r,h,!r.me);try{history.replaceState(null,'',HREF('match.'+h.code+'.'+rTok(r)))}catch(e){}}nmSave()}
+  if(h){NMX.showRooms=false;const r=ensureRoom(h.code,h.f,h.sec,h.uni);if(h.cloud&&!r.me)r.cloudInvite=1;NMX.active=h.code;if(h.plikes){importPartner(r,h,!r.me);try{history.replaceState(null,'',HREF('match.'+h.code+'.'+rTok(r)))}catch(e){}}nmSave()}
   const r=R();
-  if(!r){nmOnboard(sec);return}
+  if(!r||NMX.showRooms){nmOnboard(sec);return}
   if(!r.me){nmJoin(sec,r);return}
   sec.innerHTML=`<div class="nmapp"><div class="nmtop" id="nmtop"></div><div class="nmstage" id="nmstage"></div>
     <div class="nmbtns" dir="ltr"><button class="nmb sm" id="nb-undo" aria-label="${t('ביטול הפעולה האחרונה','Undo')}">${icon('undo')}</button><button class="nmb no" id="nb-no" aria-label="${t('לא בשבילנו','Pass')}">${icon('x')}</button><button class="nmb sup" id="nb-sup" aria-label="${t('מועדף עליון','Super like')}">${icon('star',1)}</button><button class="nmb yes" id="nb-yes" aria-label="${t('אהבתי','Like')}">${icon('v')}</button></div>
@@ -83,12 +83,20 @@ function renderMatch(){document.body.classList.add('matchmode');const sec=$('#ta
   $('#nb-yes').onclick=()=>nmFly('like');$('#nb-no').onclick=()=>nmFly('pass');$('#nb-sup').onclick=()=>nmFly('super');$('#nb-undo').onclick=nmUndo;
   nmTop();nmStage();if(r.cloud)cloudOpen(r);else nmLive();
 }
+/* "my rooms": every room on this device, open one, start a new one, or delete one */
+function nmRooms(){NMX.showRooms=true;try{history.replaceState(null,'',HREF('match'))}catch(e){}cloudClose();renderMatch();window.scrollTo(0,0)}
+async function nmDelRoom(b,sec){const code=b.dataset.del,r=NMX.rooms[code];if(!r)return;
+  if(!b.dataset.sure){b.dataset.sure=1;b.classList.add('sure');b.innerHTML=`<span>${t('למחוק?','Delete?')}</span>`;setTimeout(()=>{if(b.isConnected&&b.dataset.sure){delete b.dataset.sure;b.classList.remove('sure');b.innerHTML=icon('close')}},4000);return}
+  b.disabled=true;let ok=true;if(r.cloud)ok=await cloudLeave(r);
+  delete NMX.rooms[code];if(NMX.active===code)NMX.active=null;nmSave();
+  toast(ok?t('החדר נמחק','Room deleted'):t('החדר הוסר מהמכשיר. לשרת לא הצלחנו להגיע כרגע','Removed from this device; the server was unreachable'));
+  NMX.showRooms=true;nmOnboard(sec)}
 const ago=ts=>{if(!ts)return'';const m=Math.round((Date.now()-ts)/60000);return m<1?t('עכשיו','just now'):m<60?t(`לפני ${m} דק׳`,`${m}m ago`):m<1440?t(`לפני ${Math.round(m/60)} שע׳`,`${Math.round(m/60)}h ago`):t(`לפני ${Math.round(m/1440)} ימים`,`${Math.round(m/1440)}d ago`)};
 function nmTop(){const r=R(),el=$('#nmtop');if(!el||!r)return;const ms=matchesOf(r).length;const live=r.cloud?CL.online:!!NMX.peer;
-  el.innerHTML=`<button class="nmback" id="nmback" aria-label="${t('חזרה לאתר הראשי','Back to main site')}">${icon('back')}<span>${t('לאתר','Site')}</span></button>
+  el.innerHTML=`<button class="nmback" id="nmback" aria-label="${t('חזרה לאתר הראשי','Back to main site')}">${icon('back')}<span>${t('לאתר','Site')}</span></button><button class="nmrooms" id="nmrooms" aria-label="${t('החדרים שלי','My rooms')}">${icon('list')}</button>
     <button class="nmstatus" id="nmstat">${r.pname?`<i class="dot ${live?'on':''}"></i><span><b>${esc(r.me)}</b> ${t('ו','& ')}<b>${esc(r.pname)}</b>${live?'':r.cloud?'':` · <small>${ago(r.pupd)}</small>`}</span>`:`${icon('users')}<span>${r.cloud?t('הזמנת בן/בת הזוג','Invite your partner'):t('שליחה לבן/בת הזוג','Send to partner')}</span>`}</button>
     <button class="nmmatches" id="nmms" aria-label="${t('ההתאמות שלנו','Our matches')}">${icon('heart',ms>0)}<span>${t('התאמות','Matches')}</span><b>${ms}</b></button>`;
-  $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};$('#nmstat').onclick=nmInvite;$('#nmms').onclick=nmMatches;}
+  $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};$('#nmstat').onclick=nmInvite;$('#nmms').onclick=nmMatches;$('#nmrooms').onclick=nmRooms;}
 function nmNudge(r){if(r.cloud&&r.pname)return'';if(r.cloud){const n=r.likes.length;return n>=3&&n%3===0?`<button class="nmnudge" id="nmnudge">${icon('link')}<span>${t('בן/בת הזוג עוד לא בחדר. שלחו להם את הקישור','Your partner hasn’t joined yet. Send them the link')}</span></button>`:''}const fresh=r.likes.length-(r.sent||0);if(fresh<8)return'';return `<button class="nmnudge" id="nmnudge">${icon('link')}<span>${r.pname?t(`יש לך ${fresh} בחירות חדשות. שלחו ל${esc(r.pname)} כדי לגלות התאמות`,`${fresh} new picks. Send them to ${esc(r.pname)}`):t(`בחרת ${fresh} שמות. שלחו לבן/בת הזוג כדי שיצטרפו`,`You picked ${fresh}. Send them to your partner`)}</span></button>`}
 function nmCardHTML(i,cls){const st=stats(-1),c=comb(st,i);const pd=peakDec(st,i);const m=MEAN.get(NAMES[i])||'';
   return `<div class="nmcard ${cls}" data-i="${i}"><div class="stampl like">${t('אהבתי','LIKE')}</div><div class="stampl pass">${t('לא','NOPE')}</div><div class="stampl sup">${t('מועדף','SUPER')}</div>
@@ -135,7 +143,7 @@ function nmOnboard(sec){const rooms=Object.values(NMX.rooms).filter(x=>x.me).sor
     <div class="nmwelcome fade"><div class="nmlogo">${icon('heart',1)}</div><div class="k">${t('התאמת שמות זוגית','NameMatch for couples')}</div>
       <h2>${t('בוחרים שם<br>ביחד.','Choose a name<br>together.')}</h2>
       <p>${t('כל אחד מחליק לבד, מתי שנוח לו. כששניכם אוהבים את אותו שם, יש התאמה. בלי הרשמה, ואפשר לחזור לחדר בכל רגע.','Each of you swipes alone, whenever it suits. When you both like a name, it’s a match. No sign-up, and you can come back to the room anytime.')}</p>
-      ${rooms.length?`<div class="nmprev"><div class="nml">${t('להמשיך מאיפה שעצרתם','Pick up where you left off')}</div>${rooms.map(x=>`<button data-room="${x.code}"><b>${x.pname?t(`${esc(x.me)} ו${esc(x.pname)}`,`${esc(x.me)} & ${esc(x.pname)}`):esc(x.me)}</b><span>${fLabel(x.f)} · ${x.likes.length} ${t('אהבתם','liked')} · ${matchesOf(x).length} ${t('התאמות','matches')}</span></button>`).join('')}<div class="nml" style="margin-top:14px">${t('או חדר חדש','Or a new room')}</div></div>`:''}
+      ${rooms.length?`<div class="nmprev"><div class="nml">${t('החדרים שלי','My rooms')}</div>${rooms.map(x=>`<div class="nmroom"><button data-room="${x.code}"><b>${x.pname?t(`${esc(x.me)} ו${esc(x.pname)}`,`${esc(x.me)} & ${esc(x.pname)}`):esc(x.me)}</b><span>${fLabel(x.f)} · ${x.likes.length} ${t('אהבתם','liked')} · ${matchesOf(x).length} ${t('התאמות','matches')}</span></button><button class="nmdel" data-del="${x.code}" aria-label="${t('מחיקת החדר','Delete room')}">${icon('close')}</button></div>`).join('')}<div class="nml" id="nmnewlab" style="margin-top:14px">${t('פתיחת חדר חדש','Open a new room')}</div></div>`:''}
       <label class="nml" for="nmme">${t('השם שלך','Your name')}</label><input class="inp nmin" id="nmme" maxlength="30" autocomplete="off" placeholder="${t('למשל: עידן','e.g. Dana')}" value="${esc(store.get('nm_me',''))}">
       ${nmSetupForm({})}
       <button class="next nmgo" id="nmcreate">${t('יצירת חדר משותף','Create a shared room')}</button>
@@ -143,10 +151,12 @@ function nmOnboard(sec){const rooms=Object.values(NMX.rooms).filter(x=>x.me).sor
   $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};nmWireForm();
   $('#nmcreate').onclick=()=>{const me=$('#nmme').value.trim();if(!me){toast(t('כתבו את השם שלכם','Enter your name'));$('#nmme').focus();return}store.set('nm_me',me);
     const o=nmReadForm();const btn=$('#nmcreate');btn.disabled=true;btn.textContent=t('יוצרים חדר…','Creating…');
-    (async()=>{let code=cloudOn()?cloudCode():newCode();let r=ensureRoom(code,o.f,o.sec,o.uni);r.me=me.slice(0,30);r.host=1;
+    NMX.showRooms=false;(async()=>{let code=cloudOn()?cloudCode():newCode();let r=ensureRoom(code,o.f,o.sec,o.uni);r.me=me.slice(0,30);r.host=1;
       if(cloudOn()&&!(await cloudCreate(r))){delete NMX.rooms[code];code=newCode();r=ensureRoom(code,o.f,o.sec,o.uni);r.me=me.slice(0,30);r.host=1;toast(t('אין חיבור לשרת כרגע. החדר יעבוד בשליחת קישורים.','No connection right now. The room will sync by links.'))}
       NMX.active=code;nmSave();try{history.replaceState(null,'',HREF('match.'+code+'.'+rTok(r)))}catch(e){}renderMatch();if(r.cloud)setTimeout(nmInvite,350)})()};
-  sec.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{NMX.active=b.dataset.room;const r=R();nmSave();try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}renderMatch()});}
+  sec.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>nmDelRoom(b,sec));
+  if(NMX.newRoom){NMX.newRoom=false;setTimeout(()=>{const l=$('#nmnewlab')||$('#nmme');if(l)l.scrollIntoView({block:'center'});const i=$('#nmme');if(i)i.focus({preventScroll:true})},60)}
+  sec.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{NMX.showRooms=false;NMX.active=b.dataset.room;const r=R();nmSave();try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}renderMatch()});}
 function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k)).join(', ');
   /* a shared room link: first ask who is connecting, so a returning participant is never added twice */
   if(r.cloudInvite&&cloudOn()&&roster===undefined){

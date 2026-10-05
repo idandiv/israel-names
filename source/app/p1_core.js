@@ -99,7 +99,7 @@ function peakDesc(i){const st=stats(-1),c=comb(st,i);let tot=0;for(let y=0;y<NY;
 function share(st,i){const a=comb(st,i);for(let y=0;y<NY;y++){const d=st.DD[y];a[y]=d?a[y]/d*1000:0}return a}
 const T=(st,i)=>st.tot[0][i]+st.tot[1][i];
 function peakDec(st,i){const c=comb(st,i);const dec={};c.forEach((q,y)=>{const d=Math.floor((Y0+y)/10)*10;dec[d]=(dec[d]||0)+q});return +Object.entries(dec).sort((a,b)=>b[1]-a[1])[0][0]}
-const decLabel=d=>d===1940?t(`שנות ה-40`,`1940s`):t(`שנות ה-${String(d).slice(2)}`,`${d}s`);
+const decLabel=d=>d===1940?t(`שנות ה-40`,`1940s`):d>=2000?t(`שנות ה-${d}`,`${d}s`):t(`שנות ה-${String(d).slice(2)}`,`${d}s`);   /* 2000 and later in full: "שנות ה-2010", not "שנות ה-10" */
 function generation(y){if(y<1965)return t('דור הבייבי בום','Baby boomers');if(y<1981)return t('דור ה-X','Gen X');if(y<1997)return t('דור ה-Y','Millennials');if(y<2013)return t('דור ה-Z','Gen Z');return t('דור האלפא','Gen Alpha')}
 function ed1(a,b){if(a===b)return false;const la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;let i=0,j=0,e=0;
   while(i<la&&j<lb){if(a[i]===b[j]){i++;j++;continue}if(++e>1)return false;if(la>lb)i++;else if(lb>la)j++;else{i++;j++}}return e+(la-i)+(lb-j)<=1}
@@ -180,7 +180,7 @@ const LEGACY={name:['names','file'],me:['names','me'],compare:['names','compare'
 function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
   TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
-  if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
+  if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=NMX.showRooms?null:R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
   stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
 function renderNames(){const sec=$('#tab-names');

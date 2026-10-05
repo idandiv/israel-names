@@ -21,6 +21,7 @@ function renderHome(){
   <button class="gencta" id="gencta"><span class="gl1">${icon('gen')}</span><span><b>${t('מחפשים שם לתינוק?','Looking for a baby name?')}</b><span>${t('פתחו את מחולל השמות: לפי משמעות, אופי ומגמה, עם רשימת מועדפים לשיתוף.','Open the name finder: by meaning, vibe and trend, with a shareable shortlist.')}</span></span><span class="go">${t('למחולל','Open')} ${icon('arrow')}</span></button>
   <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
   </div>
+  ${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<div class="nmnewwrap"><button class="linkbtn" id="nmnewroom">${t('או פתיחת חדר חדש','Or open a new room')}</button></div>`:''})()}
   <div class="tiles3 two">
     <button class="tilec" data-go="games"><span class="k">${t('משחק יומי','Daily game')}</span><b>${t('השם הסודי','The secret name')}</b><span>${t('נחשו את השם של היום ב-10 ניסיונות','Guess today’s name in 10 tries')}</span></button>
     <button class="tilec" data-go="me"><span class="k">${t('פרופיל אישי','Personal profile')}</span><b>${t('מה השם שלי אומר עליי','What my name says')}</b><span>${t('כמה הוא נדיר בשנתון שלכם ומה התואר שלכם','How rare it was in your year, and your title')}</span></button>
@@ -31,7 +32,7 @@ function renderHome(){
   openOn(sec.querySelector('.quick'));
   $('#rnd2').onclick=()=>{const pool=[];for(let i=0;i<N;i++)if(T(st,i)>=400&&MEAN.has(NAMES[i]))pool.push(i);pick(rand(pool))};
   drawHomeSaved();
-  $('#gencta').onclick=()=>setTab('gen');$('#matchcta').onclick=()=>setTab('match');
+  $('#gencta').onclick=()=>setTab('gen');$('#matchcta').onclick=()=>setTab('match');{const nr=$('#nmnewroom');if(nr)nr.onclick=()=>{NMX.showRooms=true;NMX.newRoom=true;setTab('match')}}
   sec.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='me'?setTab('names','me'):setTab(b.dataset.go));
 
 }
@@ -93,7 +94,7 @@ let DECX=store.get('decx',0);
 function drawDecades(st){const box=$('#decgrid');if(!box)return;const x=DECX;
   const rows=[];for(let d=1950;d<=2020;d+=10){const ys=YEARS.map((y,k)=>k).filter(k=>Y0+k>=d&&Y0+k<d+10);const sc=[];
     for(let i=0;i<N;i++){let v=0;for(const k of ys)v+=st.Y[x][i*NY+k];if(v)sc.push([i,v])}sc.sort((a,b)=>b[1]-a[1]);rows.push([d,sc.slice(0,5)])}
-  box.innerHTML=`<div class="decgrid">${rows.map(([d,top])=>`<div class="decrow"><div class="declab">${d===2020?t(`2020–${Y1}`,`2020–${String(Y1).slice(2)}`):t(`שנות ה-${String(d).slice(2)}`,`${d}s`)}</div><div class="decnames">${top.map(([i,v],k)=>`<button data-di="${i}" class="${k===0?'first':''}"><em>${k+1}</em><b>${nmh(i)}</b><small>${kfmt(v)}</small></button>`).join('')}</div></div>`).join('')}</div>`;
+  box.innerHTML=`<div class="decgrid">${rows.map(([d,top])=>`<div class="decrow"><div class="declab">${d===2020?t(`2020–${Y1}`,`2020–${String(Y1).slice(2)}`):decLabel(d)}</div><div class="decnames">${top.map(([i,v],k)=>`<button data-di="${i}" class="${k===0?'first':''}"><em>${k+1}</em><b>${nmh(i)}</b><small>${kfmt(v)}</small></button>`).join('')}</div></div>`).join('')}</div>`;
   let sel=null;
   box.onclick=e=>{const b=e.target.closest('[data-di]');if(!b)return;const i=b.dataset.di;
     if(sel===i){pick(+i);return}sel=i;box.querySelectorAll('[data-di]').forEach(q=>q.classList.toggle('hl',q.dataset.di===i));box.classList.add('focus');
@@ -112,7 +113,7 @@ function drawLeaders(st){const box=$('#ldbody');if(!box)return;const x=DECX;cons
     <div class="ldaxis">${[1950,1960,1970,1980,1990,2000,2010,2020].map(y=>`<span style="inset-inline-start:${pos(y)}">${y}</span>`).join('')}</div>
     <div class="ldfacts"><span><b>${Object.keys(tot).length}</b> ${t('שמות שונים הגיעו למקום הראשון','names reached #1')}</span><span>${t('השלטון הארוך:','Longest reign:')} <b>${nmh(longest.i)}</b> ${longest.b-longest.a+1} ${t('שנים','years')}</span></div>
     <div class="ldsel" id="ldsel" hidden></div>
-    <div class="ldrows">${rows.map(([d,top])=>`<div class="ldrow"><span class="ldlab">${d===2020?'2020–24':t(`שנות ה-${String(d).slice(2)}`,`${d}s`)}</span>
+    <div class="ldrows">${rows.map(([d,top])=>`<div class="ldrow"><span class="ldlab">${d===2020?'2020–24':decLabel(d)}</span>
       ${top[0]?`<button class="ld1" data-di="${top[0][0]}" style="--c:var(${col})"><b>${nmh(top[0][0])}</b><small>${kfmt(top[0][1])}</small></button>`:''}
       <span class="ldrest">${top.slice(1).map(([i,v],k)=>`<button data-di="${i}"><em>${k+2}</em>${nmh(i)}</button>`).join('')}</span></div>`).join('')}</div>`;
   const wrap=$('#leaders');let sel=null;
