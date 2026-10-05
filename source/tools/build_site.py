@@ -104,6 +104,7 @@ def page(title, desc, path, body, noindex=False, jsonld=None):
 <script src="{A_CHART}"></script>
 <script src="{A_DATA}"></script>
 <script src="{A_APP}"></script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
 '''
