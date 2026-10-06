@@ -1012,8 +1012,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .crow .cv{font-size:15px;color:var(--ink)}.crow .cv b{color:var(--accent);font-size:20px;font-variant-numeric:tabular-nums}
 .crow .cs{font-size:12px;color:var(--muted)}
 .cins{margin:12px 2px 0;font-size:13.5px;color:var(--ink-2)}
-/* ===== v21 desktop: soft halos, ghost name ===== */
-.ghostname{display:none}
+/* ===== v21 desktop: soft halos ===== */
 @media (min-width:1100px){
   html,body{overflow-x:clip}
   #app{position:relative;z-index:1}
@@ -1023,10 +1022,6 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
       radial-gradient(520px 420px at 0% 18%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 70%),
       radial-gradient(560px 460px at 100% 62%,color-mix(in srgb,var(--stamp) 10%,transparent),transparent 70%),
       radial-gradient(420px 360px at 4% 92%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 70%)}
-  /* the name, huge and faint, in the empty side of the name-file header */
-  .hero>.ghostname{display:block;position:absolute;top:54px;left:170px;pointer-events:none;user-select:none;white-space:nowrap;
-    font-family:var(--f-display);font-weight:700;line-height:.85;font-size:200px;color:var(--accent);opacity:.07}
-  .hero>.ghostname[hidden]{display:none}
 }
 
 

@@ -45,7 +45,6 @@ function renderName(){
     `${NM(i)} (${nm}): ${fmt(tot)} babies in Israel since ${Y0}. Peak in ${Y0+pk} (1 in ${fmt(oneIn)}), ${fmt(c[L])} babies in ${Y1}. Typical birth year ${med}. (Names of Israel, made by Idan Diva)`);
   v.innerHTML=`<div class="nametools">${secChips()}</div>
   <div class="hero fade">
-    <div class="ghostname" aria-hidden="true">${esc(LANG==='en'?rom(i):nm)}</div>
     <div class="stamp"><div><small>${t('גימטריה','GEMATRIA')}</small><b class="tn">${gem(nm)}</b><small>${letters(nm)} ${t('אותיות','letters')}</small></div></div>
     <div class="eyebrow">${t('תיק שם','NAME FILE')} · ${F<0?t('כל המגזרים','All communities'):sectName(F)}</div>
     <div class="nm">${dn}</div>${LANG==='en'?`<div class="nmhe" dir="rtl">${esc(nm)}</div>`:''}
@@ -85,7 +84,6 @@ function renderName(){
       <div class="seg" id="relseg">${[['tw',t('תאומי זהות','Twins')],['var',t('כתיבים','Spellings')],['rhy',t('חרוזים','Rhymes')],['gem',t('גימטריה','Gematria')]].map(([k,l])=>`<button data-r="${k}" aria-pressed="${REL===k}">${l}</button>`).join('')}</div></div>
       <div class="rel" id="rel"></div></div>
   </div>`;
-  fitGhost();
   $('#card').onclick=()=>shareCard(i);
 
   $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);
@@ -186,15 +184,6 @@ function renderName(){
   openOn($('#rel'));
 }
 
-/* desktop: the faint big name fills the empty side of the header card, only when it really fits */
-function fitGhost(){const h=$('#tab-names .hero'),g=h&&h.querySelector('.ghostname'),n=h&&h.querySelector('.nm');if(!g||!n)return;
-  g.style.fontSize='';g.hidden=false;if(getComputedStyle(g).display==='none')return;
-  const r=document.createRange();r.selectNodeContents(n);const nw=r.getBoundingClientRect().width;
-  const room=h.clientWidth-nw-150-140-40;   /* minus the gematria stamp, the gap to the name and padding */
-  g.style.fontSize='100px';const w100=g.scrollWidth||1;const fs=Math.min(175,Math.floor(room/w100*100));
-  if(fs<100){g.hidden=true;return}g.style.fontSize=fs+'px'}
-let fgT;addEventListener('resize',()=>{clearTimeout(fgT);fgT=setTimeout(fitGhost,150)});
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitGhost);
 
 /* community share: a real presence is never shown as 0%, and a near-total one never as 100% */
 function secPct(n,tot){if(!tot||!n)return '0%';const v=n/tot*100;if(v<.1)return '<0.1%';if(v<1)return v.toFixed(1)+'%';if(v>99&&v<100)return Math.min(99.9,+v.toFixed(1))+'%';return Math.round(v)+'%'}
