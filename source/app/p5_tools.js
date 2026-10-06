@@ -34,7 +34,7 @@ function charTag(st,i,inf){inf=inf||nameInfo(st,i);const m=inf.mom;
   if(m>0.15&&m<9)return['up',t('בעלייה','Rising')];
   if(m<-0.3)return['down',t('בירידה','Declining')];
   return['stable',t('יציב','Steady')]}
-const shortMean=i=>{const m=MEAN.get(NAMES[i]);if(!m||LANG==='en')return'';const s=m.split(/(?<=\.)\s/)[0];return s.length>78?s.slice(0,76)+'…':s};
+const shortMean=i=>{const m=MEAN.get(NAMES[i]);if(!m||LANG==='en')return'';const k=m.search(/\.\s/),s=k<0?m:m.slice(0,k+1);   /* first sentence (no regex lookbehind: older Safari can't parse it) */return s.length>78?s.slice(0,76)+'…':s};
 function syllables(i){const r=TRMAP.get(NAMES[i]);if(!r)return null;const v=r.toLowerCase().match(/[aeiouy]+/g);return v?v.length:null}
 
 /* =========================================================
