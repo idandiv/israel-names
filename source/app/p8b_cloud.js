@@ -28,14 +28,14 @@ async function cloudCreate(r){const c=await sbLoad();if(!c)return false;
 async function cloudJoin(r){const c=await sbLoad();if(!c)return 'off';
   const {data,error}=await c.rpc('join_room',{p_code:r.code,p_name:r.me});
   if(error)return error.code==='P0002'?'missing':error.code==='P0001'?'full':error.code==='P0003'?'taken':'off';
-  r.cloud=1;if(data){r.f=data.sex;r.sec=data.sectors;r.uni=data.unisex;if(data.opts!=null){r.era=data.opts&3;r.pop=(data.opts>>2)&3}NMX.deckFor=null}nmSave();return 'ok'}
+  r.cloud=1;if(data){r.f=data.sex;r.sec=data.sectors;r.uni=data.unisex;if(data.opts!=null){const d=optsDecode(data.opts);r.era=d.era;r.pop=d.pop}NMX.deckFor=null}nmSave();return 'ok'}
 /* returning participants: the names already in a room, and "I'm <name>" on a new device / browser */
 async function cloudRoster(code){const c=await sbLoad();if(!c)return null;const {data,error}=await c.rpc('room_roster',{p_code:code});
   if(error){console.warn('[namematch] roster',error.message);return null}return (data||[]).map(x=>x.display_name).filter(Boolean)}
 async function cloudClaim(r,name){const c=await sbLoad();if(!c)return 'off';
   const {data,error}=await c.rpc('claim_seat',{p_code:r.code,p_name:name});
   if(error)return error.code==='P0002'||error.code==='P0004'?'missing':error.code==='P0001'?'full':'off';
-  r.cloud=1;r.me=name;r.restore=1;if(data){r.f=data.sex;r.sec=data.sectors;r.uni=data.unisex;if(data.opts!=null){r.era=data.opts&3;r.pop=(data.opts>>2)&3}}NMX.deckFor=null;nmSave();return 'ok'}
+  r.cloud=1;r.me=name;r.restore=1;if(data){r.f=data.sex;r.sec=data.sectors;r.uni=data.unisex;if(data.opts!=null){const d=optsDecode(data.opts);r.era=d.era;r.pop=d.pop}}NMX.deckFor=null;nmSave();return 'ok'}
 const sameName=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase();
 /* partner names: every participant except me (my other devices are not partners) */
 const cloudOthers=()=>{const out=[];CL.members.forEach((m,u)=>{if(m.seat===CL.seat||m.seat!==u)return;if(!out.includes(m.n))out.push(m.n)});return out};
