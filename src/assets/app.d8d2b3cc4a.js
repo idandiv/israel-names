@@ -2557,7 +2557,7 @@ function roomIn(o){if(!o||typeof o!=='object'||Array.isArray(o))return null;cons
   if(r.ov!==2){if(r.era||r.pop){const d=optsDecode(((r.era|0)&3)|(((r.pop|0)&3)<<2));r.era=d.era;r.pop=d.pop}r.ov=2}   /* rooms saved with the v1 settings */
   return r}
 function roomOut(r){const o=Object.assign({},r);ROOM_ARR.forEach(k=>{o[k]=(r[k]||[]).map(i=>NAMES[i])});o.hist=(r.hist||[]).map(h=>({n:NAMES[h.i],type:h.type}));return o}
-const NMX={rooms:(()=>{const out=Object.create(null);const o=store.get('nm_rooms',{});if(o&&typeof o==='object'&&!Array.isArray(o))for(const k of Object.keys(o)){const r=roomIn(o[k]);if(r)out[k]=r}return out})(),active:store.get('nm_active',null),live:null,peer:null,deck:null,deckFor:null,busy:false,joinTried:null};
+const NMX={rooms:(()=>{const out=Object.create(null);const o=store.get('nm_rooms',{});if(o&&typeof o==='object'&&!Array.isArray(o))for(const k of Object.keys(o)){let r=null;try{r=roomIn(o[k])}catch(e){console.warn('[namematch] skipped a saved room',e&&e.message)}if(r)out[k]=r}return out})(),active:store.get('nm_active',null),live:null,peer:null,deck:null,deckFor:null,busy:false,joinTried:null};
 const nmSave=()=>{const o={};for(const k of Object.keys(NMX.rooms))o[k]=roomOut(NMX.rooms[k]);store.set('nm_rooms',o);store.set('nm_active',NMX.active)};
 {const o=store.get('nm_rooms',null);if(o&&typeof o==='object'&&Object.values(o).some(r=>r&&Array.isArray(r.likes)&&r.likes.some(v=>typeof v==='number')))nmSave()}   /* one-time migration of index-based saves */
 const R=()=>{const r=NMX.active?NMX.rooms[NMX.active]:null;return r&&typeof r==='object'&&Array.isArray(r.likes)?r:null};
@@ -2569,7 +2569,7 @@ const fLabel=f=>({f:t('שמות בנות','Girls’ names'),m:t('שמות בני
 /* room deck settings, one number shared through the server and the invite link.
    v2 (bit 64 set): era bits 1 current / 2 back in fashion / 4 timeless, pop bits (<<3) 1 popular / 2 familiar / 4 rare.
    v1 (older rooms, no bit 64): era 1 current / 2 classics, pop (<<2) 1 popular / 2 distinctive */
-const optsDecode=v=>{v=v|0;if(v&64)return{era:v&7,pop:(v>>3)&7};const e=v&3,p=(v>>2)&3;return{era:(e&1)|(e&2?4:0),pop:(p&1)|(p&2?4:0)}};
+function optsDecode(v){v=v|0;if(v&64)return{era:v&7,pop:(v>>3)&7};const e=v&3,p=(v>>2)&3;return{era:(e&1)|(e&2?4:0),pop:(p&1)|(p&2?4:0)}}   /* a function (hoisted): saved rooms are read before this line runs */
 const rOpts=r=>(r.era|0)||(r.pop|0)?64|((r.era|0)&7)|(((r.pop|0)&7)<<3):0;
 const rTok=r=>`${r.f}${(r.sec||1).toString(16)}${r.uni?'u':''}${r.cloud?'c':''}${rOpts(r)?'x'+rOpts(r).toString(16):''}`;
 function inviteLink(r){return `${SHARE_URL}#match.${r.code}.${rTok(r)}`}
