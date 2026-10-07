@@ -38,7 +38,7 @@ const b64d=s=>{try{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='
 const newCode=()=>Array.from({length:6},()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random()*31)]).join('');
 const fLabel=f=>({f:t('שמות בנות','Girls’ names'),m:t('שמות בנים','Boys’ names'),a:t('כל השמות','All names')}[f]);
 /* room deck settings, one number shared through the server and the invite link.
-   v2 (bit 64 set): era bits 1 current / 2 '90s–2000s / 4 timeless, pop bits (<<3) 1 popular / 2 familiar / 4 rare.
+   v2 (bit 64 set): era bits 1 current / 2 back in fashion / 4 timeless, pop bits (<<3) 1 popular / 2 familiar / 4 rare.
    v1 (older rooms, no bit 64): era 1 current / 2 classics, pop (<<2) 1 popular / 2 distinctive */
 const optsDecode=v=>{v=v|0;if(v&64)return{era:v&7,pop:(v>>3)&7};const e=v&3,p=(v>>2)&3;return{era:(e&1)|(e&2?4:0),pop:(p&1)|(p&2?4:0)}};
 const rOpts=r=>(r.era|0)||(r.pop|0)?64|((r.era|0)&7)|(((r.pop|0)&7)<<3):0;
@@ -60,7 +60,7 @@ function importPartner(r,p,silent){const before=new Set(matchesOf(r));r.pname=p.
 /* the names in a room's deck. Base rules as before (gender, communities, unisex);
    optional settings stored with the room so both partners get the very same deck (none ticked = no filter, several = any of them):
    era  1 current (peaked in 2010 or later, or mostly given in the last decade)
-        2 '90s–2000s (peaked 1990–2009)
+        2 back in fashion (common decades ago, faded, rising again)
         4 timeless (given steadily for decades and still given today)
    pop  1 popular (top 30% by recent use) · 2 familiar (the middle) · 4 rare (bottom 35%), within the era choice */
 const NM_MIN=10,NM_WARN=20;
@@ -70,7 +70,11 @@ function deckCandidates(o){const st=stats(-1);const arr=[];const mask=o.sec||1;c
     const lo=o.uni?.4:.85,hi=o.uni?.6:.15;if(o.f==='f'&&gp<lo)continue;if(o.f==='m'&&gp>hi)continue;if(o.f==='a'&&!o.uni&&gp>.15&&gp<.85)continue;
     const c=comb(st,i);const r3=c[NY-1]+c[NY-2]+c[NY-3];let r10=0,old=0,pk=0;for(let y=0;y<NY;y++){if(y>=NY-10)r10+=c[y];if(y<y90)old+=c[y];if(c[y]>c[pk])pk=y}
     const py=Y0+pk;
-    arr.push({i,w:(r3+s/40)*(MEAN.has(NAMES[i])?1.3:1),e1:py>=2010||r10/s>=.35,e2:py>=1990&&py<2010,e4:old/s>=.25&&r10/s>=.04})}
+    /* back in fashion: common decades ago (share of all births), faded in the middle years, rising again now */
+    const shy=y=>st.DD[y]?c[y]/st.DD[y]:0,avg=(a,b)=>{let x=0;for(let y=a;y<=b;y++)x+=shy(y);return x/(b-a+1)};
+    const early=Math.max(avg(0,15),avg(10,30)),midA=avg(35,55),now=avg(NY-6,NY-1),prev=avg(NY-16,NY-11);
+    const back=early>0&&midA<early*.7&&now>midA*1.3&&now>prev*1.05&&c[NY-1]>=10;
+    arr.push({i,w:(r3+s/40)*(MEAN.has(NAMES[i])?1.3:1),e1:py>=2010||r10/s>=.35,e2:back,e4:old/s>=.25&&r10/s>=.04})}
   arr.sort((a,b)=>b.w-a.w);const era=o.era|0,pop=o.pop|0;
   const inEra=arr.filter(x=>!era||((era&1)&&x.e1)||((era&2)&&x.e2)||((era&4)&&x.e4));
   const n=inEra.length;return inEra.filter((x,k)=>!pop||((pop&1)&&k<n*.3)||((pop&2)&&k>=n*.3&&k<n*.65)||((pop&4)&&k>=n*.65))}
@@ -163,7 +167,7 @@ function nmUndo(){const r=R();const h=r.hist.pop();if(!h){toast(t('אין מה �
 document.addEventListener('keydown',e=>{if(TAB!=='match'||!$('.nmcard.top')||!$('#modal').hidden||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
   const rtl=false;if(e.key==='ArrowRight'){nmFly('like');e.preventDefault()}else if(e.key==='ArrowLeft'){nmFly('pass');e.preventDefault()}else if(e.key==='ArrowUp'){nmFly('super');e.preventDefault()}else if(e.key==='Backspace'||e.key==='z'){nmUndo();e.preventDefault()}});
 
-const NM_ERA=()=>[[1,t('עדכניים','Current'),t('שמות של השנים האחרונות','Names of recent years')],[2,t('שנות ה-90 וה-2000','’90s & 2000s'),t('שמות שהיו בשיא בשנות ה-90 וה-2000','Peaked in the ’90s and 2000s')],[4,t('על-זמניים','Timeless'),t('שמות שנותנים כבר עשרות שנים, וגם היום','Given for decades, and still today')]];
+const NM_ERA=()=>[[1,t('עדכניים','Current'),t('שמות של השנים האחרונות','Names of recent years')],[2,t('חוזרים לאופנה','Back in fashion'),t('שמות של פעם שחוזרים עכשיו','Old names making a comeback')],[4,t('על-זמניים','Timeless'),t('שמות שנותנים כבר עשרות שנים, וגם היום','Given for decades, and still today')]];
 const NM_POP=()=>[[1,t('נפוצים','Popular'),t('שמות ששומעים הרבה היום','Names you hear a lot today')],[2,t('מוכרים','Familiar'),t('מוכרים לכולם, אבל לא בכל כיתה','Well known, but not in every class')],[4,t('נדירים','Rare'),t('שמות שכמעט לא פוגשים','Names you rarely meet')]];
 function nmSetupForm(pre){const f=pre.f||store.get('nm_f','f'),sec=pre.sec||store.get('nm_sec',1),uni=pre.uni!=null?pre.uni:store.get('nm_uni',true),era=store.get('nm_era2',0)|0,pop=store.get('nm_pop2',0)|0;
   const chips=(id,list,v)=>`<div class="chips sel" id="${id}">${list.map(([b,l])=>`<button data-o="${b}" aria-pressed="${!!(v&b)}">${l}</button>`).join('')}</div><p class="nmhint" id="${id}h"></p>`;
