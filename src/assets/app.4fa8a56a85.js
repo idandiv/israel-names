@@ -1587,7 +1587,7 @@ function renderHome(){
   <button class="gencta" id="gencta"><span class="gl1">${icon('gen')}</span><span><b>${t('מחפשים שם לתינוק?','Looking for a baby name?')}</b><span>${t('פתחו את מחולל השמות: לפי משמעות, אופי ומגמה, עם רשימת מועדפים לשיתוף.','Open the name finder: by meaning, vibe and trend, with a shareable shortlist.')}</span></span><span class="go">${t('למחולל','Open')} ${icon('arrow')}</span></button>
   <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
   </div>
-  ${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<div class="nmnewwrap"><button class="linkbtn" id="nmnewroom">${t('או פתיחת חדר חדש','Or open a new room')}</button></div>`:''})()}
+  ${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<div class="nmnewwrap"><button class="linkbtn" id="nmnewroom">${t('+ חדר חדש','+ New room')}</button><span aria-hidden="true">·</span><button class="linkbtn" id="nmallrooms">${t(`החדרים שלי (${nmRoomCount()})`,`My rooms (${nmRoomCount()})`)}</button></div>`:''})()}
   <div class="tiles3 two">
     <button class="tilec" data-go="games"><span class="k">${t('משחק יומי','Daily game')}</span><b>${t('השם הסודי','The secret name')}</b><span>${t('נחשו את השם של היום ב-10 ניסיונות','Guess today’s name in 10 tries')}</span></button>
     <button class="tilec" data-go="me"><span class="k">${t('פרופיל אישי','Personal profile')}</span><b>${t('מה השם שלי אומר עליי','What my name says')}</b><span>${t('כמה הוא נדיר בשנתון שלכם ומה התואר שלכם','How rare it was in your year, and your title')}</span></button>
@@ -1598,7 +1598,7 @@ function renderHome(){
   openOn(sec.querySelector('.quick'));
   $('#rnd2').onclick=()=>{const pool=[];for(let i=0;i<N;i++)if(T(st,i)>=400&&MEAN.has(NAMES[i]))pool.push(i);pick(rand(pool))};
   drawHomeSaved();
-  $('#gencta').onclick=()=>setTab('gen');$('#matchcta').onclick=()=>setTab('match');{const nr=$('#nmnewroom');if(nr)nr.onclick=()=>{NMX.showRooms=true;NMX.newRoom=true;setTab('match')}}
+  $('#gencta').onclick=()=>setTab('gen');$('#matchcta').onclick=()=>setTab('match');{const nr=$('#nmnewroom');if(nr)nr.onclick=()=>{NMX.showRooms=true;NMX.newRoom=true;setTab('match')}}{const ar=$('#nmallrooms');if(ar)ar.onclick=()=>{NMX.showRooms=true;setTab('match')}}
   sec.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='me'?setTab('names','me'):setTab(b.dataset.go));
 
 }
@@ -2563,31 +2563,53 @@ const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/
 const b64d=s=>{try{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return decodeURIComponent(escape(atob(s)))}catch(e){return''}};
 const newCode=()=>Array.from({length:6},()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random()*31)]).join('');
 const fLabel=f=>({f:t('שמות בנות','Girls’ names'),m:t('שמות בנים','Boys’ names'),a:t('כל השמות','All names')}[f]);
-const rTok=r=>`${r.f}${(r.sec||1).toString(16)}${r.uni?'u':''}${r.cloud?'c':''}`;
+const rOpts=r=>((r.era|0)&3)|(((r.pop|0)&3)<<2);
+const rTok=r=>`${r.f}${(r.sec||1).toString(16)}${r.uni?'u':''}${r.cloud?'c':''}${rOpts(r)?'x'+rOpts(r).toString(16):''}`;
 function inviteLink(r){return `${SHARE_URL}#match.${r.code}.${rTok(r)}`}
 function picksLink(r){const L=[...r.supers.map(i=>'*'+NAMES[i]),...r.likes.filter(i=>!r.supers.includes(i)).map(i=>NAMES[i])];
   return `${SHARE_URL}#match.${r.code}.${rTok(r)}.${b64e(r.me||'')}.~${b64e(L.join(','))}`}
-function parseMatchHash(h){h=(h||'').replace(/^#/,'');const m=h.match(/match\.([a-z0-9]{4,16})\.([fma])([0-9a-f]?)(u?)(c?)(?:\.([A-Za-z0-9_-]*)\.([A-Za-z0-9~_-]*))?/);if(!m)return null;
-  const out={code:m[1],f:m[2],sec:m[3]?parseInt(m[3],16):1,uni:!!m[4],cloud:!!m[5]};if(m[7]!==undefined){out.pname=b64d(m[6]||'').replace(/[\u0000-\u001f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g,'').slice(0,30);out.plikes=[];out.psupers=[];
+function parseMatchHash(h){h=(h||'').replace(/^#/,'');const m=h.match(/match\.([a-z0-9]{4,16})\.([fma])([0-9a-f]?)(u?)(c?)(?:x([0-9a-f]))?(?:\.([A-Za-z0-9_-]*)\.([A-Za-z0-9~_-]*))?/);if(!m)return null;
+  const ox=m[6]?parseInt(m[6],16):0;m.splice(6,1);const out={code:m[1],f:m[2],sec:m[3]?parseInt(m[3],16):1,uni:!!m[4],cloud:!!m[5],era:ox&3,pop:(ox>>2)&3};if(m[7]!==undefined){out.pname=b64d(m[6]||'').replace(/[\u0000-\u001f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g,'').slice(0,30);out.plikes=[];out.psupers=[];
     if(m[7][0]==='~'){b64d(m[7].slice(1)).split(',').slice(0,3000).forEach(x=>{const sup=x[0]==='*';const n=sup?x.slice(1):x;if(IDX.has(n)){const id=IDX.get(n);if(!out.plikes.includes(id))out.plikes.push(id);if(sup)out.psupers.push(id)}})}
     else m[7].split('~').filter(Boolean).forEach(x=>{const sup=x[0]==='S';const id=legacyIdx(parseInt(sup?x.slice(1):x,36));if(id!=null){out.plikes.push(id);if(sup)out.psupers.push(id)}})}return out}
-function ensureRoom(code,f,sec,uni){if(!NMX.rooms[code])NMX.rooms[code]={code,f,sec:sec||1,uni:!!uni,sent:0,me:'',likes:[],supers:[],passes:[],hist:[],pname:'',plikes:[],psupers:[],seen:[],created:Date.now(),pupd:0};return NMX.rooms[code]}
+function ensureRoom(code,f,sec,uni,era,pop){if(!NMX.rooms[code])NMX.rooms[code]={code,f,sec:sec||1,uni:!!uni,era:era|0,pop:pop|0,sent:0,me:'',likes:[],supers:[],passes:[],hist:[],pname:'',plikes:[],psupers:[],seen:[],created:Date.now(),pupd:0};return NMX.rooms[code]}
 function matchesOf(r){const pl=new Set(r.plikes);const ms=r.likes.filter(i=>pl.has(i));
   const sc=i=>(r.supers.includes(i)?1:0)+(r.psupers.includes(i)?1:0);return ms.sort((a,b)=>sc(b)-sc(a)||r.likes.indexOf(a)-r.likes.indexOf(b))}
 function importPartner(r,p,silent){const before=new Set(matchesOf(r));r.pname=p.pname||r.pname||'';r.plikes=p.plikes;r.psupers=p.psupers;r.pupd=Date.now();nmSave();
   const fresh=matchesOf(r).filter(i=>!before.has(i)&&!r.seen.includes(i));if(!silent&&fresh.length){r.seen.push(...fresh);nmSave();setTimeout(()=>matchModal(fresh),300)}return fresh}
 
 /* ---------- deck ---------- */
-function deckOrder(r){const st=stats(-1);const rnd=mulberry32(hash('nm'+r.code));const arr=[];
-  const mask=r.sec||1;
+/* the names in a room's deck. Base rules as before (gender, communities, unisex);
+   optional filters stored with the room so both partners get the very same deck:
+   era  bit1 = current (a large share given in the last 10 years), bit2 = classics (old names still given today)
+   pop  bit1 = popular (top 40% by recent use), bit2 = distinctive (bottom 40%), within the era choice
+   none ticked = no filter; both ticked = either one */
+const NM_MIN=80,NM_WARN=150;
+function deckCandidates(o){const st=stats(-1);const arr=[];const mask=o.sec||1;const y90=1990-Y0;
   for(let i=0;i<N;i++){if(/[^א-ת]/.test(NAMES[i]))continue;const s=T(st,i);if(s<100)continue;const gp=st.tot[0][i]/s;
     const w4=SECTOT[i],tt=w4[0]+w4[1]+w4[2]+w4[3];let sh=0;for(let k=0;k<4;k++)if(mask&(1<<k))sh+=w4[k];if(sh/tt<.5)continue;
-    const lo=r.uni?.4:.85,hi=r.uni?.6:.15;if(r.f==='f'&&gp<lo)continue;if(r.f==='m'&&gp>hi)continue;if(r.f==='a'&&!r.uni&&gp>.15&&gp<.85)continue;
-    const c=comb(st,i);const r3=c[NY-1]+c[NY-2]+c[NY-3];arr.push([i,(r3+s/40)*(MEAN.has(NAMES[i])?1.3:1)])}
+    const lo=o.uni?.4:.85,hi=o.uni?.6:.15;if(o.f==='f'&&gp<lo)continue;if(o.f==='m'&&gp>hi)continue;if(o.f==='a'&&!o.uni&&gp>.15&&gp<.85)continue;
+    const c=comb(st,i);const r3=c[NY-1]+c[NY-2]+c[NY-3];let r10=0,old=0,pk=0;for(let y=0;y<NY;y++){if(y>=NY-10)r10+=c[y];if(y<y90)old+=c[y];if(c[y]>c[pk])pk=y}
+    arr.push({i,w:(r3+s/40)*(MEAN.has(NAMES[i])?1.3:1),cur:r10/s>=.3||Y0+pk>=2012,cls:old/s>=.25&&r10/s>=.04})}
+  arr.sort((a,b)=>b.w-a.w);const era=o.era|0,pop=o.pop|0;
+  const inEra=arr.filter(x=>!era||((era&1)&&x.cur)||((era&2)&&x.cls));
+  /* "popular" / "distinctive" are relative to the names left after the era choice: the top and bottom 40% */
+  const n=inEra.length;return inEra.filter((x,k)=>!pop||((pop&1)&&k<n*.4)||((pop&2)&&k>=n*.6))}
+function deckOrder(r){const rnd=mulberry32(hash('nm'+r.code));const arr=deckCandidates(r);
   /* popularity order, shuffled inside bands of 25 so it never feels like a ranked list */
-  arr.sort((a,b)=>b[1]-a[1]);return arr.map((x,k)=>[x[0],Math.floor(k/25)+rnd()]).sort((a,b)=>a[1]-b[1]).map(a=>a[0])}
+  return arr.map((x,k)=>[x.i,Math.floor(k/25)+rnd()]).sort((a,b)=>a[1]-b[1]).map(a=>a[0])}
+/* names the partner already liked come up a little sooner (every 3rd card), without saying so;
+   the two cards on screen never jump */
+function boostPartner(r,rem){if(!r.plikes||!r.plikes.length||rem.length<4)return rem;const mine=new Set([...r.likes,...r.passes]);
+  const pl=new Set(r.plikes.filter(i=>!mine.has(i)));if(!pl.size)return rem;
+  const front=[],rest=[];rem.forEach(i=>(pl.has(i)?front:rest).push(i));if(!front.length)return rem;
+  /* every 3rd slot counted from the start of the deck, so a boosted name keeps moving forward as you swipe */
+  const ph=mine.size;const out=[];let a=0,b=0;while(a<front.length||b<rest.length){if(a<front.length&&((out.length+ph)%3===2||b>=rest.length))out.push(front[a++]);else out.push(rest[b++])}return out}
 function remaining(r){if(NMX.deckFor!==r.code){NMX.deck=deckOrder(r);NMX.deckFor=r.code}let done=new Set([...r.likes,...r.passes]);let rem=NMX.deck.filter(i=>!done.has(i));
-  if(!rem.length&&r.passes.length){r.round=(r.round||1)+1;r.passes=[];nmSave();toast(t('סבב חדש: השמות שדילגתם עליהם חוזרים','New round: skipped names are back'));done=new Set(r.likes);rem=NMX.deck.filter(i=>!done.has(i))}return rem}
+  if(!rem.length&&r.passes.length){r.round=(r.round||1)+1;r.passes=[];nmSave();toast(t('סבב חדש: השמות שדילגתם עליהם חוזרים','New round: skipped names are back'));done=new Set(r.likes);rem=NMX.deck.filter(i=>!done.has(i))}
+  rem=boostPartner(r,rem);
+  const pin=NMX.pin&&NMX.pin.code===r.code?NMX.pin.ids.filter(i=>rem.includes(i)):[];if(pin.length)rem=[...pin,...rem.filter(i=>!pin.includes(i))];
+  return rem}
 
 /* ---------- live sync (when the room capability can connect) ---------- */
 async function nmLive(){const r=R();if(!r||!r.me)return;if(NMX.joinTried===r.code)return;NMX.joinTried=r.code;
@@ -2602,7 +2624,7 @@ let nmPT;function nmPresence(){clearTimeout(nmPT);nmPT=setTimeout(()=>{const r=R
 /* ---------- views ---------- */
 function renderMatch(){document.body.classList.add('matchmode');const sec=$('#tab-match');
   const h=parseMatchHash(location.hash);
-  if(h){NMX.showRooms=false;const r=ensureRoom(h.code,h.f,h.sec,h.uni);if(h.cloud&&!r.me)r.cloudInvite=1;NMX.active=h.code;if(h.plikes){importPartner(r,h,!r.me);try{history.replaceState(null,'',HREF('match.'+h.code+'.'+rTok(r)))}catch(e){}}nmSave()}
+  if(h){NMX.showRooms=false;const r=ensureRoom(h.code,h.f,h.sec,h.uni,h.era,h.pop);if(!r.me){r.era=h.era|0;r.pop=h.pop|0}if(h.cloud&&!r.me)r.cloudInvite=1;NMX.active=h.code;if(h.plikes){importPartner(r,h,!r.me);try{history.replaceState(null,'',HREF('match.'+h.code+'.'+rTok(r)))}catch(e){}}nmSave()}
   const r=R();
   if(!r||NMX.showRooms){nmOnboard(sec);return}
   if(!r.me){nmJoin(sec,r);return}
@@ -2620,9 +2642,10 @@ async function nmDelRoom(b,sec){const code=b.dataset.del,r=NMX.rooms[code];if(!r
   delete NMX.rooms[code];if(NMX.active===code)NMX.active=null;nmSave();
   toast(ok?t('החדר נמחק','Room deleted'):t('החדר הוסר מהמכשיר. לשרת לא הצלחנו להגיע כרגע','Removed from this device; the server was unreachable'));
   NMX.showRooms=true;nmOnboard(sec)}
+const nmRoomCount=()=>Object.values(NMX.rooms).filter(x=>x&&x.me).length;
 const ago=ts=>{if(!ts)return'';const m=Math.round((Date.now()-ts)/60000);return m<1?t('עכשיו','just now'):m<60?t(`לפני ${m} דק׳`,`${m}m ago`):m<1440?t(`לפני ${Math.round(m/60)} שע׳`,`${Math.round(m/60)}h ago`):t(`לפני ${Math.round(m/1440)} ימים`,`${Math.round(m/1440)}d ago`)};
 function nmTop(){const r=R(),el=$('#nmtop');if(!el||!r)return;const ms=matchesOf(r).length;const live=r.cloud?CL.online:!!NMX.peer;
-  el.innerHTML=`<button class="nmback" id="nmback" aria-label="${t('חזרה לאתר הראשי','Back to main site')}">${icon('back')}<span>${t('לאתר','Site')}</span></button><button class="nmrooms" id="nmrooms" aria-label="${t('החדרים שלי','My rooms')}">${icon('list')}</button>
+  el.innerHTML=`<button class="nmback" id="nmback" aria-label="${t('חזרה לאתר הראשי','Back to main site')}">${icon('back')}<span>${t('לאתר','Site')}</span></button><button class="nmrooms" id="nmrooms" aria-label="${t('החדרים שלי','My rooms')}">${icon('list')}<span>${t('חדרים','Rooms')}</span><b>${nmRoomCount()}</b></button>
     <button class="nmstatus" id="nmstat">${r.pname?`<i class="dot ${live?'on':''}"></i><span><b>${esc(r.me)}</b> ${t('ו','& ')}<b>${esc(r.pname)}</b>${live?'':r.cloud?'':` · <small>${ago(r.pupd)}</small>`}</span>`:`${icon('users')}<span>${r.cloud?t('הזמנת בן/בת הזוג','Invite your partner'):t('שליחה לבן/בת הזוג','Send to partner')}</span>`}</button>
     <button class="nmmatches" id="nmms" aria-label="${t('ההתאמות שלנו','Our matches')}">${icon('heart',ms>0)}<span>${t('התאמות','Matches')}</span><b>${ms}</b></button>`;
   $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};$('#nmstat').onclick=nmInvite;$('#nmms').onclick=nmMatches;$('#nmrooms').onclick=nmRooms;}
@@ -2635,6 +2658,7 @@ function nmCardHTML(i,cls){const st=stats(-1),c=comb(st,i);const pd=peakDec(st,i
     <div class="nmspark">${spark(share(st,i),260,40)}</div></div>`}
 function nmStage(){const r=R(),el=$('#nmstage');if(!el)return;const rem=remaining(r);
   if(!rem.length){el.innerHTML=`<div class="nmend"><h3>${t('עברתם על כל השמות','You’ve seen every name')}</h3><p>${t(`אהבתם ${r.likes.length} שמות. שלחו את הבחירות לבן/בת הזוג כדי לגלות התאמות.`,`You liked ${r.likes.length}. Send your picks to find matches.`)}</p><button class="next" id="nmend-share">${t('שליחת הבחירות שלי','Send my picks')}</button></div>`;$('#nmend-share').onclick=nmInvite;return}
+  NMX.pin={code:r.code,ids:rem.slice(0,2)};
   el.innerHTML=(rem[1]!=null?nmCardHTML(rem[1],'under'):'')+nmCardHTML(rem[0],'top')+nmNudge(r);
   nmDrag(el.querySelector('.nmcard.top'));const nn=$('#nmnudge');if(nn)nn.onclick=nmInvite;}
 function nmDrag(card){if(!card)return;let sx=0,sy=0,dx=0,dy=0,down=false;
@@ -2660,13 +2684,31 @@ function nmUndo(){const r=R();const h=r.hist.pop();if(!h){toast(t('אין מה �
 document.addEventListener('keydown',e=>{if(TAB!=='match'||!$('.nmcard.top')||!$('#modal').hidden||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
   const rtl=false;if(e.key==='ArrowRight'){nmFly('like');e.preventDefault()}else if(e.key==='ArrowLeft'){nmFly('pass');e.preventDefault()}else if(e.key==='ArrowUp'){nmFly('super');e.preventDefault()}else if(e.key==='Backspace'||e.key==='z'){nmUndo();e.preventDefault()}});
 
-function nmSetupForm(pre){const f=pre.f||store.get('nm_f','f'),sec=pre.sec||store.get('nm_sec',1),uni=pre.uni!=null?pre.uni:store.get('nm_uni',true);
+function nmSetupForm(pre){const f=pre.f||store.get('nm_f','f'),sec=pre.sec||store.get('nm_sec',1),uni=pre.uni!=null?pre.uni:store.get('nm_uni',true),era=store.get('nm_era',0)|0,pop=store.get('nm_pop',0)|0;
+  const chips=(id,list,v)=>`<div class="chips sel" id="${id}">${list.map(([b,l,d])=>`<button data-o="${b}" aria-pressed="${!!(v&b)}"><b>${l}</b><small>${d}</small></button>`).join('')}</div>`;
   return `<div class="nmq"><div class="nml">${t('למי השם?','Who is it for?')}</div><div class="seg big nmf" id="nmsex">${['f','m','a'].map(k=>`<button data-f2="${k}" aria-pressed="${f===k}">${{f:t('בת','A girl'),m:t('בן','A boy'),a:t('עוד לא יודעים','Not sure yet')}[k]}</button>`).join('')}</div></div>
     <div class="nmq"><div class="nml">${t('מאילו מגזרים להציג שמות? (אפשר כמה)','Which communities? (pick any)')}</div><div class="chips sel" id="nmsec">${SECT().map((n,k)=>`<button data-b="${k}" aria-pressed="${!!(sec&(1<<k))}">${n}</button>`).join('')}</div></div>
-    <label class="wztoggle nmuni"><input type="checkbox" id="nmuni" ${uni?'checked':''}><span><b>${t('לכלול גם שמות יוניסקס','Include unisex names')}</b><small>${t('כמו טל, נועם, אריאל, עדי','Like Tal, Noam, Ariel, Adi')}</small></span></label>`}
-function nmReadForm(){const f=($('#nmsex [aria-pressed="true"]')||{}).dataset?.f2||'f';let sec=0;document.querySelectorAll('#nmsec [aria-pressed="true"]').forEach(b=>sec|=1<<+b.dataset.b);if(!sec)sec=1;const uni=$('#nmuni').checked;store.set('nm_f',f);store.set('nm_sec',sec);store.set('nm_uni',uni);return{f,sec,uni}}
-function nmWireForm(){$('#nmsex').onclick=e=>{const b=e.target.closest('[data-f2]');if(!b)return;$('#nmsex').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};
-  $('#nmsec').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;const on=b.getAttribute('aria-pressed')==='true';if(on&&document.querySelectorAll('#nmsec [aria-pressed="true"]').length===1)return;b.setAttribute('aria-pressed',String(!on))}}
+    <label class="wztoggle nmuni"><input type="checkbox" id="nmuni" ${uni?'checked':''}><span><b>${t('לכלול גם שמות יוניסקס','Include unisex names')}</b><small>${t('כמו טל, נועם, אריאל, עדי','Like Tal, Noam, Ariel, Adi')}</small></span></label>
+    <details class="nmmore" id="nmmore" ${era||pop?'open':''}><summary><span>${t('הגדרות נוספות','More settings')}</span><em id="nmmorecnt"></em></summary>
+      <div class="nmq"><div class="nml">${t('תקופה','Era')} <small>${t('אפשר לבחור אחד, את שניהם, או לא לבחור','Pick one, both or none')}</small></div>${chips('nmera',[[1,t('עדכניים','Current'),t('נפוצים בעיקר בעשור האחרון','Mostly given in the last decade')],[2,t('קלאסיקות','Classics'),t('שמות ותיקים שעדיין נותנים','Long-standing, still given')]],era)}</div>
+      <div class="nmq"><div class="nml">${t('כמה נפוץ','How common')}</div>${chips('nmpop',[[1,t('נפוצים','Popular'),t('שמות שרואים הרבה היום','Names you hear a lot today')],[2,t('ייחודיים','Distinctive'),t('פחות נפוצים, יותר מקוריים','Less common, more original')]],pop)}</div>
+    </details>
+    <p class="nmdeckcount" id="nmcount" aria-live="polite"></p>`}
+const nmBits=id=>{let v=0;document.querySelectorAll(`#${id} [aria-pressed="true"]`).forEach(b=>v|=+b.dataset.o);return v};
+function nmReadForm(){const f=($('#nmsex [aria-pressed="true"]')||{}).dataset?.f2||'f';let sec=0;document.querySelectorAll('#nmsec [aria-pressed="true"]').forEach(b=>sec|=1<<+b.dataset.b);if(!sec)sec=1;const uni=$('#nmuni').checked;
+  const era=nmBits('nmera'),pop=nmBits('nmpop');store.set('nm_f',f);store.set('nm_sec',sec);store.set('nm_uni',uni);store.set('nm_era',era);store.set('nm_pop',pop);return{f,sec,uni,era,pop}}
+/* live count of names the room will have, so filters never leave a deck too small to play */
+function nmRecount(){const el=$('#nmcount');if(!el)return 0;const o=nmReadForm();const n=deckCandidates(o).length;const act=(o.era?1:0)+(o.pop?1:0);
+  const mc=$('#nmmorecnt');if(mc)mc.textContent=act?t(`${act} פעילות`,`${act} on`):'';
+  el.className='nmdeckcount'+(n<NM_MIN?' bad':n<NM_WARN?' warn':'');
+  el.innerHTML=n<NM_MIN?t(`רק ${fmt(n)} שמות בחדר. צריך לפחות ${NM_MIN}, כדאי לבטל חלק מההגדרות`,`Only ${fmt(n)} names. At least ${NM_MIN} needed, loosen the settings`)
+    :n<NM_WARN?t(`${fmt(n)} שמות בחדר. זה מעט, אפשר לבטל חלק מההגדרות`,`${fmt(n)} names. That's few, consider loosening the settings`)
+    :t(`יהיו בחדר <b>${fmt(n)}</b> שמות`,`The room will have <b>${fmt(n)}</b> names`);
+  const b=$('#nmcreate');if(b&&!b.dataset.busy)b.disabled=n<NM_MIN;return n}
+function nmWireForm(){$('#nmsex').onclick=e=>{const b=e.target.closest('[data-f2]');if(!b)return;$('#nmsex').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));nmRecount()};
+  $('#nmsec').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;const on=b.getAttribute('aria-pressed')==='true';if(on&&document.querySelectorAll('#nmsec [aria-pressed="true"]').length===1)return;b.setAttribute('aria-pressed',String(!on));nmRecount()};
+  ['nmera','nmpop'].forEach(id=>{const g=$('#'+id);if(g)g.onclick=e=>{const b=e.target.closest('[data-o]');if(!b)return;b.setAttribute('aria-pressed',String(b.getAttribute('aria-pressed')!=='true'));nmRecount()}});
+  $('#nmuni').onchange=nmRecount;nmRecount()}
 function nmOnboard(sec){const rooms=Object.values(NMX.rooms).filter(x=>x.me).sort((a,b)=>(b.created||0)-(a.created||0));
   sec.innerHTML=`<div class="nmapp"><div class="nmtop"><button class="nmback" id="nmback">${icon('back')}<span>${t('לאתר הראשי','Main site')}</span></button></div>
     <div class="nmwelcome fade"><div class="nmlogo">${icon('heart',1)}</div><div class="k">${t('התאמת שמות זוגית','NameMatch for couples')}</div>
@@ -2679,10 +2721,12 @@ function nmOnboard(sec){const rooms=Object.values(NMX.rooms).filter(x=>x.me).sor
     </div></div>`;
   $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};nmWireForm();
   $('#nmcreate').onclick=()=>{const me=$('#nmme').value.trim();if(!me){toast(t('כתבו את השם שלכם','Enter your name'));$('#nmme').focus();return}store.set('nm_me',me);
-    const o=nmReadForm();const btn=$('#nmcreate');btn.disabled=true;btn.textContent=t('יוצרים חדר…','Creating…');
-    NMX.showRooms=false;(async()=>{let code=cloudOn()?cloudCode():newCode();let r=ensureRoom(code,o.f,o.sec,o.uni);r.me=me.slice(0,30);r.host=1;
-      if(cloudOn()&&!(await cloudCreate(r))){delete NMX.rooms[code];code=newCode();r=ensureRoom(code,o.f,o.sec,o.uni);r.me=me.slice(0,30);r.host=1;toast(t('אין חיבור לשרת כרגע. החדר יעבוד בשליחת קישורים.','No connection right now. The room will sync by links.'))}
-      NMX.active=code;nmSave();try{history.replaceState(null,'',HREF('match.'+code+'.'+rTok(r)))}catch(e){}renderMatch();if(r.cloud)setTimeout(nmInvite,350)})()};
+    if(nmRecount()<NM_MIN){toast(t(`צריך לפחות ${NM_MIN} שמות בחדר. כדאי לבטל חלק מההגדרות`,`At least ${NM_MIN} names are needed`));return}
+    const o=nmReadForm();const btn=$('#nmcreate');btn.dataset.busy=1;btn.disabled=true;btn.textContent=t('יוצרים חדר…','Creating…');
+    NMX.showRooms=false;(async()=>{let code=cloudOn()?cloudCode():newCode();let r=ensureRoom(code,o.f,o.sec,o.uni,o.era,o.pop);r.me=me.slice(0,30);r.host=1;
+      if(cloudOn()&&!(await cloudCreate(r))){delete NMX.rooms[code];code=newCode();r=ensureRoom(code,o.f,o.sec,o.uni,o.era,o.pop);r.me=me.slice(0,30);r.host=1;toast(t('אין חיבור לשרת כרגע. החדר יעבוד בשליחת קישורים.','No connection right now. The room will sync by links.'))}
+      NMX.active=code;nmSave();try{history.replaceState(null,'',HREF('match.'+code+'.'+rTok(r)))}catch(e){}renderMatch();if(r.cloud)setTimeout(nmInvite,350);
+      if(nmRoomCount()>=2&&!store.get('nm_rooms_tip',0)){store.set('nm_rooms_tip',1);setTimeout(()=>toast(t('אפשר לעבור בין החדרים מכפתור "חדרים" למעלה','Switch rooms from the “Rooms” button at the top'),4500),r.cloud?900:300)}})()};
   sec.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>nmDelRoom(b,sec));
   if(NMX.newRoom){NMX.newRoom=false;setTimeout(()=>{const l=$('#nmnewlab')||$('#nmme');if(l)l.scrollIntoView({block:'center'});const i=$('#nmme');if(i)i.focus({preventScroll:true})},60)}
   sec.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{NMX.showRooms=false;NMX.active=b.dataset.room;const r=R();nmSave();try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}renderMatch()});}
@@ -2809,19 +2853,19 @@ function sbLoad(){if(!cloudOn())return Promise.resolve(null);if(CL.loading)retur
 const cloudCode=()=>Array.from({length:10},()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random()*31)]).join('');
 
 async function cloudCreate(r){const c=await sbLoad();if(!c)return false;
-  const {error}=await c.rpc('create_room',{p_code:r.code,p_sex:r.f,p_sectors:r.sec||1,p_unisex:!!r.uni,p_name:r.me});
+  const {error}=await c.rpc('create_room',{p_code:r.code,p_sex:r.f,p_sectors:r.sec||1,p_unisex:!!r.uni,p_name:r.me,...(rOpts(r)?{p_opts:rOpts(r)}:{})});
   if(error){console.warn('[namematch] create',error.message);return false}r.cloud=1;nmSave();return true}
 async function cloudJoin(r){const c=await sbLoad();if(!c)return 'off';
   const {data,error}=await c.rpc('join_room',{p_code:r.code,p_name:r.me});
   if(error)return error.code==='P0002'?'missing':error.code==='P0001'?'full':error.code==='P0003'?'taken':'off';
-  r.cloud=1;if(data){r.f=data.sex;r.sec=data.sectors;r.uni=data.unisex;NMX.deckFor=null}nmSave();return 'ok'}
+  r.cloud=1;if(data){r.f=data.sex;r.sec=data.sectors;r.uni=data.unisex;if(data.opts!=null){r.era=data.opts&3;r.pop=(data.opts>>2)&3}NMX.deckFor=null}nmSave();return 'ok'}
 /* returning participants: the names already in a room, and "I'm <name>" on a new device / browser */
 async function cloudRoster(code){const c=await sbLoad();if(!c)return null;const {data,error}=await c.rpc('room_roster',{p_code:code});
   if(error){console.warn('[namematch] roster',error.message);return null}return (data||[]).map(x=>x.display_name).filter(Boolean)}
 async function cloudClaim(r,name){const c=await sbLoad();if(!c)return 'off';
   const {data,error}=await c.rpc('claim_seat',{p_code:r.code,p_name:name});
   if(error)return error.code==='P0002'||error.code==='P0004'?'missing':error.code==='P0001'?'full':'off';
-  r.cloud=1;r.me=name;r.restore=1;if(data){r.f=data.sex;r.sec=data.sectors;r.uni=data.unisex}NMX.deckFor=null;nmSave();return 'ok'}
+  r.cloud=1;r.me=name;r.restore=1;if(data){r.f=data.sex;r.sec=data.sectors;r.uni=data.unisex;if(data.opts!=null){r.era=data.opts&3;r.pop=(data.opts>>2)&3}}NMX.deckFor=null;nmSave();return 'ok'}
 const sameName=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase();
 /* partner names: every participant except me (my other devices are not partners) */
 const cloudOthers=()=>{const out=[];CL.members.forEach((m,u)=>{if(m.seat===CL.seat||m.seat!==u)return;if(!out.includes(m.n))out.push(m.n)});return out};
