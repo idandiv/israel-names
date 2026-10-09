@@ -61,11 +61,16 @@ A_DATA = hashed('data', 'js', 'const DATA=' + data + ';')
 A_APP = hashed('app', 'js', '(()=>{\n' + js + '\n})();')
 A_SB = hashed('supabase', 'js', open(D + 'node_modules/@supabase/supabase-js/dist/umd/supabase.js').read())
 
-FAVICON = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#151320"/><path d="M18 46V18h6l16 18V18h6v28h-6L24 28v18z" fill="#a78bfa"/></svg>'''
-open(SRC + 'favicon.svg', 'w').write(FAVICON)
+# site icons (Google results, tabs, home screens): ico + png + svg, plus a small web manifest
+for fn in os.listdir(D + 'assets/icons'):
+    shutil.copy(D + 'assets/icons/' + fn, SRC + fn)
+json.dump({'name': 'השמות של ישראל', 'short_name': 'השמות של ישראל', 'lang': 'he', 'dir': 'rtl', 'start_url': '/', 'display': 'standalone',
+           'background_color': '#101119', 'theme_color': '#101119',
+           'icons': [{'src': '/icon-192.png', 'sizes': '192x192', 'type': 'image/png'}, {'src': '/icon-512.png', 'sizes': '512x512', 'type': 'image/png'}]},
+          open(SRC + 'site.webmanifest', 'w'), ensure_ascii=False)
 
-SITE_T = 'השמות של ישראל – כל שמות התינוקות בישראל מאז 1949'
-SITE_D = 'מה הסיפור מאחורי השם שלך? משמעות, מקור, שנת שיא וגרפים לכל שם שניתן בישראל מאז 1949, מחולל שמות לתינוק ומשחקים. לפי נתוני הלמ״ס.'
+SITE_T = 'השמות של ישראל | מאגר שמות לתינוקות ומשחק בחירת שם ביחד'
+SITE_D = 'מחפשים שם לתינוק? מאגר השמות המלא בישראל עם משמעויות, פופולריות לאורך השנים, ומשחק זוגי חדשני למציאת מאץ\' על השם המושלם. חינם לגמרי!'
 fmt = lambda n: f'{n:,}'
 enc = lambda n: __import__('urllib.parse').parse.quote(n, safe="'")
 
@@ -90,8 +95,18 @@ def page(title, desc, path, body, noindex=False, jsonld=None):
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{canon}">
 <meta property="og:image" content="{PH}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="השמות של ישראל – מאגר שמות לתינוקות ומשחק בחירת שם ביחד">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{e(title)}">
+<meta name="twitter:description" content="{e(desc)}">
+<meta name="twitter:image" content="{PH}/og.png">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/assets/fonts/ibm-plex-sans-hebrew-hebrew-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{A_CSS}">
 <meta name="google-adsense-account" content="ca-pub-8412399730348585">

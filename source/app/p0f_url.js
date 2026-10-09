@@ -39,8 +39,8 @@ let PUSH_ONCE=false;
 function metaTag(sel,attr,key,val){let m=document.head.querySelector(sel);if(!m){m=document.createElement(sel.startsWith('link')?'link':'meta');m.setAttribute(attr,key);document.head.appendChild(m)}m.setAttribute(sel.startsWith('link')?'href':'content',val)}
 function nameMeta(i){const nm=NAMES[i];
   return{title:t(`השם ${nm} – משמעות, מקור וסטטיסטיקה | השמות של ישראל`,`The name ${NM(i)} (${nm}) – meaning, origin and statistics | Names of Israel`),desc:peakDesc(i)}}
-const SITE_TITLE=()=>t('השמות של ישראל – כל שמות התינוקות בישראל מאז 1949','Names of Israel – every baby name in Israel since 1949');
-const SITE_DESC=()=>t('מה הסיפור מאחורי השם שלך? משמעות, מקור, שנת שיא וגרפים לכל שם שניתן בישראל מאז 1949, מחולל שמות לתינוק ומשחקים. לפי נתוני הלמ״ס.','The story behind every baby name given in Israel since 1949: meaning, peak year, charts, a name finder and games. CBS data.');
+const SITE_TITLE=()=>t('השמות של ישראל | מאגר שמות לתינוקות ומשחק בחירת שם ביחד','Names of Israel | Baby names database and a couples name-matching game');
+const SITE_DESC=()=>t('מחפשים שם לתינוק? מאגר השמות המלא בישראל עם משמעויות, פופולריות לאורך השנים, ומשחק זוגי חדשני למציאת מאץ\' על השם המושלם. חינם לגמרי!','Looking for a baby name? Every name given in Israel, with meanings, popularity over the years and a couples game to find your match. Completely free!');
 function setMeta(){const onName=TAB==='names'&&NSUB==='file';const m=onName?nameMeta(CUR):{title:SITE_TITLE(),desc:SITE_DESC()};
   document.title=m.title;metaTag('meta[name="description"]','name','description',m.desc);
   metaTag('meta[property="og:title"]','property','og:title',m.title);metaTag('meta[property="og:description"]','property','og:description',m.desc);
