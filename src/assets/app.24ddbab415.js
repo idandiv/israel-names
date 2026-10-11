@@ -3074,7 +3074,10 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
   e.preventDefault();const k=a.dataset.doc;if(k===DOC)return;if(DOC){try{history.replaceState({doc:k},'',docHref(k))}catch(e){}openDoc(k,false)}else openDoc(k,true)});
 /* a direct visit to /about etc.: open after the app has booted (boot rewrites the URL to the home tab) */
 {const k0=docFromURL();if(k0)setTimeout(()=>{try{history.replaceState(null,'',docHref(k0))}catch(e){}openDoc(k0,false)},0)}
-function docLinksHTML(){return `<nav class="doclinks">${DOCS.map(d=>`<a href="${docHref(d)}" data-doc="${d}">${PAGES[d].title}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`}
+/* name collections (/names/boys etc.) are plain static pages, so these are ordinary links; the preview build has no such pages */
+const COLLS=[['boys','שמות לבנים'],['girls','שמות לבנות'],['unisex','שמות יוניסקס'],['popular','השמות הנפוצים בישראל']];
+function docLinksHTML(){return `<nav class="doclinks">${DOCS.map(d=>`<a href="${docHref(d)}" data-doc="${d}">${PAGES[d].title}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`
+  +(SITE.routing==='path'?`<nav class="doclinks" aria-label="אוספי שמות">${COLLS.map(([k,v])=>`<a href="/names/${k}">${v}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`:'')}
 
 /* =========================================================
    GAMES
