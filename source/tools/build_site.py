@@ -35,6 +35,24 @@ css += """
 .seo a{color:var(--accent,#a78bfa)}.seo .rel{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0}
 .seo .rel a{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 12px;text-decoration:none;color:var(--ink)}
 .seo .az a{display:inline-block;margin:2px 6px}
+/* app-less static pages: collections and the all-names hub (same look as the info pages) */
+.docin>.docbody .k{color:var(--muted);font-size:13px;margin:0}
+.docbody .coll{list-style:none;padding:0;margin:8px 0 8px;columns:2 260px;column-gap:24px}
+.docbody .coll li{margin:0;padding:8px 2px;border-bottom:1px solid var(--line);min-width:0;break-inside:avoid}
+.docbody .coll a{display:flex;align-items:baseline;gap:10px;border:0;color:var(--ink);font-weight:400;min-height:28px}
+.docbody .coll a:hover b{color:var(--accent)}
+.docbody .coll .cr{color:var(--muted);font-size:13px;min-width:24px;font-variant-numeric:tabular-nums}
+.docbody .coll b{font-size:17px;font-weight:700}
+.docbody .coll .cn{margin-inline-start:auto;color:var(--muted);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.docbody .coll .cm{display:block;padding-inline-start:34px;color:var(--muted);font-size:13px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.docbody .coll .sx{font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:0 7px;margin-inline-end:6px}
+.docbody .coll .sx0{color:var(--girl,var(--muted))}.docbody .coll .sx1{color:var(--boy,var(--muted))}
+.collcta{margin-top:28px}
+.docbody .azjump{display:flex;flex-wrap:wrap;gap:4px;margin:18px 0 0}
+.docbody .azjump a{border:1px solid var(--line);border-radius:10px;min-width:36px;min-height:36px;display:inline-grid;place-items:center;color:var(--ink)}
+.docbody .seo-az h2{scroll-margin-top:80px}
+.docbody .seo-az .az a{display:inline-block;margin:2px 6px;border:0;font-weight:400}
+.docfoot p{margin:6px 0}.docfoot p a{color:var(--muted);font-weight:400}
 """
 
 
@@ -75,7 +93,8 @@ fmt = lambda n: f'{n:,}'
 enc = lambda n: __import__('urllib.parse').parse.quote(n, safe="'")
 
 
-def page(title, desc, path, body, noindex=False, jsonld=None):
+def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
+    """app=False: a plain static page (collections, the all-names hub) that the app does not take over."""
     canon = PH + path
     e = H.escape
     return f'''<!doctype html>
@@ -114,21 +133,25 @@ def page(title, desc, path, body, noindex=False, jsonld=None):
 {f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ''}
 </head>
 <body>
-<div id="app" dir="rtl">{body}</div>
+{f"""<div id="app" dir="rtl">{body}</div>
 <div class="toast" id="toast" hidden></div>
 <div class="modal" id="modal" hidden></div>
 <script src="/site-config.js"></script>
 <script src="{A_CHART}"></script>
 <script src="{A_DATA}"></script>
-<script src="{A_APP}"></script>
+<script src="{A_APP}"></script>""" if app else body}
 <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
 '''
 
 
+COLLS = [('boys', 'שמות לבנים'), ('girls', 'שמות לבנות'), ('unisex', 'שמות יוניסקס'), ('popular', 'השמות הנפוצים בישראל')]
+
+
 def nav_links():
-    return '<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
+    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
+            '<p>' + ' · '.join(f'<a href="/names/{k}">{v}</a>' for k, v in COLLS) + '</p>')
 
 
 # ---- name pages ----
@@ -172,10 +195,100 @@ for x in sorted(NAMES, key=lambda x: -x['tot']):
 az = ''.join(
     f'<h2 id="l{i}">{H.escape(k)}</h2><p class="az">' + ''.join(f'<a href="/names/{enc(n)}">{H.escape(n)}</a>' for n in groups[k]) + '</p>'
     for i, k in enumerate(sorted(groups)))
+letters = '<p class="azjump">' + ''.join(f'<a href="#l{i}">{H.escape(k)}</a>' for i, k in enumerate(sorted(groups))) + '</p>'
+
+
+# ---- static pages without the app (the app's router would take these URLs over) ----
+def ic(paths):
+    return f'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{paths}</svg>'
+
+
+IC_BACK = '<path d="M9 6l6 6-6 6"/>'
+IC_ARROW = '<path d="M15 6l-6 6 6 6"/>'
+IC_USERS = '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a4.5 4.5 0 0 1 5 4.8"/>'
+
+
+def coll_nav(cur):
+    items = [('/names', 'כל השמות', cur == '')] + [(f'/names/{k}', v, k == cur) for k, v in COLLS]
+    return '<nav class="docnav" aria-label="אוספי שמות">' + ''.join(
+        '<a href="' + h + '"' + (' aria-current="page"' if on else '') + '>' + v + '</a>' for h, v, on in items) + '</nav>'
+
+
+MATCH_CTA = (f'<a class="matchcta collcta" href="/#match"><span class="gl1">{ic(IC_USERS)}</span>'
+             '<span><b>בוחרים שם ביחד</b><span>מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם</span></span>'
+             f'<span class="go">להתחיל {ic(IC_ARROW)}</span></a>')
+
+
+def static_shell(cur, inner):
+    return f'''<div class="docin" dir="rtl">
+<div class="doctop"><a class="docback" href="/">{ic(IC_BACK)}<span>לדף הבית</span></a><span class="docbrand">השמות של ישראל</span></div>
+<article class="docbody">{inner}</article>
+{MATCH_CTA}
+{coll_nav(cur)}
+<div class="docfoot">{nav_links()}<p>מקור: הלשכה המרכזית לסטטיסטיקה. נוצר ע״י <a href="https://www.linkedin.com/in/idan-diva/">עידן דיוה</a>.</p></div>
+</div>'''
+
+
 open(SRC + 'names/index.html', 'w').write(page(
     'כל שמות התינוקות בישראל לפי א״ב | השמות של ישראל',
     f'רשימת כל {fmt(len(NAMES))} השמות שניתנו לתינוקות בישראל מאז {Y0}, לפי אותיות, עם משמעות וסטטיסטיקה לכל שם.',
-    '/names', f'<article class="seo"><h1>כל השמות</h1><p>{fmt(len(NAMES))} שמות, מסודרים לפי אות ראשונה ולפי פופולריות.</p>{az}{nav_links()}</article>'))
+    '/names', static_shell('', f'<h1>כל השמות</h1><p class="dlead">{fmt(len(NAMES))} שמות, מסודרים לפי אות ראשונה ולפי פופולריות.</p>{coll_nav("")}{letters}<div class="seo-az">{az}</div>'),
+    app=False))
+
+
+# ---- collection pages: /names/boys, /names/girls, /names/unisex, /names/popular ----
+def short_mean(x):
+    m = (x['mean'] or '').strip()
+    return m.split('. ')[0].rstrip('.') if m else ''
+
+
+def coll_list(rows, stat):
+    """rows: name records in order; stat(x) -> the small figure shown beside the name."""
+    return '<ol class="coll">' + ''.join(
+        f'<li><a href="/names/{enc(x["n"])}"><span class="cr">{i}</span><b>{H.escape(x["n"])}</b><span class="cn">{stat(x)}</span></a>'
+        + (f'<span class="cm">{H.escape(short_mean(x))}</span>' if short_mean(x) else '') + '</li>'
+        for i, x in enumerate(rows, 1)) + '</ol>'
+
+
+boys = sorted([x for x in NAMES if x['x'] == 1 and x['last']], key=lambda x: -x['last'])[:100]
+girls = sorted([x for x in NAMES if x['x'] == 0 and x['last']], key=lambda x: -x['last'])[:100]
+unisex = sorted([x for x in NAMES if 20 <= x['g'] <= 80 and x['tot'] >= 300], key=lambda x: (-x['last'], -x['tot']))[:100]
+top_now = sorted([x for x in NAMES if x['last']], key=lambda x: -x['last'])[:50]
+top_ever = sorted(NAMES, key=lambda x: -x['tot'])[:50]
+born = lambda x: f'{fmt(x["last"])} תינוקות'
+split = lambda x: f'{x["g"]}% בנות · {100 - x["g"]}% בנים'
+mark = lambda x: f'<span class="sx sx{x["x"]}">{"בן" if x["x"] else "בת"}</span>'
+
+COLL_PAGES = {
+    'boys': ('שמות לבנים', f'שמות לבנים – 100 השמות הנפוצים בישראל ב-{Y1}',
+             f'רשימת 100 שמות הבנים הנפוצים בישראל ב-{Y1} לפי הלמ״ס, עם מספר התינוקות, משמעות כל שם וקישור לתיק השם המלא.',
+             f'<p class="dlead">מחפשים שם לבן? אלה 100 השמות שניתנו הכי הרבה לבנים בישראל ב-{Y1}, לפי נתוני הלשכה המרכזית לסטטיסטיקה. '
+             'לכל שם יש תיק מלא עם משמעות, מקור ופופולריות לאורך השנים.</p>',
+             f'<h2>100 שמות הבנים המובילים ב-{Y1}</h2>' + coll_list(boys, born)),
+    'girls': ('שמות לבנות', f'שמות לבנות – 100 השמות הנפוצים בישראל ב-{Y1}',
+              f'רשימת 100 שמות הבנות הנפוצים בישראל ב-{Y1} לפי הלמ״ס, עם מספר התינוקות, משמעות כל שם וקישור לתיק השם המלא.',
+              f'<p class="dlead">מחפשים שם לבת? אלה 100 השמות שניתנו הכי הרבה לבנות בישראל ב-{Y1}, לפי נתוני הלשכה המרכזית לסטטיסטיקה. '
+              'לכל שם יש תיק מלא עם משמעות, מקור ופופולריות לאורך השנים.</p>',
+              f'<h2>100 שמות הבנות המובילים ב-{Y1}</h2>' + coll_list(girls, born)),
+    'unisex': ('שמות יוניסקס', 'שמות יוניסקס – שמות שמתאימים לבנים ולבנות',
+               f'{len(unisex)} שמות יוניסקס ישראליים שניתנים גם לבנים וגם לבנות, עם החלוקה המדויקת בין בנות לבנים לפי נתוני הלמ״ס.',
+               '<p class="dlead">שמות יוניסקס הם שמות שניתנים בישראל גם לבנות וגם לבנים. '
+               f'ברשימה {len(unisex)} שמות שבין 20% ל-80% מהתינוקות שנקראו בהם הם בנות, מסודרים לפי הפופולריות שלהם ב-{Y1}, '
+               'עם החלוקה המדויקת לפי נתוני הלמ״ס.</p>',
+               '<h2>שמות לבנים ולבנות</h2>' + coll_list(unisex, split)),
+    'popular': ('השמות הנפוצים בישראל', f'השמות הנפוצים בישראל – המובילים ב-{Y1} ובכל הזמנים',
+                f'השמות הנפוצים ביותר בישראל לפי הלמ״ס: 50 השמות המובילים ב-{Y1} ו-50 השמות שניתנו הכי הרבה מאז {Y0}.',
+                f'<p class="dlead">אילו שמות הכי נפוצים בישראל? כאן שתי רשימות לפי נתוני הלשכה המרכזית לסטטיסטיקה: '
+                f'השמות שניתנו הכי הרבה ב-{Y1}, בבנים ובבנות יחד, והשמות שניתנו הכי הרבה מאז {Y0}.</p>',
+                f'<h2>50 השמות המובילים ב-{Y1}</h2>' + coll_list(top_now, lambda x: mark(x) + born(x))
+                + f'<h2>50 השמות הנפוצים מאז {Y0}</h2>' + coll_list(top_ever, lambda x: mark(x) + f'{fmt(x["tot"])} תינוקות')),
+}
+for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
+    path = '/names/' + k
+    title = h1 + ' | השמות של ישראל'
+    open(SRC + f'names/{k}.html', 'w').write(page(
+        title, desc, path, static_shell(k, f'<p class="k">השמות של ישראל · אוספי שמות</p><h1>{name}</h1>{lead}{lists}'),
+        app=False))
 
 # ---- home + 404 ----
 top = [x['n'] for x in sorted(NAMES, key=lambda x: -x['last'])[:40]]
@@ -193,7 +306,7 @@ for k, P in PAGES.items():
 open(SRC + '404.html', 'w').write(page('הדף לא נמצא | השמות של ישראל', SITE_D, '/', '<article class="seo"><h1>הדף לא נמצא</h1>' + nav_links() + '</article>', noindex=True))
 
 # list of indexable paths for the sitemap (finalize.mjs adds the base URL)
-paths = ['/', '/names', '/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
+paths = ['/', '/names'] + [f'/names/{k}' for k, _ in COLLS] + ['/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
 json.dump(paths, open(OUT + 'scripts/paths.json', 'w'), ensure_ascii=False)
 # runtime config as an external file (filled by finalize.mjs) so the CSP needs no inline scripts
 open(SRC + 'site-config.js', 'w').write('window.SITE_CONFIG={baseUrl:"__RUNTIME_BASE_URL__",routing:"path",supabase:{url:"__SUPABASE_URL__",key:"__SUPABASE_KEY__",lib:"' + A_SB + '"}};\n')
