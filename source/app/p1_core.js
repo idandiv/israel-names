@@ -37,6 +37,13 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const m=$('#m
   if(m&&!m.hidden){m.hidden=true;e.preventDefault();return}
   const open=[...document.querySelectorAll('.sugg')].filter(b=>!b.hidden);if(open.length){open.forEach(b=>b.hidden=true);return}
   const bar=document.querySelector('.bar.sopen');if(bar){bar.classList.remove('sopen');const q=$('#q');if(q)q.blur()}});
+/* iOS-style action sheet in the shared #modal: a titled group of actions and a separate Cancel.
+   items: [[label, iconKey, onTap]]. Tapping outside, Cancel or Escape closes it. */
+function actionSheet(title,items){const m=$('#modal');if(!m)return;
+  m.innerHTML=`<div class="asheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="asgroup"><div class="astitle">${esc(title)}</div>${items.map((it,k)=>`<button class="asact" data-k="${k}">${icon(it[1])}<span>${it[0]}</span></button>`).join('')}</div><button class="asact ascancel" data-k="x">${t('ביטול','Cancel')}</button></div>`;
+  m.hidden=false;
+  m.onclick=e=>{const b=e.target.closest('.asact');if(e.target!==m&&!b)return;m.hidden=true;m.innerHTML='';if(b&&b.dataset.k!=='x')items[+b.dataset.k][2]()};
+  setTimeout(()=>{const b=m.querySelector('.asact');if(b)b.focus({preventScroll:true})},30)}
 let toastT;function toast(m,ms){const el=$("#toast");el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,ms||Math.max(2400,Math.min(6000,m.length*55)))}
 function copy(text){const ok=()=>toast(t('הועתק! אפשר להדביק בוואטסאפ','Copied! Paste it anywhere'));const no=()=>toast(t('ההעתקה נחסמה בדפדפן הזה','Copying is blocked in this browser'));try{navigator.clipboard.writeText(text).then(ok,no)}catch(e){no()}}
 
@@ -107,9 +114,10 @@ function ed1(a,b){if(a===b)return false;const la=a.length,lb=b.length;if(Math.ab
   while(i<la&&j<lb){if(a[i]===b[j]){i++;j++;continue}if(++e>1)return false;if(la>lb)i++;else if(lb>la)j++;else{i++;j++}}return e+(la-i)+(lb-j)<=1}
 const hex2rgb=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]};
 function chartBase(){const rtl=LANG!=='en';return{responsive:true,maintainAspectRatio:false,animation:{duration:500},interaction:{mode:'index',intersect:false},
-  plugins:{legend:{display:false},tooltip:{rtl,textDirection:rtl?'rtl':'ltr',backgroundColor:css('--ink'),titleColor:css('--bg'),bodyColor:css('--bg'),padding:10,boxPadding:4,usePointStyle:true}},
-  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:FONT_UI}},border:{color:css('--line')}},
-          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:FONT_UI}},border:{display:false},beginAtZero:true}}}}
+  plugins:{legend:{display:false},tooltip:{rtl,textDirection:rtl?'rtl':'ltr',backgroundColor:css('--elev'),titleColor:css('--ink'),bodyColor:css('--ink-2'),borderColor:css('--line'),borderWidth:1,cornerRadius:12,padding:12,boxPadding:6,usePointStyle:true,
+    titleFont:{family:FONT_UI,size:13,weight:'600'},bodyFont:{family:FONT_UI,size:13}}},
+  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:FONT_UI,size:12}},border:{color:css('--line')}},
+          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:FONT_UI,size:12}},border:{display:false},beginAtZero:true}}}}
 const charts={};
 function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElementById(id);if(!el)return;charts[id]=new Chart(el,cfg);return charts[id]}
 const line=(label,data,color,fill)=>({label,data:Array.from(data),borderColor:color,backgroundColor:fill?color+'22':color,fill:!!fill,borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBorderWidth:2,pointHoverBorderColor:css('--surface'),tension:.3});
@@ -137,7 +145,10 @@ const IC={
  close:'<path d="M6 6l12 12M18 6 6 18"/>',
  play:'<path d="M8 5v14l11-7z"/>',pause:'<path d="M8 5v14M16 5v14"/>',
  dice:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h.01M15 15h.01M15 9h.01M9 15h.01"/>',
- arrow:'<path d="M15 6l-6 6 6 6"/>'};
+ arrow:'<path d="M15 6l-6 6 6 6"/>',
+ share:'<path d="M12 15V3.5M8 7.5l4-4 4 4"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16"/>',
+ image:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5-8.5 8.5"/>',
+ compare:'<path d="M7 4v16M17 4v16M3.5 8H10.5M13.5 16h7"/>'};
 const icon=(k,fill)=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="${fill?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
 function tabShort(k){return{home:t('ראשי','Home'),names:t('שמות','Names'),gen:t('מחולל','Finder'),trends:t('מגמות','Trends'),games:t('משחקים','Games')}[k]}
 function tabLabel(k){return{home:t('ראשי','Home'),names:t('חקר שמות','Explore names'),gen:t('מחולל שמות','Name finder'),trends:t('מגמות ודאטה','Trends & data'),games:t('משחקים','Games')}[k]}

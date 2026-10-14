@@ -6,7 +6,7 @@ import gzip, base64, json, os
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 A = os.path.join(S, 'app'); DIST = os.path.join(S, 'dist'); os.makedirs(DIST, exist_ok=True)
 CSS = ['tokens.css', 'base.css', 'extra.css', 'extra2.css', 'extra3.css', 'extra4.css',  # tokens first: colors, type, spacing, corners, depth
-       'shell.css', 'controls.css']  # HIG top bar / tab bar and controls, last so they set the size and look
+       'shell.css', 'controls.css', 'content.css']  # HIG top bar / tab bar, controls and content, last so they set the size and look
 JS = ['p0_translit.js', 'p0b_meanings.js', 'p0c_meanings2.js', 'p0d_pa.js', 'p0e_story.js', 'p0f_url.js', 'p1_core.js', 'p2_home.js',
       'p3_name.js', 'p3b_extra.js', 'p4_explore.js', 'p5_tools.js', 'p8_match.js', 'p8b_cloud.js', 'p9_persist.js', 'p9b_pages.js', 'p6_games.js']  # p6 holds boot(): keep last
 PREVIEW_URL = 'https://claude.ai/artifact/6tr1eyeJJ7zw49We8J48vF'   # only for the preview build; the real site uses its own origin

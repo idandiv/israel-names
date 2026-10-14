@@ -2,7 +2,7 @@
    EXPLORE
    ========================================================= */
 let RY=store.get('ry',Y1), raceTimer=null, exEnd=store.get('end',0);
-const ROWH=30;
+const ROWH=44;   /* race rows: 44pt touch rows (HIG) */
 function stopRace(){if(raceTimer){clearInterval(raceTimer);raceTimer=null;const b=$('#rp');if(b)b.innerHTML=icon('play',1)+t(' ניגון',' Play')}}
 function drawRace(st){const y=RY-Y0;$('#ry').textContent=RY;const r2=$('#ry2');if(r2)r2.textContent=RY;
   for(const [x,sel] of [[0,'#rg'],[1,'#rb']]){const box=$(sel);if(!box)continue;const ids=st.top[x][y].slice(0,10);const mx=ids.length?st.Y[x][ids[0]*NY+y]:1;

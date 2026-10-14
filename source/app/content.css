@@ -1,0 +1,101 @@
+/* =========================================================
+   Content (HIG): cards, the name file, lists and the action sheet.
+   Cards are inset-grouped surfaces (soft shadow in light, tone in dark);
+   every tappable row is 44pt; titles follow the HIG text styles.
+   ========================================================= */
+
+/* cards */
+.grid,.gamegrid{gap:var(--sp-4);margin-top:var(--sp-4)}
+.card{padding:var(--sp-5);border-radius:var(--r-l)}
+.card h3{font-size:var(--fs-title3);font-weight:700;line-height:1.3}
+.card .sub{font-size:var(--fs-subhead);color:var(--muted);margin-top:2px}
+.card .head{gap:var(--sp-3);margin-bottom:var(--sp-4)}
+.card.more{border-radius:var(--r-l);box-shadow:none}
+@media (max-width:767px){.card{padding:var(--sp-4);border-radius:var(--r-l)}}
+
+/* home */
+.landing{padding:var(--sp-6) var(--sp-5) var(--sp-5);border-radius:var(--r-xl)}
+.landing .kick,.home-hero .kick{font-size:var(--fs-footnote);letter-spacing:0;font-weight:600}
+.landing p{color:var(--ink-2)}
+.ctapair{gap:var(--sp-3)}
+.ctapair .gencta,.ctapair .matchcta,.gencta,.matchcta{border-radius:var(--r-l);padding:var(--sp-5)}
+.gencta b,.matchcta b{font-size:var(--fs-title3);font-weight:700}
+.gencta .go,.matchcta .go{min-height:var(--tap);padding:0 18px;font-size:var(--fs-subhead)}
+.tiles3{gap:var(--sp-3)}
+.tilec{padding:var(--sp-5);gap:6px}
+.tilec .k{font-size:var(--fs-footnote);letter-spacing:0}
+.tilec b{font-size:var(--fs-title3)}
+.tilec span:last-child{font-size:var(--fs-subhead)}
+
+/* name file */
+.hero{padding:var(--sp-6);border-radius:var(--r-xl)}
+.hero .eyebrow{font-size:var(--fs-footnote);letter-spacing:0;font-weight:600}
+.tagline{color:var(--ink-2);line-height:1.55}
+.meaning{border-inline-start:0;border-radius:var(--r-m);padding:var(--sp-3) var(--sp-4);background:var(--surface-2);font-size:var(--fs-body)}
+.meaning span{font-size:var(--fs-footnote);letter-spacing:0}
+.pills{gap:var(--sp-2);align-items:center}
+.pill{display:inline-block;line-height:28px;padding:0 12px;border-radius:var(--r-pill);background:var(--fill);color:var(--ink-2);font-size:var(--fs-footnote);font-weight:600}
+.pmore{display:contents}
+.pmore summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;min-height:var(--tap);padding:0 8px;color:var(--accent);font-size:var(--fs-subhead);font-weight:600}
+.pmore summary::-webkit-details-marker{display:none}
+.pmore[open] summary{display:none}
+.pmore .pills{display:contents}
+.stats,.kpis,.mestats{border-radius:var(--r-l);gap:.5px}
+.stat,.kpi{padding:var(--sp-3) var(--sp-4)}
+.stat .k,.kpi .k{font-size:var(--fs-footnote);font-weight:500}
+.stat .v{font-size:var(--fs-title2)}
+.stat .s,.kpi .s{font-size:var(--fs-footnote)}
+.meter .row{font-size:var(--fs-subhead)}
+.meter .track{height:8px;margin-top:var(--sp-2)}
+.heat{border-radius:var(--r-s)}
+.hero .actions{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin-top:var(--sp-5)}
+.hero .actions>button{min-height:50px;border-radius:var(--r-m);justify-content:center;font-size:var(--fs-body);font-weight:600}
+.hero .actions .favbtn{background:var(--fill);color:var(--ink)}
+.hero .actions .favbtn.on{background:var(--stamp-soft);color:var(--stamp)}
+.hero .actions .ic{width:20px;height:20px}
+@media (max-width:767px){.hero{padding:var(--sp-5) var(--sp-4)}}
+
+/* lists: 44pt rows with hairline separators */
+.rl{gap:0}
+.rl button{min-height:var(--tap)}
+.rl .bw,.rrow .bw{height:32px;border-radius:var(--r-s)}
+.rl .bw span,.rrow .bw span{line-height:32px;font-size:var(--fs-subhead)}
+.rrow{height:var(--tap)}
+.lst{gap:0}
+.lst button{min-height:var(--tap);padding:0 var(--sp-2);border-radius:var(--r-s)}
+.lst button+button{box-shadow:0 -.5px 0 var(--line)}
+.famtable{gap:0}
+.famtable button{min-height:var(--tap)}
+.famtable button+button{box-shadow:0 -.5px 0 var(--line)}
+.decnames button{min-height:var(--tap);border:0;background:var(--fill)}
+.decnames button.first{box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 55%,transparent)}
+.ld1{min-height:var(--tap);border-radius:var(--r-m)}
+.ldrest button{min-height:var(--tap);display:inline-flex;align-items:center;padding:0 6px}
+.seccols li button{min-height:var(--tap);display:inline-flex;align-items:center}
+.reign{height:var(--tap);border-radius:var(--r-s)}
+.linkname,.cmptbl .linkname{min-height:var(--tap);min-width:var(--tap);display:inline-flex;align-items:center}
+.kpi button{min-height:var(--tap);display:inline-flex;align-items:center}
+.twin{min-height:var(--tap);border:0;background:var(--fill);border-radius:var(--r-m)}
+.themegrid button{min-height:56px;border:0;background:var(--fill)}
+.themegrid button[aria-pressed="true"]{background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.wzopts button{border:0;background:var(--fill);border-radius:var(--r-l)}
+.wzopts button[aria-pressed="true"]{background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.qopts button,.gopts button{min-height:56px;border:0;background:var(--fill)}
+.qopts button.win,.gopts button.win{box-shadow:inset 0 0 0 2px var(--good)}
+.qopts button.lose,.gopts button.lose{box-shadow:inset 0 0 0 2px var(--bad)}
+.favrow{min-height:56px;border-radius:var(--r-m)}
+
+/* action sheet (iOS): grouped actions + a separate Cancel, from the bottom on phones */
+.modal:has(> .asheet){place-items:end center;padding:var(--sp-2) var(--sp-2) calc(var(--sp-2) + env(safe-area-inset-bottom,0px));background:var(--scrim)}
+.asheet{width:100%;max-width:430px;display:grid;gap:var(--sp-2);animation:asIn var(--dur-3) var(--ease)}
+.asgroup{background:var(--elev);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-3)}
+.astitle{padding:14px var(--sp-4);text-align:center;font-size:var(--fs-footnote);font-weight:600;color:var(--muted);border-bottom:.5px solid var(--line)}
+.asact{all:unset;box-sizing:border-box;cursor:pointer;width:100%;min-height:57px;padding:0 var(--sp-4);display:flex;align-items:center;justify-content:center;gap:10px;background:var(--elev);color:var(--accent);font:400 var(--fs-title3) var(--f-body)}
+.asgroup .asact+.asact{border-top:.5px solid var(--line)}
+.asact .ic{width:22px;height:22px}
+.ascancel{border-radius:14px;font-weight:600;box-shadow:var(--shadow-3)}
+.asact:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+.asact:active{background:color-mix(in srgb,var(--elev),var(--ink) 8%)}
+@media (hover:hover){.asact:hover{background:color-mix(in srgb,var(--elev),var(--ink) 5%)}}
+@media (min-width:768px){.modal:has(> .asheet){place-items:center}}
+@keyframes asIn{from{transform:translateY(32px);opacity:0}}

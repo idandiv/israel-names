@@ -1326,6 +1326,13 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const m=$('#m
   if(m&&!m.hidden){m.hidden=true;e.preventDefault();return}
   const open=[...document.querySelectorAll('.sugg')].filter(b=>!b.hidden);if(open.length){open.forEach(b=>b.hidden=true);return}
   const bar=document.querySelector('.bar.sopen');if(bar){bar.classList.remove('sopen');const q=$('#q');if(q)q.blur()}});
+/* iOS-style action sheet in the shared #modal: a titled group of actions and a separate Cancel.
+   items: [[label, iconKey, onTap]]. Tapping outside, Cancel or Escape closes it. */
+function actionSheet(title,items){const m=$('#modal');if(!m)return;
+  m.innerHTML=`<div class="asheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="asgroup"><div class="astitle">${esc(title)}</div>${items.map((it,k)=>`<button class="asact" data-k="${k}">${icon(it[1])}<span>${it[0]}</span></button>`).join('')}</div><button class="asact ascancel" data-k="x">${t('ביטול','Cancel')}</button></div>`;
+  m.hidden=false;
+  m.onclick=e=>{const b=e.target.closest('.asact');if(e.target!==m&&!b)return;m.hidden=true;m.innerHTML='';if(b&&b.dataset.k!=='x')items[+b.dataset.k][2]()};
+  setTimeout(()=>{const b=m.querySelector('.asact');if(b)b.focus({preventScroll:true})},30)}
 let toastT;function toast(m,ms){const el=$("#toast");el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,ms||Math.max(2400,Math.min(6000,m.length*55)))}
 function copy(text){const ok=()=>toast(t('הועתק! אפשר להדביק בוואטסאפ','Copied! Paste it anywhere'));const no=()=>toast(t('ההעתקה נחסמה בדפדפן הזה','Copying is blocked in this browser'));try{navigator.clipboard.writeText(text).then(ok,no)}catch(e){no()}}
 
@@ -1396,9 +1403,10 @@ function ed1(a,b){if(a===b)return false;const la=a.length,lb=b.length;if(Math.ab
   while(i<la&&j<lb){if(a[i]===b[j]){i++;j++;continue}if(++e>1)return false;if(la>lb)i++;else if(lb>la)j++;else{i++;j++}}return e+(la-i)+(lb-j)<=1}
 const hex2rgb=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]};
 function chartBase(){const rtl=LANG!=='en';return{responsive:true,maintainAspectRatio:false,animation:{duration:500},interaction:{mode:'index',intersect:false},
-  plugins:{legend:{display:false},tooltip:{rtl,textDirection:rtl?'rtl':'ltr',backgroundColor:css('--ink'),titleColor:css('--bg'),bodyColor:css('--bg'),padding:10,boxPadding:4,usePointStyle:true}},
-  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:FONT_UI}},border:{color:css('--line')}},
-          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:FONT_UI}},border:{display:false},beginAtZero:true}}}}
+  plugins:{legend:{display:false},tooltip:{rtl,textDirection:rtl?'rtl':'ltr',backgroundColor:css('--elev'),titleColor:css('--ink'),bodyColor:css('--ink-2'),borderColor:css('--line'),borderWidth:1,cornerRadius:12,padding:12,boxPadding:6,usePointStyle:true,
+    titleFont:{family:FONT_UI,size:13,weight:'600'},bodyFont:{family:FONT_UI,size:13}}},
+  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:FONT_UI,size:12}},border:{color:css('--line')}},
+          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:FONT_UI,size:12}},border:{display:false},beginAtZero:true}}}}
 const charts={};
 function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElementById(id);if(!el)return;charts[id]=new Chart(el,cfg);return charts[id]}
 const line=(label,data,color,fill)=>({label,data:Array.from(data),borderColor:color,backgroundColor:fill?color+'22':color,fill:!!fill,borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBorderWidth:2,pointHoverBorderColor:css('--surface'),tension:.3});
@@ -1426,7 +1434,10 @@ const IC={
  close:'<path d="M6 6l12 12M18 6 6 18"/>',
  play:'<path d="M8 5v14l11-7z"/>',pause:'<path d="M8 5v14M16 5v14"/>',
  dice:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h.01M15 15h.01M15 9h.01M9 15h.01"/>',
- arrow:'<path d="M15 6l-6 6 6 6"/>'};
+ arrow:'<path d="M15 6l-6 6 6 6"/>',
+ share:'<path d="M12 15V3.5M8 7.5l4-4 4 4"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16"/>',
+ image:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5-8.5 8.5"/>',
+ compare:'<path d="M7 4v16M17 4v16M3.5 8H10.5M13.5 16h7"/>'};
 const icon=(k,fill)=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="${fill?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
 function tabShort(k){return{home:t('ראשי','Home'),names:t('שמות','Names'),gen:t('מחולל','Finder'),trends:t('מגמות','Trends'),games:t('משחקים','Games')}[k]}
 function tabLabel(k){return{home:t('ראשי','Home'),names:t('חקר שמות','Explore names'),gen:t('מחולל שמות','Name finder'),trends:t('מגמות ודאטה','Trends & data'),games:t('משחקים','Games')}[k]}
@@ -1732,6 +1743,8 @@ function renderName(){
   pills.push(`<span class="pill">${t(`נפוץ יותר מ-${pct}% מהשמות`,`More common than ${pct}% of names`)}</span>`);
   if(best[0]<=10)pills.push(`<span class="pill acc">${best[0]===1?t('היה מקום ראשון','Was #1'):t('היה בטופ 10','Was top 10')} (${t('מקום ','#')}${best[0]} ${t('ב-','in ')}${Y0+best[1]})</span>`);
   if(yrsIn===NY)pills.push(`<span class="pill">${t(`נוכח בכל ${NY} השנים`,`Present in all ${NY} years`)}</span>`);
+  /* the three that say the most go first (character, top rank, trend), the rest fold under "more" */
+  {const pri=p=>/pill acc/.test(p)?0:/pill (up|down)/.test(p)?1:/pill sec/.test(p)?2:3;pills.sort((a,b)=>pri(a)-pri(b));}
   const oneIn=Math.round(st.DD[pk]/c[pk]);
   const age=NOW-med;const gw=(fem,mas,both)=>gp>=80?fem:gp<=20?mas:both;
   const secTot=where.reduce((a,q)=>a+q,0);
@@ -1747,7 +1760,7 @@ function renderName(){
       `Since ${Y0}, <b>${fmt(tot)}</b> babies got this name. ${atStart(pk)?`It was already most common when records began in <b>${Y0}</b> (1 in <b>${fmt(oneIn)}</b>).`:`It peaked in <b>${Y0+pk}</b>, when 1 in every <b>${fmt(oneIn)}</b> babies was named ${dn}.`} The typical ${dn} was born in <b>${med}</b>, so is about <b>${age}</b> today.`)}</p>
     ${LANG!=='en'&&MEAN.has(nm)?`<p class="meaning"><span>${t('פירוש השם','Meaning')}</span>${esc(MEAN.get(nm))}</p>`:''}
     ${LANG!=='en'&&STORY.has(nm)?`<p class="story">${esc(STORY.get(nm))}</p>`:''}
-    <div class="pills">${(S?pills.slice(0,3):pills).join('')}</div>
+    <div class="pills">${pills.slice(0,3).join('')}${!S&&pills.length>3?`<details class="pmore"><summary>${t(`עוד ${pills.length-3}`,`${pills.length-3} more`)}</summary><div class="pills">${pills.slice(3).join('')}</div></details>`:''}</div>
     ${`<div class="heat">${Array.from(sh,(q,y)=>`<i title="${Y0+y}: ${fmt(c[y])}" style="background:var(--accent);opacity:${q?(.08+.92*q/mxs).toFixed(2):0}"></i>`).join('')}</div>
     <div class="heatlab"><span>${Y0}</span><span>1970</span><span>1990</span><span>2010</span><span>${Y1}</span></div>`}
     <div class="stats">
@@ -1758,7 +1771,7 @@ function renderName(){
     </div>
     <div class="meter"><div class="row"><span class="g">${t('בנות','Girls')} ${gp.toFixed(gp>99||gp<1?1:0)}%</span><span class="b">${t('בנים','Boys')} ${(100-gp).toFixed(gp>99||gp<1?1:0)}%</span></div>
       <div class="track"><i style="width:${gp}%;background:var(--girl)"></i><i style="width:${100-gp}%;background:var(--boy)"></i></div></div>
-    <div class="actions">${favBtn(nm,'lbl big')}<button class="next" id="shlink">${icon('link')}${t(' שיתוף העמוד',' Share page')}</button><button class="copybtn" id="card">${t('כרטיס לשיתוף','Share card')}</button><button class="copybtn" id="cpy">${t('העתקת סיכום','Copy summary')}</button><button class="copybtn" id="tocmp">${t('הוספה להשוואה','Add to compare')}</button></div>
+    <div class="actions">${favBtn(nm,'lbl big')}<button class="next" id="shmenu" aria-haspopup="dialog">${icon('share')}${t('שיתוף','Share')}</button></div>
   </div>
   <div class="grid">
     <div class="card wide"><div class="head"><div><h3>${t(`הסיפור של ${esc(nm)} לאורך השנים`,`${dn} through the years`)}</h3><div class="sub" id="tsub"></div></div>
@@ -1779,10 +1792,12 @@ function renderName(){
       <div class="seg" id="relseg">${[['tw',t('תאומי זהות','Twins')],['var',t('כתיבים','Spellings')],['rhy',t('חרוזים','Rhymes')],['gem',t('גימטריה','Gematria')]].map(([k,l])=>`<button data-r="${k}" aria-pressed="${REL===k}">${l}</button>`).join('')}</div></div>
       <div class="rel" id="rel"></div></div>
   </div>`;
-  $('#card').onclick=()=>shareCard(i);
-
-  $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);
-  $('#tocmp').onclick=()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')};
+  /* one Share button opens an action sheet with every way to pass the name on */
+  $('#shmenu').onclick=()=>actionSheet(t(`שיתוף השם ${nm}`,`Share ${NM(i)}`),[
+    [t('שיתוף קישור לעמוד','Share link to this page'),'link',()=>shareName(i)],
+    [t('כרטיס לשיתוף (תמונה)','Share card (image)'),'image',()=>shareCard(i)],
+    [t('העתקת סיכום','Copy summary'),'copy',()=>copy(summary+'\n'+nameURL(i))],
+    [t('הוספה להשוואה','Add to compare'),'compare',()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')}]]);
   if(!S){$('#mseg').onclick=e=>{const bt=e.target.closest('[data-m]');if(bt){metric=bt.dataset.m;renderName();}};
   $('#tseg').onclick=e=>{const bt=e.target.closest('[data-t]');if(bt){tmode=bt.dataset.t;store.set('tmode',tmode);renderName();}};}
   // time chart
@@ -2031,7 +2046,7 @@ function classHTML(nm,c,st,pk,gw,dom){const L=NY-1,sh=y=>st.DD[y]?c[y]/st.DD[y]:
    EXPLORE
    ========================================================= */
 let RY=store.get('ry',Y1), raceTimer=null, exEnd=store.get('end',0);
-const ROWH=30;
+const ROWH=44;   /* race rows: 44pt touch rows (HIG) */
 function stopRace(){if(raceTimer){clearInterval(raceTimer);raceTimer=null;const b=$('#rp');if(b)b.innerHTML=icon('play',1)+t(' ניגון',' Play')}}
 function drawRace(st){const y=RY-Y0;$('#ry').textContent=RY;const r2=$('#ry2');if(r2)r2.textContent=RY;
   for(const [x,sel] of [[0,'#rg'],[1,'#rb']]){const box=$(sel);if(!box)continue;const ids=st.top[x][y].slice(0,10);const mx=ids.length?st.Y[x][ids[0]*NY+y]:1;

@@ -59,7 +59,7 @@
   .mainnav{position:fixed;inset-inline:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;width:auto;max-width:none;margin:0;
     padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);border-radius:0;
     background:var(--bar-bg);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--line-strong)}
-  .mainnav button{flex-direction:column;gap:2px;min-height:49px;padding:5px 0 3px;border-radius:0;background:transparent;box-shadow:none;color:var(--muted);font:500 var(--fs-caption) var(--f-body)}
+  .mainnav button{flex-direction:column;gap:2px;min-height:49px;padding:5px 0 3px;border-radius:0;background:transparent;box-shadow:none;color:var(--ink-2);font:500 var(--fs-caption) var(--f-body)}
   .mainnav button .ic{width:25px;height:25px;stroke-width:1.7}
   .mainnav button[aria-selected="true"]{background:transparent;box-shadow:none;color:var(--accent)}
   .mainnav button[aria-selected="true"] .ic{stroke-width:2.1}

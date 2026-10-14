@@ -16,7 +16,7 @@
   --girl:#F2763A; --boy:#2F7FE8; --girl-ink:#B83D0A; --boy-ink:#1D6AD0;
   --c1:#1D6AD0; --c2:#B83D0A; --c3:#0B7A51; --c4:#946200;
   --good:#107A45; --bad:#C33232; --on-good:#FFFFFF; --on-c:#FFFFFF;
-  --bar-bg:rgba(242,242,247,.78); --scrim:rgba(0,0,0,.32);
+  --bar-bg:rgba(242,242,247,.92); --scrim:rgba(0,0,0,.32);
   /* controls: translucent fills (work on any surface), segmented thumb, switch track */
   --fill:rgba(118,118,128,.12); --fill-2:rgba(118,118,128,.2);
   --seg-thumb:#FFFFFF; --seg-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);
@@ -56,7 +56,7 @@
   --girl:#FF8A4F; --boy:#5AA2FF; --girl-ink:#FF8A4F; --boy-ink:#5AA2FF;
   --c1:#5AA2FF; --c2:#FF8A4F; --c3:#34C98E; --c4:#E8AE2E;
   --good:#4CC283; --bad:#FF7B7B; --on-good:#0B0B0F; --on-c:#111114;
-  --bar-bg:rgba(22,22,24,.78); --scrim:rgba(0,0,0,.55);
+  --bar-bg:rgba(22,22,24,.92); --scrim:rgba(0,0,0,.55);
   --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32);
   --seg-thumb:#636366; --seg-shadow:none;
   --switch-off:#39393D;
