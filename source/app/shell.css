@@ -40,9 +40,9 @@
 .mainnav button{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--ctl);padding:0 16px;border:0;border-radius:var(--r-pill);background:transparent;color:var(--ink-2);font:600 var(--fs-subhead) var(--f-body);white-space:nowrap;transition:background var(--dur-1),color var(--dur-1)}
 .mainnav button .ic{width:18px;height:18px}
 .mainnav button::after{content:"";position:absolute;inset:-7px 0}
-.mainnav button[aria-selected="true"]{background:var(--seg-thumb);color:var(--accent);box-shadow:var(--seg-shadow)}
+.mainnav button[aria-current="page"]{background:var(--seg-thumb);color:var(--accent);box-shadow:var(--seg-shadow)}
 .mainnav .ls{display:none}
-@media (hover:hover){.mainnav button:not([aria-selected="true"]):hover{color:var(--ink)}}
+@media (hover:hover){.mainnav button:not([aria-current="page"]):hover{color:var(--ink)}}
 
 /* phones: compact bar (search behind a button) + bottom tab bar */
 @media (max-width:767px){
@@ -62,8 +62,8 @@
     background:var(--bar-bg);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--line-strong)}
   .mainnav button{flex-direction:column;gap:2px;min-height:49px;padding:5px 0 3px;border-radius:0;background:transparent;box-shadow:none;color:var(--ink-2);font:500 var(--fs-caption) var(--f-body)}
   .mainnav button .ic{width:25px;height:25px;stroke-width:1.7}
-  .mainnav button[aria-selected="true"]{background:transparent;box-shadow:none;color:var(--accent)}
-  .mainnav button[aria-selected="true"] .ic{stroke-width:2.1}
+  .mainnav button[aria-current="page"]{background:transparent;box-shadow:none;color:var(--accent)}
+  .mainnav button[aria-current="page"] .ic{stroke-width:2.1}
   .mainnav button::after{display:none}
   .mainnav .lf{display:none}.mainnav .ls{display:block}
   /* room for the tab bar under the last content and the toasts */

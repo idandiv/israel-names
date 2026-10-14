@@ -35,6 +35,10 @@
 .meaning span{font-size:var(--fs-footnote);letter-spacing:0}
 .pills{gap:var(--sp-2);align-items:center}
 .pill{display:inline-block;line-height:28px;padding:0 12px;border-radius:var(--r-pill);background:var(--fill);color:var(--ink-2);font-size:var(--fs-footnote);font-weight:600}
+/* tinted badges: darker text so they stay AA on their own tint */
+.pill.up,.c-up,.c-new{color:var(--good-ink)}
+.pill.down,.c-down{color:var(--bad-ink)}
+.ld1 small{color:var(--ink-2)}
 .pmore{display:contents}
 .pmore summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;min-height:28px;position:relative;padding:0 8px;color:var(--accent);font-size:var(--fs-subhead);font-weight:600}
 .pmore summary::-webkit-details-marker{display:none}
