@@ -3,8 +3,6 @@
 [hidden]{display:none!important}
 #app[dir="ltr"]{font-family:var(--f-body)}
 .brandr{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.langbtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r-pill);padding:4px 12px;font-size:var(--fs-footnote);font-weight:700}
-.langbtn:hover{border-color:var(--accent)}
 .ctas,.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
 .ctrls{display:flex;gap:6px;flex-wrap:wrap}
 .seg.wrap{flex-wrap:wrap}
@@ -41,7 +39,7 @@
 .famscore>div:last-child{flex:1;min-width:200px}
 .famtable{display:grid;gap:4px;margin-top:12px}
 .famtable button{display:grid;grid-template-columns:minmax(0,1fr) 56px 110px 90px;gap:10px;align-items:center;border:0;background:transparent;padding:6px;border-radius:var(--r-s);color:var(--ink);font-family:var(--f-body);font-size:var(--fs-callout);text-align:start}
-.famtable button:hover{background:var(--surface-2)}
+@media (hover:hover){.famtable button:hover{background:var(--surface-2)}}
 .famtable span{color:var(--ink-2);font-variant-numeric:tabular-nums;font-size:var(--fs-subhead)}
 .famtable .bar{height:8px;background:var(--surface-2);border-radius:var(--r-pill);overflow:hidden}
 .famtable .bar i{display:block;height:100%;background:var(--accent);border-radius:var(--r-pill)}
@@ -70,7 +68,7 @@
 .mrow{display:flex;gap:8px;flex-wrap:wrap}
 .mclose{position:absolute;top:10px;inset-inline-end:12px;border:0;background:var(--surface-2);color:var(--ink);width:32px;height:32px;border-radius:50%;font-size:var(--fs-title3);line-height:1}
 .credit{color:var(--accent);font-weight:700;text-decoration:none}
-.credit:hover{text-decoration:underline}
+@media (hover:hover){.credit:hover{text-decoration:underline}}
 #app[dir="ltr"] .stamp{left:auto;right:20px;transform:rotate(12deg)}
 @media (max-width:767px){#app[dir="ltr"] .stamp{right:12px}}
 #app[dir="ltr"] .search input{padding:14px 120px 14px 18px}
@@ -135,11 +133,11 @@
 @media (max-width:767px){.mask i{width:36px;height:44px;font-size:var(--fs-title2)}.tiles i{width:24px;height:30px;font-size:var(--fs-callout)}.nrow{grid-template-columns:minmax(110px,2fr) repeat(6,minmax(0,1fr))}.nwrap>div{min-width:560px}}
 /* mini-games polish */
 .gamegrid>.card{transition:box-shadow .2s}
-.gamegrid>.card:hover{box-shadow:var(--shadow-2)}
+@media (hover:hover){.gamegrid>.card:hover{box-shadow:var(--shadow-2)}}
 .opt.win,.qopts button.win,.gopts button.win{animation:pop .35s ease}
 .opt.lose,.qopts button.lose,.gopts button.lose{animation:shake .35s ease}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .vs .opt{background:var(--surface)}
-.qopts button:hover,.gopts button:hover{border-color:var(--accent)}
+@media (hover:hover){.qopts button:hover,.gopts button:hover{border-color:var(--accent)}}
 .nrow div.tiles{flex-direction:row;background:none;min-height:0;padding:0;overflow:visible;border-radius:0}.nrow div.nmcell{min-height:44px}
 .gamegrid .card:not(.wide) .opt .nm2{font-size:clamp(30px,4.6vw,54px);overflow-wrap:normal;word-break:keep-all}

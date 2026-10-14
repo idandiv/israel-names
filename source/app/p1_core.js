@@ -274,5 +274,5 @@ async function showCard(cv,fname,alt,title){const url=cv.toDataURL('image/png');
 
 /* mobile: hide header while scrolling down, show on scroll up */
 (function(){let last=0,tk=false;addEventListener('scroll',()=>{if(tk)return;tk=true;requestAnimationFrame(()=>{tk=false;const y=scrollY,bar=document.querySelector('.bar');if(!bar)return;
-  if(innerWidth>700||TAB==='match'){bar.classList.remove('hid');last=y;return}
+  if(innerWidth>767||TAB==='match'){bar.classList.remove('hid');last=y;return}
   if(y>last+8&&y>140&&!bar.classList.contains('sopen')&&document.activeElement.id!=='q')bar.classList.add('hid');else if(y<last-8||y<80)bar.classList.remove('hid');last=y})},{passive:true})})();

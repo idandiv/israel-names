@@ -17,6 +17,10 @@
   --c1:#1D6AD0; --c2:#B83D0A; --c3:#0B7A51; --c4:#946200;
   --good:#107A45; --bad:#C33232; --on-good:#FFFFFF; --on-c:#FFFFFF;
   --bar-bg:rgba(242,242,247,.78); --scrim:rgba(0,0,0,.32);
+  /* controls: translucent fills (work on any surface), segmented thumb, switch track */
+  --fill:rgba(118,118,128,.12); --fill-2:rgba(118,118,128,.2);
+  --seg-thumb:#FFFFFF; --seg-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);
+  --switch-off:#E9E9EA;
 
   /* type: HIG text styles (Body 17). Karantina only for display names and page titles */
   --f-body:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Noto Sans Hebrew","Arial Hebrew",Arial,sans-serif;
@@ -53,6 +57,9 @@
   --c1:#5AA2FF; --c2:#FF8A4F; --c3:#34C98E; --c4:#E8AE2E;
   --good:#4CC283; --bad:#FF7B7B; --on-good:#0B0B0F; --on-c:#111114;
   --bar-bg:rgba(22,22,24,.78); --scrim:rgba(0,0,0,.55);
+  --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32);
+  --seg-thumb:#636366; --seg-shadow:none;
+  --switch-off:#39393D;
   --shadow-1:none;
   --shadow-2:0 2px 6px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.45);
   --shadow-3:0 20px 60px rgba(0,0,0,.6);
