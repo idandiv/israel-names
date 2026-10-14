@@ -37,8 +37,9 @@
 
 /* tabs, wide screens: a capsule under the bar (iPadOS / macOS style) */
 .mainnav{display:flex;justify-content:center;gap:2px;width:max-content;max-width:100%;margin:2px auto var(--sp-3);padding:3px;background:var(--fill);border-radius:var(--r-pill)}
-.mainnav button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--tap);padding:0 18px;border:0;border-radius:var(--r-pill);background:transparent;color:var(--ink-2);font:600 var(--fs-subhead) var(--f-body);white-space:nowrap;transition:background var(--dur-1),color var(--dur-1)}
+.mainnav button{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--ctl);padding:0 16px;border:0;border-radius:var(--r-pill);background:transparent;color:var(--ink-2);font:600 var(--fs-subhead) var(--f-body);white-space:nowrap;transition:background var(--dur-1),color var(--dur-1)}
 .mainnav button .ic{width:18px;height:18px}
+.mainnav button::after{content:"";position:absolute;inset:-7px 0}
 .mainnav button[aria-selected="true"]{background:var(--seg-thumb);color:var(--accent);box-shadow:var(--seg-shadow)}
 .mainnav .ls{display:none}
 @media (hover:hover){.mainnav button:not([aria-selected="true"]):hover{color:var(--ink)}}
@@ -63,6 +64,7 @@
   .mainnav button .ic{width:25px;height:25px;stroke-width:1.7}
   .mainnav button[aria-selected="true"]{background:transparent;box-shadow:none;color:var(--accent)}
   .mainnav button[aria-selected="true"] .ic{stroke-width:2.1}
+  .mainnav button::after{display:none}
   .mainnav .lf{display:none}.mainnav .ls{display:block}
   /* room for the tab bar under the last content and the toasts */
   #app{padding-bottom:calc(49px + env(safe-area-inset-bottom,0px) + 32px)}

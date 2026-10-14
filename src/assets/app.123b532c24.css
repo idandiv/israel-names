@@ -48,8 +48,9 @@
   --ease:cubic-bezier(.2,.8,.2,1); --ease-spring:cubic-bezier(.3,1.3,.5,1);
   --dur-1:.15s; --dur-2:.25s; --dur-3:.35s;
 
-  /* touch */
-  --tap:44px;
+  /* touch: 44pt is the hit area; the visible control can be smaller (iOS proportions) and
+     extends its hit area with an invisible ::after (see .hit in controls.css) */
+  --tap:44px; --ctl:36px; --chip:34px; --seg-h:32px;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#000000; --surface:#1C1C1E; --surface-2:#2C2C2E; --elev:#2C2C2E;
@@ -1132,8 +1133,9 @@ body.docopen{overflow:hidden}
 
 /* tabs, wide screens: a capsule under the bar (iPadOS / macOS style) */
 .mainnav{display:flex;justify-content:center;gap:2px;width:max-content;max-width:100%;margin:2px auto var(--sp-3);padding:3px;background:var(--fill);border-radius:var(--r-pill)}
-.mainnav button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--tap);padding:0 18px;border:0;border-radius:var(--r-pill);background:transparent;color:var(--ink-2);font:600 var(--fs-subhead) var(--f-body);white-space:nowrap;transition:background var(--dur-1),color var(--dur-1)}
+.mainnav button{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--ctl);padding:0 16px;border:0;border-radius:var(--r-pill);background:transparent;color:var(--ink-2);font:600 var(--fs-subhead) var(--f-body);white-space:nowrap;transition:background var(--dur-1),color var(--dur-1)}
 .mainnav button .ic{width:18px;height:18px}
+.mainnav button::after{content:"";position:absolute;inset:-7px 0}
 .mainnav button[aria-selected="true"]{background:var(--seg-thumb);color:var(--accent);box-shadow:var(--seg-shadow)}
 .mainnav .ls{display:none}
 @media (hover:hover){.mainnav button:not([aria-selected="true"]):hover{color:var(--ink)}}
@@ -1158,6 +1160,7 @@ body.docopen{overflow:hidden}
   .mainnav button .ic{width:25px;height:25px;stroke-width:1.7}
   .mainnav button[aria-selected="true"]{background:transparent;box-shadow:none;color:var(--accent)}
   .mainnav button[aria-selected="true"] .ic{stroke-width:2.1}
+  .mainnav button::after{display:none}
   .mainnav .lf{display:none}.mainnav .ls{display:block}
   /* room for the tab bar under the last content and the toasts */
   #app{padding-bottom:calc(49px + env(safe-area-inset-bottom,0px) + 32px)}
@@ -1168,7 +1171,17 @@ body.docopen{overflow:hidden}
    filled (accent), gray (fill) and plain styles; chips, the segmented control,
    switches and fields follow iOS. Touch gets a quick dim on press; hover is only
    for devices that can hover. Loaded after the older stylesheets, so it wins on size and look.
+   Visible sizes follow iOS (buttons 36, chips 34, segments 32); the 44pt hit area comes from
+   an invisible ::after that reaches past the visible edge.
    ========================================================= */
+
+/* hit-area extension: (44 - visible height) / 2 above and below */
+.next,.play,.copybtn,.lifeline,.favbtn,.matchlink,.swapbtn,.chips button,.chip,.rel button,.savedchips button,.seg button,.gtip button{position:relative}
+.next::after,.play::after,.copybtn::after,.lifeline::after,.favbtn::after,.matchlink::after,.swapbtn::after,.gtip button::after{content:"";position:absolute;inset:calc((var(--ctl) - var(--tap)) / 2) 0}
+.chips button::after,.chip::after,.rel button::after,.savedchips button::after{content:"";position:absolute;inset:calc((var(--chip) - var(--tap)) / 2) 0}
+.seg button::after{content:"";position:absolute;inset:calc((var(--seg-h) - var(--tap)) / 2 - 2px) 0}
+.seg button{min-width:var(--tap)}
+.favbtn:not(.lbl)::after{inset:calc((var(--ctl) - var(--tap)) / 2)}
 
 /* press feedback */
 :where(button,a[href],summary,[role="tab"],.tilec,.gcard2,label.wztoggle){-webkit-tap-highlight-color:transparent}
@@ -1177,24 +1190,24 @@ body.docopen{overflow:hidden}
 :where(button:disabled,button[disabled]):active{opacity:inherit}
 
 /* filled: the one main action in a view */
-.next,.play{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--tap);padding:0 20px;border:0;border-radius:var(--r-pill);font:600 var(--fs-body) var(--f-body)}
+.next,.play{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--ctl);padding:0 18px;border:0;border-radius:var(--r-pill);font:600 var(--fs-subhead) var(--f-body)}
 .next{background:var(--accent);color:var(--on-accent)}
-.wznav .next{padding:0 24px;font-size:var(--fs-body)}
-.gtip button{min-height:36px;padding:0 14px}
+.wznav .next{padding:0 22px}
+.gtip button{min-height:var(--ctl);padding:0 14px}
 
 /* gray: secondary actions */
-.copybtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--tap);padding:0 16px;border:0;border-radius:var(--r-pill);background:var(--fill);color:var(--ink);font:600 var(--fs-subhead) var(--f-body)}
+.copybtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--ctl);padding:0 14px;border:0;border-radius:var(--r-pill);background:var(--fill);color:var(--ink);font:600 var(--fs-subhead) var(--f-body)}
 .copybtn.danger{color:var(--bad)}
-.lifeline{min-height:var(--tap);display:inline-flex;align-items:center;border-style:solid}
-.favbtn{min-height:var(--tap);min-width:var(--tap);justify-content:center;border:0;background:var(--fill);color:var(--ink-2);font:600 var(--fs-subhead) var(--f-body)}
-.favbtn.lbl{padding:0 16px}
+.lifeline{min-height:var(--ctl);display:inline-flex;align-items:center;border-style:solid}
+.favbtn{min-height:var(--ctl);min-width:var(--ctl);justify-content:center;border:0;background:var(--fill);color:var(--ink-2);font:600 var(--fs-subhead) var(--f-body)}
+.favbtn.lbl{padding:0 14px}
 .favbtn.on{background:var(--stamp-soft);color:var(--stamp)}
 .favbtn.corner{top:4px;inset-inline-end:4px;background:transparent}
 
 /* plain: text buttons and links that act like buttons */
 .linkbtn,.moretoggle{display:inline-flex;align-items:center;min-height:var(--tap);padding:0 4px;font-size:var(--fs-body);font-weight:600;color:var(--accent)}
-.matchlink{min-height:var(--tap);padding:0 16px;border:0;background:var(--stamp-soft)}
-.swapbtn{min-height:var(--tap);padding:0 12px;border:0;background:var(--fill);font-size:var(--fs-footnote)}
+.matchlink{min-height:var(--ctl);padding:0 16px;border:0;background:var(--stamp-soft)}
+.swapbtn{min-height:var(--ctl);padding:0 12px;border:0;background:var(--fill);font-size:var(--fs-footnote)}
 
 /* icon buttons */
 .iconbtn{min-width:var(--tap);min-height:var(--tap);border-radius:var(--r-pill)}
@@ -1204,32 +1217,33 @@ body.docopen{overflow:hidden}
 .tag button{min-width:var(--tap);min-height:var(--tap);display:inline-flex;align-items:center;justify-content:center;font-size:var(--fs-title3)}
 
 /* chips: filter and quick-pick capsules */
-.chips{gap:var(--sp-2)}
+.chips{gap:10px var(--sp-2)}
 .chips button,.chips.sel button,.chip,.sectors .chip,.rel button,.savedchips button{display:inline-flex;align-items:center;gap:6px;min-height:var(--tap);padding:0 16px;border:0;border-radius:var(--r-pill);background:var(--fill);color:var(--ink);font:500 var(--fs-subhead) var(--f-body);white-space:nowrap}
+.chips button,.chips.sel button,.chip,.sectors .chip,.rel button,.savedchips button{min-height:var(--chip);padding:0 14px}
 .chips button,.chips.sel button,.chip{min-width:var(--tap);justify-content:center}
-#relseg button{min-height:var(--tap)}
+#relseg button{min-height:var(--seg-h)}
 .chips button small,.rel button small{font-size:var(--fs-footnote);color:var(--muted)}
 .chips .ghost{background:transparent;border:1px dashed var(--line-strong)}
 .chip[aria-pressed="true"],.chips.sel button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);font-weight:600}
 .chip.sc0[aria-pressed="true"],.chip.sc1[aria-pressed="true"],.chip.sc2[aria-pressed="true"],.chip.sc3[aria-pressed="true"]{background:color-mix(in srgb,var(--sc) 16%,transparent);color:var(--sc)}
 .chip.sc0{--sc:var(--c1)}.chip.sc1{--sc:var(--c3)}.chip.sc2{--sc:var(--c4)}.chip.sc3{--sc:var(--c2)}
-.sectors{gap:var(--sp-2)}
+.sectors{gap:10px var(--sp-2)}
 #shchips button.on{background:var(--stamp-soft);color:var(--stamp)}
 .letgrid{gap:6px}
 .letgrid button{min-height:var(--tap);border:0;background:var(--fill);border-radius:var(--r-m)}
 
 /* segmented control: gray track, raised thumb */
 .seg{display:inline-flex;gap:0;padding:2px;border-radius:var(--r-m);background:var(--fill)}
-.seg button{display:inline-flex;align-items:center;justify-content:center;min-height:var(--tap);padding:0 14px;border:0;border-radius:calc(var(--r-m) - 2px);background:transparent;color:var(--ink);font:500 var(--fs-subhead) var(--f-body);white-space:nowrap;transition:background var(--dur-1),box-shadow var(--dur-1)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;min-height:var(--seg-h);padding:0 12px;border:0;border-radius:calc(var(--r-m) - 3px);background:transparent;color:var(--ink);font:500 var(--fs-subhead) var(--f-body);white-space:nowrap;transition:background var(--dur-1),box-shadow var(--dur-1)}
 .seg button[aria-pressed="true"]{background:var(--seg-thumb);color:var(--ink);font-weight:600;box-shadow:var(--seg-shadow)}
 .modesw .seg{background:var(--fill);padding:2px}
-.modesw .seg button{font-size:var(--fs-subhead);padding:0 14px;color:var(--ink)}
+.modesw .seg button{font-size:var(--fs-subhead);padding:0 12px;color:var(--ink)}
 .modesw .seg button[aria-pressed="true"]{background:var(--seg-thumb);color:var(--ink)}
-.seg.big button{padding:0 22px;font-size:var(--fs-body)}
+.seg.big button{padding:0 20px}
 /* full-width segmented bars (name file views, finder modes, trend groups): equal segments, no scrollbar */
-.subnav,.tgnav,.seg.modes{scrollbar-width:none}
+.subnav,.tgnav,.seg.modes{scrollbar-width:none;overflow:visible}
 .subnav::-webkit-scrollbar,.tgnav::-webkit-scrollbar,.seg.modes::-webkit-scrollbar{display:none}
-.subnav button,.tgnav button,.seg.modes button{flex:1 1 0;min-width:0;padding:4px 8px;white-space:normal;line-height:1.2;text-align:center}
+.subnav button,.tgnav button,.seg.modes button{flex:1 1 0;min-width:0;padding:3px 8px;white-space:normal;line-height:1.2;text-align:center}
 
 /* switch (iOS): the checkbox rows become a label with a switch at the end */
 .wztoggle{align-items:center;gap:var(--sp-3);min-height:56px;padding:var(--sp-3) var(--sp-4);border:0;border-radius:var(--r-m);background:var(--fill)}
@@ -1296,7 +1310,7 @@ details.note summary{justify-content:center}
 .ctapair{gap:var(--sp-3)}
 .ctapair .gencta,.ctapair .matchcta,.gencta,.matchcta{border-radius:var(--r-l);padding:var(--sp-5)}
 .gencta b,.matchcta b{font-size:var(--fs-title3);font-weight:700}
-.gencta .go,.matchcta .go{min-height:var(--tap);padding:0 18px;font-size:var(--fs-subhead)}
+.gencta .go,.matchcta .go{min-height:var(--ctl);padding:0 16px;font-size:var(--fs-subhead)}
 .tiles3{gap:var(--sp-3)}
 .tilec{padding:var(--sp-5);gap:6px}
 .tilec .k{font-size:var(--fs-footnote);letter-spacing:0}
@@ -1312,8 +1326,9 @@ details.note summary{justify-content:center}
 .pills{gap:var(--sp-2);align-items:center}
 .pill{display:inline-block;line-height:28px;padding:0 12px;border-radius:var(--r-pill);background:var(--fill);color:var(--ink-2);font-size:var(--fs-footnote);font-weight:600}
 .pmore{display:contents}
-.pmore summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;min-height:var(--tap);padding:0 8px;color:var(--accent);font-size:var(--fs-subhead);font-weight:600}
+.pmore summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;min-height:28px;position:relative;padding:0 8px;color:var(--accent);font-size:var(--fs-subhead);font-weight:600}
 .pmore summary::-webkit-details-marker{display:none}
+.pmore summary::after{content:"";position:absolute;inset:-8px 0}
 .pmore[open] summary{display:none}
 .pmore .pills{display:contents}
 .stats,.kpis,.mestats{border-radius:var(--r-l);gap:.5px}
@@ -1325,7 +1340,7 @@ details.note summary{justify-content:center}
 .meter .track{height:8px;margin-top:var(--sp-2)}
 .heat{border-radius:var(--r-s)}
 .hero .actions{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin-top:var(--sp-5)}
-.hero .actions>button{min-height:50px;border-radius:var(--r-m);justify-content:center;font-size:var(--fs-body);font-weight:600}
+.hero .actions>button{min-height:var(--tap);border-radius:var(--r-m);justify-content:center;font-size:var(--fs-body);font-weight:600}
 .hero .actions .favbtn{background:var(--fill);color:var(--ink)}
 .hero .actions .favbtn.on{background:var(--stamp-soft);color:var(--stamp)}
 .hero .actions .ic{width:20px;height:20px}
