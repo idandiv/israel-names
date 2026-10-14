@@ -1390,6 +1390,71 @@ details.note summary{justify-content:center}
 @media (hover:hover){.asact:hover{background:color-mix(in srgb,var(--elev),var(--ink) 5%)}}
 @media (min-width:768px){.modal:has(> .asheet){place-items:center}}
 @keyframes asIn{from{transform:translateY(32px);opacity:0}}
+/* =========================================================
+   NameMatch (HIG): its own screen with pink as the tint (selected chips, switch,
+   main buttons), a navigation row of quiet buttons, one large card that snaps back
+   with a soft spring, and round 60pt like / pass buttons.
+   ========================================================= */
+.nmapp,.mbox.nminv,.mbox.matchbox{--accent:var(--stamp);--accent-soft:var(--stamp-soft);--on-accent:var(--on-stamp)}
+
+/* navigation row */
+.nmtop{gap:var(--sp-2)}
+.nmback,.nmstatus,.nmmatches,.nmrooms{position:relative;min-height:var(--ctl);height:var(--ctl);padding:0 12px;border:0;border-radius:var(--r-pill);background:var(--fill);color:var(--ink);font:600 var(--fs-subhead) var(--f-body)}
+.nmback::after,.nmstatus::after,.nmmatches::after,.nmrooms::after{content:"";position:absolute;inset:calc((var(--ctl) - var(--tap)) / 2) 0}
+.nmback{min-width:var(--tap);padding:0 10px;color:var(--accent)}
+.nmback .ic{width:20px;height:20px}
+.nmmatches{color:var(--stamp)}
+.nmmatches b{min-width:22px;line-height:22px;font-size:var(--fs-footnote)}
+.nmrooms b{border:0;background:var(--surface);line-height:20px}
+
+/* the card */
+.nmstage{margin-top:var(--sp-4)}
+.nmcard{border:0;border-radius:var(--r-xl);padding:var(--sp-8) var(--sp-6) var(--sp-6);background:var(--surface);
+  box-shadow:0 1px 3px rgba(0,0,0,.06),0 12px 32px rgba(0,0,0,.08);transition:transform .45s var(--ease-spring)}
+.nmcard.under{transform:scale(.95) translateY(12px);opacity:.6}
+.nmmean{font-size:var(--fs-body);color:var(--ink-2)}
+.nmfacts{gap:var(--sp-2);margin-top:var(--sp-2)}
+.nmfacts span{background:var(--fill);border-radius:var(--r-m);padding:10px 6px;font-size:var(--fs-footnote);color:var(--muted)}
+.nmfacts b{font-size:var(--fs-body);font-weight:600}
+.stampl{border-width:3px;border-radius:var(--r-m);padding:0 14px}
+.nmcount{font-size:var(--fs-footnote)}
+@media (prefers-color-scheme:dark){.nmcard{box-shadow:inset 0 0 0 .5px var(--line)}}
+
+/* like / pass */
+.nmbtns{gap:var(--sp-5);margin-top:var(--sp-4)}
+.nmb{width:60px;height:60px;border:0;background:var(--surface);box-shadow:var(--shadow-2);transition:transform var(--dur-2) var(--ease-spring)}
+.nmb:active{transform:scale(.9);opacity:1}
+.nmb .ic{width:28px;height:28px;stroke-width:2.4}
+.nmb.no{color:var(--bad)}.nmb.yes{color:var(--good)}
+.nmb.sup{width:52px;height:52px;color:var(--c4)}
+.nmb.sm{width:var(--tap);height:var(--tap);background:var(--fill);box-shadow:none;color:var(--ink-2)}
+.nmhint{font-size:var(--fs-footnote)}
+@media (prefers-color-scheme:dark){.nmb{background:var(--surface-2)}}
+.nmnudge{min-height:var(--ctl);border:0;background:var(--stamp-soft);font-size:var(--fs-footnote)}
+
+/* welcome / setup: an iOS form */
+.nmwelcome{gap:var(--sp-3);margin-top:var(--sp-6)}
+.nmwelcome .k{font-size:var(--fs-footnote);letter-spacing:0}
+.nml{font-size:var(--fs-subhead);font-weight:600;color:var(--ink-2);margin-top:var(--sp-3)}
+.nmapp .next.nmgo,.nmapp .next.nmsend,.mbox .next.nmsend{width:100%;min-height:50px;border-radius:var(--r-m);font-size:var(--fs-body)}
+.nmapp .next.nmgo::after,.mbox .next.nmsend::after{display:none}
+.nmmore{border:0;border-radius:var(--r-m);background:var(--fill);padding:0 var(--sp-4)}
+.nmmore summary{min-height:48px;color:var(--ink);font-size:var(--fs-body);font-weight:600}
+.nmprev{gap:var(--sp-2)}
+.nmprev button,.nmroom>button[data-room]{min-height:56px;border:0;border-radius:var(--r-m);background:var(--fill);padding:var(--sp-3) var(--sp-4);font:600 var(--fs-body) var(--f-body)}
+.nmprev button span{font-size:var(--fs-footnote)}
+.nmdel{min-width:var(--tap);border:0;border-radius:var(--r-m);background:var(--fill)}
+.nmseat{min-height:56px;border:0;border-radius:var(--r-m);background:var(--fill);font-size:var(--fs-body)}
+.nmseat.nmnew{background:transparent;border:1px dashed var(--line-strong)}
+.nmdeckcount{font-size:var(--fs-subhead)}
+.nmstate{border-radius:var(--r-m);background:var(--fill);font-size:var(--fs-subhead)}
+
+/* invite and match dialogs */
+.nmstep{border-top:.5px solid var(--line);padding:var(--sp-4) 0}
+.nmstep p{font-size:var(--fs-subhead)}
+.mmatch .rings i{border-width:1.5px;opacity:.6}
+.mk{font-size:var(--fs-footnote);letter-spacing:0}
+.mmatch p{font-size:var(--fs-body)}
 
 /* static fallback content (visible until the app boots, and to crawlers) */
 .seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:var(--f-body);line-height:1.7}
