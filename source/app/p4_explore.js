@@ -107,7 +107,7 @@ function renderExplore(){
   let lx=store.get('lx',2);
   const drawLet=()=>{$('#lseg').innerHTML=[[2,t('כולם','All')],[0,t('בנות','Girls')],[1,t('בנים','Boys')]].map(([k,l])=>`<button data-k="${k}" aria-pressed="${k===lx}">${l}</button>`).join('');
     const AB='אבגדהוזחטיכלמנסעפצקרשת'.split('');const cnt=(a,b)=>{const m=Object.fromEntries(AB.map(c=>[c,0]));let TT=0;for(let i=0;i<N;i++){const f=NAMES[i][0];if(!(f in m))continue;for(const x of[0,1]){if(lx!==2&&x!==lx)continue;for(let y=a;y<=b;y++){const q=st.Y[x][i*NY+y];m[f]+=q;TT+=q}}}return AB.map(c=>TT?m[c]/TT*100:0)};
-    const o4=chartBase();o4.scales.x.ticks.maxTicksLimit=30;o4.scales.x.ticks.font={size:13,family:'IBM Plex Sans Hebrew',weight:'600'};o4.scales.x.reverse=true;o4.scales.y.ticks.callback=q=>q+'%';o4.plugins.tooltip.callbacks={label:q=>` ${q.dataset.label}: ${q.parsed.y.toFixed(1)}%`};
+    const o4=chartBase();o4.scales.x.ticks.maxTicksLimit=30;o4.scales.x.ticks.font={size:13,family:FONT_UI,weight:'600'};o4.scales.x.reverse=true;o4.scales.y.ticks.callback=q=>q+'%';o4.plugins.tooltip.callbacks={label:q=>` ${q.dataset.label}: ${q.parsed.y.toFixed(1)}%`};
     mk('cLet',{type:'bar',data:{labels:AB,datasets:[{label:t('שנות ה-50','1950s'),data:cnt(1,10),backgroundColor:css('--c4'),borderRadius:4,borderSkipped:'bottom'},{label:`${Y1-4}–${Y1}`,data:cnt(NY-5,NY-1),backgroundColor:css('--c3'),borderRadius:4,borderSkipped:'bottom'}]},options:o4});};
   drawLet();$('#lseg').onclick=e=>{const b=e.target.closest('[data-k]');if(b){lx=+b.dataset.k;store.set('lx',lx);drawLet()}};
   const o6=chartBase();o6.scales.y.stacked=true;o6.plugins.tooltip.callbacks={label:q=>` ${q.dataset.label}: ${fmt(q.parsed.y)}`};

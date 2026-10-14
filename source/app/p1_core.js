@@ -1,3 +1,5 @@
+/* system UI font for canvas text (charts, share cards): same stack as --f-body in tokens.css */
+const FONT_UI='-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Arial, sans-serif';
 const Y0=DATA.y0, NY=DATA.T[0][0].length, Y1=Y0+NY-1, YEARS=Array.from({length:NY},(_,i)=>Y0+i);
 const NOW=new Date().getFullYear();   /* ages and 'X years ago' follow today's date */
 const LINKEDIN='https://www.linkedin.com/in/idan-diva/';
@@ -106,8 +108,8 @@ function ed1(a,b){if(a===b)return false;const la=a.length,lb=b.length;if(Math.ab
 const hex2rgb=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]};
 function chartBase(){const rtl=LANG!=='en';return{responsive:true,maintainAspectRatio:false,animation:{duration:500},interaction:{mode:'index',intersect:false},
   plugins:{legend:{display:false},tooltip:{rtl,textDirection:rtl?'rtl':'ltr',backgroundColor:css('--ink'),titleColor:css('--bg'),bodyColor:css('--bg'),padding:10,boxPadding:4,usePointStyle:true}},
-  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:'IBM Plex Sans Hebrew'}},border:{color:css('--line')}},
-          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:'IBM Plex Sans Hebrew'}},border:{display:false},beginAtZero:true}}}}
+  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:FONT_UI}},border:{color:css('--line')}},
+          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:FONT_UI}},border:{display:false},beginAtZero:true}}}}
 const charts={};
 function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElementById(id);if(!el)return;charts[id]=new Chart(el,cfg);return charts[id]}
 const line=(label,data,color,fill)=>({label,data:Array.from(data),borderColor:color,backgroundColor:fill?color+'22':color,fill:!!fill,borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBorderWidth:2,pointHoverBorderColor:css('--surface'),tension:.3});
@@ -220,13 +222,13 @@ function cap(name){if(!(name in CAP))CAP[name]=(window.claude&&window.claude.use
 function nameFacts(i,Fx){const st=stats(Fx);const c=comb(st,i),sh=share(st,i);let pk=0;for(let y=1;y<NY;y++)if(sh[y]>sh[pk])pk=y;
   const s=T(st,i);return{st,c,sh,pk,tot:s,med:st.med[i],gp:s?st.tot[0][i]/s:0,oneIn:c[pk]?Math.round(st.DD[pk]/c[pk]):0,last:c[NY-1]}}
 async function makeCard(i,extra){
-  try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
+  try{await Promise.all([document.fonts.load('700 200px Karantina'),Promise.resolve()])}catch(e){}
   const f=nameFacts(i,-1);const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   const C={bg:'#14152a',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',girl:'#f07a4a',boy:'#4a95ee'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
   const grd=g.createRadialGradient(W*.8,H*.15,50,W*.8,H*.15,700);grd.addColorStop(0,'rgba(164,157,255,.28)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?80:W-80;g.textAlign=en?'left':'right';
-  const body='"IBM Plex Sans Hebrew", Arial, sans-serif';
+  const body=FONT_UI;
   g.fillStyle=C.mut;g.font=`600 34px ${body}`;g.fillText(en?'NAMES OF ISRAEL':'השמות של ישראל',X0,110);
   g.fillStyle=C.ink;let fs=300;g.font=`700 ${fs}px Karantina, ${body}`;const label=en?rom(i):NAMES[i];while(g.measureText(label).width>W-160&&fs>120){fs-=10;g.font=`700 ${fs}px Karantina, ${body}`}
   g.fillText(label,X0,120+fs*.85);

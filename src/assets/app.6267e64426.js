@@ -1287,6 +1287,8 @@ function shareName(i){const url=nameURL(i);const title=nameMeta(i).title;
   if(navigator.share&&matchMedia('(pointer:coarse)').matches){navigator.share({title,text:t(`הסיפור של השם ${NAMES[i]}`,`The story of the name ${NM(i)}`),url}).catch(()=>{});return}
   copy(url)}
 
+/* system UI font for canvas text (charts, share cards): same stack as --f-body in tokens.css */
+const FONT_UI='-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Arial, sans-serif';
 const Y0=DATA.y0, NY=DATA.T[0][0].length, Y1=Y0+NY-1, YEARS=Array.from({length:NY},(_,i)=>Y0+i);
 const NOW=new Date().getFullYear();   /* ages and 'X years ago' follow today's date */
 const LINKEDIN='https://www.linkedin.com/in/idan-diva/';
@@ -1395,8 +1397,8 @@ function ed1(a,b){if(a===b)return false;const la=a.length,lb=b.length;if(Math.ab
 const hex2rgb=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]};
 function chartBase(){const rtl=LANG!=='en';return{responsive:true,maintainAspectRatio:false,animation:{duration:500},interaction:{mode:'index',intersect:false},
   plugins:{legend:{display:false},tooltip:{rtl,textDirection:rtl?'rtl':'ltr',backgroundColor:css('--ink'),titleColor:css('--bg'),bodyColor:css('--bg'),padding:10,boxPadding:4,usePointStyle:true}},
-  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:'IBM Plex Sans Hebrew'}},border:{color:css('--line')}},
-          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:'IBM Plex Sans Hebrew'}},border:{display:false},beginAtZero:true}}}}
+  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:FONT_UI}},border:{color:css('--line')}},
+          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:FONT_UI}},border:{display:false},beginAtZero:true}}}}
 const charts={};
 function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElementById(id);if(!el)return;charts[id]=new Chart(el,cfg);return charts[id]}
 const line=(label,data,color,fill)=>({label,data:Array.from(data),borderColor:color,backgroundColor:fill?color+'22':color,fill:!!fill,borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBorderWidth:2,pointHoverBorderColor:css('--surface'),tension:.3});
@@ -1509,13 +1511,13 @@ function cap(name){if(!(name in CAP))CAP[name]=(window.claude&&window.claude.use
 function nameFacts(i,Fx){const st=stats(Fx);const c=comb(st,i),sh=share(st,i);let pk=0;for(let y=1;y<NY;y++)if(sh[y]>sh[pk])pk=y;
   const s=T(st,i);return{st,c,sh,pk,tot:s,med:st.med[i],gp:s?st.tot[0][i]/s:0,oneIn:c[pk]?Math.round(st.DD[pk]/c[pk]):0,last:c[NY-1]}}
 async function makeCard(i,extra){
-  try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
+  try{await Promise.all([document.fonts.load('700 200px Karantina'),Promise.resolve()])}catch(e){}
   const f=nameFacts(i,-1);const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   const C={bg:'#14152a',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',girl:'#f07a4a',boy:'#4a95ee'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
   const grd=g.createRadialGradient(W*.8,H*.15,50,W*.8,H*.15,700);grd.addColorStop(0,'rgba(164,157,255,.28)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?80:W-80;g.textAlign=en?'left':'right';
-  const body='"IBM Plex Sans Hebrew", Arial, sans-serif';
+  const body=FONT_UI;
   g.fillStyle=C.mut;g.font=`600 34px ${body}`;g.fillText(en?'NAMES OF ISRAEL':'השמות של ישראל',X0,110);
   g.fillStyle=C.ink;let fs=300;g.font=`700 ${fs}px Karantina, ${body}`;const label=en?rom(i):NAMES[i];while(g.measureText(label).width>W-160&&fs>120){fs-=10;g.font=`700 ${fs}px Karantina, ${body}`}
   g.fillText(label,X0,120+fs*.85);
@@ -1618,7 +1620,7 @@ function drawGalaxy(){
   const pts=[];let mx=0;for(let i=0;i<N;i++){const s=T(st,i);if(s<MIN)continue;pts.push({i,t:s,gp:st.tot[0][i]/s,m:st.med[i]});if(s>mx)mx=s}
   const l0=Math.log10(MIN),l1=Math.log10(mx*1.15);
   const X=y=>P.l+(y-Y0)/(Y1-Y0)*(W-P.l-P.r),Yf=v=>H-P.b-(Math.log10(v)-l0)/(l1-l0)*(H-P.t-P.b);
-  const fnt='IBM Plex Sans Hebrew, system-ui, sans-serif';
+  const fnt='-apple-system, BlinkMacSystemFont, Segoe UI, system-ui, Arial, sans-serif';
   ctx.strokeStyle=css('--grid');ctx.fillStyle=css('--muted');ctx.lineWidth=1;ctx.font=`11px ${fnt}`;
   ctx.textAlign='center';for(let d=1950;d<=2020;d+=10){const x=X(d);ctx.beginPath();ctx.moveTo(x,P.t);ctx.lineTo(x,H-P.b);ctx.stroke();ctx.fillText(d,x,H-7)}
   ctx.textAlign='right';for(const v of[300,1000,3000,10000,30000,100000]){if(v>mx*1.15||v<MIN)continue;const y=Yf(v);ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(W-P.r,y);ctx.stroke();ctx.fillText(kfmt(v),P.l-6,y+4)}
@@ -1905,14 +1907,14 @@ addEventListener('hashchange',()=>{const L=compareFromHash((location.hash||'').s
 
 /* ---------- "my name" story card (1080x1920) ---------- */
 async function makeMeCard(me,o){
-  try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
+  try{await Promise.all([document.fonts.load('700 200px Karantina'),Promise.resolve()])}catch(e){}
   const i=IDX.get(me.n),W=1080,H=1920;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   const C={bg:'#121326',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',line:me.x?'#4a95ee':'#f07a4a'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
   let grd=g.createRadialGradient(W*.85,H*.12,40,W*.85,H*.12,900);grd.addColorStop(0,'rgba(164,157,255,.32)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   grd=g.createRadialGradient(W*.1,H*.9,40,W*.1,H*.9,800);grd.addColorStop(0,'rgba(255,127,155,.16)');grd.addColorStop(1,'rgba(255,127,155,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?90:W-90;const AL=en?'left':'right';g.textAlign=AL;
-  const body='"IBM Plex Sans Hebrew", Arial, sans-serif';const K=s=>`700 ${s}px Karantina, ${body}`,B=(w,s)=>`${w} ${s}px ${body}`;
+  const body=FONT_UI;const K=s=>`700 ${s}px Karantina, ${body}`,B=(w,s)=>`${w} ${s}px ${body}`;
   const fit=(txt,font,size,max)=>{let s=size;g.font=font(s);while(g.measureText(txt).width>max&&s>40){s-=6;g.font=font(s)}return s};
   g.fillStyle=C.mut;g.font=B(600,36);g.fillText(en?'NAMES OF ISRAEL':'השמות של ישראל',X0,140);
   g.fillStyle=C.st;g.font=B(700,40);g.fillText(en?'What my name says about me':'מה השם שלי אומר עליי',X0,250);
@@ -2134,7 +2136,7 @@ function renderExplore(){
   let lx=store.get('lx',2);
   const drawLet=()=>{$('#lseg').innerHTML=[[2,t('כולם','All')],[0,t('בנות','Girls')],[1,t('בנים','Boys')]].map(([k,l])=>`<button data-k="${k}" aria-pressed="${k===lx}">${l}</button>`).join('');
     const AB='אבגדהוזחטיכלמנסעפצקרשת'.split('');const cnt=(a,b)=>{const m=Object.fromEntries(AB.map(c=>[c,0]));let TT=0;for(let i=0;i<N;i++){const f=NAMES[i][0];if(!(f in m))continue;for(const x of[0,1]){if(lx!==2&&x!==lx)continue;for(let y=a;y<=b;y++){const q=st.Y[x][i*NY+y];m[f]+=q;TT+=q}}}return AB.map(c=>TT?m[c]/TT*100:0)};
-    const o4=chartBase();o4.scales.x.ticks.maxTicksLimit=30;o4.scales.x.ticks.font={size:13,family:'IBM Plex Sans Hebrew',weight:'600'};o4.scales.x.reverse=true;o4.scales.y.ticks.callback=q=>q+'%';o4.plugins.tooltip.callbacks={label:q=>` ${q.dataset.label}: ${q.parsed.y.toFixed(1)}%`};
+    const o4=chartBase();o4.scales.x.ticks.maxTicksLimit=30;o4.scales.x.ticks.font={size:13,family:FONT_UI,weight:'600'};o4.scales.x.reverse=true;o4.scales.y.ticks.callback=q=>q+'%';o4.plugins.tooltip.callbacks={label:q=>` ${q.dataset.label}: ${q.parsed.y.toFixed(1)}%`};
     mk('cLet',{type:'bar',data:{labels:AB,datasets:[{label:t('שנות ה-50','1950s'),data:cnt(1,10),backgroundColor:css('--c4'),borderRadius:4,borderSkipped:'bottom'},{label:`${Y1-4}–${Y1}`,data:cnt(NY-5,NY-1),backgroundColor:css('--c3'),borderRadius:4,borderSkipped:'bottom'}]},options:o4});};
   drawLet();$('#lseg').onclick=e=>{const b=e.target.closest('[data-k]');if(b){lx=+b.dataset.k;store.set('lx',lx);drawLet()}};
   const o6=chartBase();o6.scales.y.stacked=true;o6.plugins.tooltip.callbacks={label:q=>` ${q.dataset.label}: ${fmt(q.parsed.y)}`};
@@ -3266,6 +3268,8 @@ function renderDec(){const el=$('#g-dec');if(!G.q)newQ();
 (function boot(){const H0=(location.hash||'').slice(1);let t0=H0;if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0='home';   /* a plain visit always opens the home page */TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
   const isSaved=/^saved\./.test(H0);if(isSaved){t0='home';TAB='home'}const miss=URL_MISS;if(miss){t0='home';TAB='home'}renderShell();setTab(t0);if(isSaved)checkSavedHash(H0);if(miss)notFound(miss);try{document.activeElement&&document.activeElement.blur()}catch(e){}
   const mq=matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',()=>{GAME_BUILT=null;rerender()});
-  new MutationObserver(()=>{GAME_BUILT=null;rerender()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});})();
+  new MutationObserver(()=>{GAME_BUILT=null;rerender()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  /* the theme follows the device: redraw the charts (they read the CSS colors) when it switches */
+  try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{GAME_BUILT=null;rerender()})}catch(e){}})();
 
 })();

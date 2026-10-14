@@ -52,7 +52,7 @@ function drawGalaxy(){
   const pts=[];let mx=0;for(let i=0;i<N;i++){const s=T(st,i);if(s<MIN)continue;pts.push({i,t:s,gp:st.tot[0][i]/s,m:st.med[i]});if(s>mx)mx=s}
   const l0=Math.log10(MIN),l1=Math.log10(mx*1.15);
   const X=y=>P.l+(y-Y0)/(Y1-Y0)*(W-P.l-P.r),Yf=v=>H-P.b-(Math.log10(v)-l0)/(l1-l0)*(H-P.t-P.b);
-  const fnt='IBM Plex Sans Hebrew, system-ui, sans-serif';
+  const fnt='-apple-system, BlinkMacSystemFont, Segoe UI, system-ui, Arial, sans-serif';
   ctx.strokeStyle=css('--grid');ctx.fillStyle=css('--muted');ctx.lineWidth=1;ctx.font=`11px ${fnt}`;
   ctx.textAlign='center';for(let d=1950;d<=2020;d+=10){const x=X(d);ctx.beginPath();ctx.moveTo(x,P.t);ctx.lineTo(x,H-P.b);ctx.stroke();ctx.fillText(d,x,H-7)}
   ctx.textAlign='right';for(const v of[300,1000,3000,10000,30000,100000]){if(v>mx*1.15||v<MIN)continue;const y=Yf(v);ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(W-P.r,y);ctx.stroke();ctx.fillText(kfmt(v),P.l-6,y+4)}
