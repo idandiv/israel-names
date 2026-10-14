@@ -29,27 +29,27 @@ Y0, Y1, NAMES = seo['y0'], seo['y1'], [x for x in seo['names'] if re.fullmatch(r
 
 css += """
 /* static fallback content (visible until the app boots, and to crawlers) */
-.seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;line-height:1.7}
-.seo h1{font-family:'Karantina',system-ui;font-size:56px;line-height:1;margin:8px 0 12px}
-.seo .k{color:var(--muted);font-size:14px}.seo ul{padding-inline-start:18px}
-.seo a{color:var(--accent,#a78bfa)}.seo .rel{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0}
-.seo .rel a{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 12px;text-decoration:none;color:var(--ink)}
+.seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:var(--f-body);line-height:1.7}
+.seo h1{font-family:var(--f-display);font-size:56px;line-height:1;margin:8px 0 12px}
+.seo .k{color:var(--muted);font-size:var(--fs-footnote)}.seo ul{padding-inline-start:18px}
+.seo a{color:var(--accent)}.seo .rel{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0}
+.seo .rel a{display:inline-block;border:1px solid var(--line);border-radius:var(--r-pill);padding:4px 12px;text-decoration:none;color:var(--ink)}
 .seo .az a{display:inline-block;margin:2px 6px}
 /* app-less static pages: collections and the all-names hub (same look as the info pages) */
-.docin>.docbody .k{color:var(--muted);font-size:13px;margin:0}
+.docin>.docbody .k{color:var(--muted);font-size:var(--fs-footnote);margin:0}
 .docbody .coll{list-style:none;padding:0;margin:8px 0 8px;columns:2 260px;column-gap:24px}
 .docbody .coll li{margin:0;padding:8px 2px;border-bottom:1px solid var(--line);min-width:0;break-inside:avoid}
-.docbody .coll a{display:flex;align-items:baseline;gap:10px;border:0;color:var(--ink);font-weight:400;min-height:28px}
+.docbody .coll a{display:flex;align-items:baseline;gap:10px;border:0;color:var(--ink);font-weight:400;min-height:var(--tap)}
 .docbody .coll a:hover b{color:var(--accent)}
-.docbody .coll .cr{color:var(--muted);font-size:13px;min-width:24px;font-variant-numeric:tabular-nums}
-.docbody .coll b{font-size:17px;font-weight:700}
-.docbody .coll .cn{margin-inline-start:auto;color:var(--muted);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.docbody .coll .cm{display:block;padding-inline-start:34px;color:var(--muted);font-size:13px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.docbody .coll .sx{font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:0 7px;margin-inline-end:6px}
-.docbody .coll .sx0{color:var(--girl,var(--muted))}.docbody .coll .sx1{color:var(--boy,var(--muted))}
+.docbody .coll .cr{color:var(--muted);font-size:var(--fs-footnote);min-width:24px;font-variant-numeric:tabular-nums}
+.docbody .coll b{font-size:var(--fs-body);font-weight:700}
+.docbody .coll .cn{margin-inline-start:auto;color:var(--muted);font-size:var(--fs-footnote);white-space:nowrap;font-variant-numeric:tabular-nums}
+.docbody .coll .cm{display:block;padding-inline-start:34px;color:var(--muted);font-size:var(--fs-footnote);line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.docbody .coll .sx{font-size:var(--fs-caption);border:1px solid var(--line);border-radius:var(--r-pill);padding:0 7px;margin-inline-end:6px}
+.docbody .coll .sx0{color:var(--girl-ink)}.docbody .coll .sx1{color:var(--boy-ink)}
 .collcta{margin-top:28px}
 .docbody .azjump{display:flex;flex-wrap:wrap;gap:4px;margin:18px 0 0}
-.docbody .azjump a{border:1px solid var(--line);border-radius:10px;min-width:36px;min-height:36px;display:inline-grid;place-items:center;color:var(--ink)}
+.docbody .azjump a{border:1px solid var(--line);border-radius:var(--r-m);min-width:var(--tap);min-height:var(--tap);display:inline-grid;place-items:center;color:var(--ink)}
 .docbody .seo-az h2{scroll-margin-top:80px}
 .docbody .seo-az .az a{display:inline-block;margin:2px 6px;border:0;font-weight:400}
 .docfoot p{margin:6px 0}.docfoot p a{color:var(--muted);font-weight:400}
@@ -67,7 +67,7 @@ os.makedirs(SRC + 'assets/fonts', exist_ok=True)
 FF = ''
 for fn in sorted(os.listdir(D + 'assets/fonts')):
     shutil.copy(D + 'assets/fonts/' + fn, SRC + 'assets/fonts/' + fn)
-    fam = 'Karantina' if fn.startswith('karantina') else 'IBM Plex Sans Hebrew'
+    fam = 'Karantina'  # the only web font; text uses the system font (tokens.css)
     w = fn.split('-')[-2]
     rng = 'U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F' if '-hebrew-' + w in fn else 'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD'
     FF += f"@font-face{{font-family:'{fam}';font-style:normal;font-weight:{w};font-display:swap;src:url(/assets/fonts/{fn}) format('woff2');unicode-range:{rng}}}\n"
@@ -83,7 +83,7 @@ A_SB = hashed('supabase', 'js', open(D + 'node_modules/@supabase/supabase-js/dis
 for fn in os.listdir(D + 'assets/icons'):
     shutil.copy(D + 'assets/icons/' + fn, SRC + fn)
 json.dump({'name': 'השמות של ישראל', 'short_name': 'השמות של ישראל', 'lang': 'he', 'dir': 'rtl', 'start_url': '/', 'display': 'standalone',
-           'background_color': '#101119', 'theme_color': '#101119',
+           'background_color': '#F2F2F7', 'theme_color': '#F2F2F7',
            'icons': [{'src': '/icon-192.png', 'sizes': '192x192', 'type': 'image/png'}, {'src': '/icon-512.png', 'sizes': '512x512', 'type': 'image/png'}]},
           open(SRC + 'site.webmanifest', 'w'), ensure_ascii=False)
 
@@ -105,8 +105,9 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
 {'<meta name="robots" content="noindex">' if noindex else f'<link rel="canonical" href="{canon}">'}
-<meta name="theme-color" content="#0f0e17">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="he_IL">
 <meta property="og:site_name" content="השמות של ישראל">
@@ -126,7 +127,7 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="preload" href="/assets/fonts/ibm-plex-sans-hebrew-hebrew-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/karantina-hebrew-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{A_CSS}">
 <meta name="google-adsense-account" content="ca-pub-8412399730348585">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8412399730348585" crossorigin="anonymous"></script>

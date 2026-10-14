@@ -1,0 +1,69 @@
+/* =========================================================
+   Design tokens (Apple HIG inspired). Loaded first; every other stylesheet uses these.
+   Theme follows the device (light / dark). Colors are semantic, after iOS:
+   --bg (grouped background), --surface (cards), --surface-2 (fills inside cards),
+   --ink / --ink-2 / --muted (label / secondary / tertiary), --line (separator).
+   Every text color passes WCAG AA (4.5:1) on --bg, --surface and --surface-2 in both themes.
+   ========================================================= */
+:root{
+  color-scheme:light dark;
+  /* color: light */
+  --bg:#F2F2F7; --surface:#FFFFFF; --surface-2:#EEEEF3; --elev:#FFFFFF;
+  --ink:#111114; --ink-2:#45454D; --muted:#6A6A72;
+  --line:#E2E2E8; --line-strong:#C9C9D1; --grid:#EBEBF0;
+  --accent:#3B2FC9; --accent-soft:#ECEBFF; --on-accent:#FFFFFF;
+  --stamp:#C2345B; --stamp-soft:#FCE9EE; --on-stamp:#FFFFFF;
+  --girl:#F2763A; --boy:#2F7FE8; --girl-ink:#B83D0A; --boy-ink:#1D6AD0;
+  --c1:#1D6AD0; --c2:#B83D0A; --c3:#0B7A51; --c4:#946200;
+  --good:#107A45; --bad:#C33232; --on-good:#FFFFFF; --on-c:#FFFFFF;
+  --good-ink:#0A6237; --bad-ink:#A42626; /* AA text on a tinted (15%) background */
+  --bar-bg:rgba(242,242,247,.92); --scrim:rgba(0,0,0,.32);
+  /* controls: translucent fills (work on any surface), segmented thumb, switch track */
+  --fill:rgba(118,118,128,.12); --fill-2:rgba(118,118,128,.2);
+  --seg-thumb:#FFFFFF; --seg-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);
+  --switch-off:#E9E9EA;
+
+  /* type: HIG text styles (Body 17). Karantina only for display names and page titles */
+  --f-body:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Noto Sans Hebrew","Arial Hebrew",Arial,sans-serif;
+  --f-display:"Karantina",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --fs-caption:12px; --fs-footnote:13px; --fs-subhead:15px; --fs-callout:16px; --fs-body:17px;
+  --fs-title3:20px; --fs-title2:22px; --fs-title1:28px; --fs-large:34px;
+
+  /* spacing (4pt grid) */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-8:32px; --sp-10:40px; --sp-12:48px;
+
+  /* corners: small controls, buttons/fields, cards, sheets */
+  --r-xs:4px; --r-s:8px; --r-m:12px; --r-l:20px; --r-xl:28px; --r-pill:999px;
+  --r:var(--r-l);
+
+  /* depth: resting card, floating (menus, popovers), sheets and modals */
+  --shadow-1:0 1px 2px rgba(0,0,0,.04),0 2px 10px rgba(0,0,0,.05);
+  --shadow-2:0 2px 6px rgba(0,0,0,.06),0 10px 28px rgba(0,0,0,.10);
+  --shadow-3:0 20px 60px rgba(0,0,0,.22);
+
+  /* motion */
+  --ease:cubic-bezier(.2,.8,.2,1); --ease-spring:cubic-bezier(.3,1.3,.5,1);
+  --dur-1:.15s; --dur-2:.25s; --dur-3:.35s;
+
+  /* touch: 44pt is the hit area; the visible control can be smaller (iOS proportions) and
+     extends its hit area with an invisible ::after (see .hit in controls.css) */
+  --tap:44px; --ctl:36px; --chip:34px; --seg-h:32px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#000000; --surface:#1C1C1E; --surface-2:#2C2C2E; --elev:#2C2C2E;
+  --ink:#F5F5F7; --ink-2:#C9C9CF; --muted:#98989F;
+  --line:#38383A; --line-strong:#48484A; --grid:#2A2A2D;
+  --accent:#A9A2FF; --accent-soft:#2A2752; --on-accent:#14122E;
+  --stamp:#FF7F9B; --stamp-soft:#3D1F28; --on-stamp:#14122E;
+  --girl:#FF8A4F; --boy:#5AA2FF; --girl-ink:#FF8A4F; --boy-ink:#5AA2FF;
+  --c1:#5AA2FF; --c2:#FF8A4F; --c3:#34C98E; --c4:#E8AE2E;
+  --good:#4CC283; --bad:#FF7B7B; --on-good:#0B0B0F; --on-c:#111114;
+  --good-ink:#5FD39A; --bad-ink:#FF9494;
+  --bar-bg:rgba(22,22,24,.92); --scrim:rgba(0,0,0,.55);
+  --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32);
+  --seg-thumb:#636366; --seg-shadow:none;
+  --switch-off:#39393D;
+  --shadow-1:none;
+  --shadow-2:0 2px 6px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.45);
+  --shadow-3:0 20px 60px rgba(0,0,0,.6);
+}}

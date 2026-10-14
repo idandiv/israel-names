@@ -1,3 +1,5 @@
+/* system UI font for canvas text (charts, share cards): same stack as --f-body in tokens.css */
+const FONT_UI='-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Arial, sans-serif';
 const Y0=DATA.y0, NY=DATA.T[0][0].length, Y1=Y0+NY-1, YEARS=Array.from({length:NY},(_,i)=>Y0+i);
 const NOW=new Date().getFullYear();   /* ages and 'X years ago' follow today's date */
 const LINKEDIN='https://www.linkedin.com/in/idan-diva/';
@@ -35,6 +37,13 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const m=$('#m
   if(m&&!m.hidden){m.hidden=true;e.preventDefault();return}
   const open=[...document.querySelectorAll('.sugg')].filter(b=>!b.hidden);if(open.length){open.forEach(b=>b.hidden=true);return}
   const bar=document.querySelector('.bar.sopen');if(bar){bar.classList.remove('sopen');const q=$('#q');if(q)q.blur()}});
+/* iOS-style action sheet in the shared #modal: a titled group of actions and a separate Cancel.
+   items: [[label, iconKey, onTap]]. Tapping outside, Cancel or Escape closes it. */
+function actionSheet(title,items){const m=$('#modal');if(!m)return;
+  m.innerHTML=`<div class="asheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="asgroup"><div class="astitle">${esc(title)}</div>${items.map((it,k)=>`<button class="asact" data-k="${k}">${icon(it[1])}<span>${it[0]}</span></button>`).join('')}</div><button class="asact ascancel" data-k="x">${t('ביטול','Cancel')}</button></div>`;
+  m.hidden=false;
+  m.onclick=e=>{const b=e.target.closest('.asact');if(e.target!==m&&!b)return;m.hidden=true;m.innerHTML='';if(b&&b.dataset.k!=='x')items[+b.dataset.k][2]()};
+  setTimeout(()=>{const b=m.querySelector('.asact');if(b)b.focus({preventScroll:true})},30)}
 let toastT;function toast(m,ms){const el=$("#toast");el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,ms||Math.max(2400,Math.min(6000,m.length*55)))}
 function copy(text){const ok=()=>toast(t('הועתק! אפשר להדביק בוואטסאפ','Copied! Paste it anywhere'));const no=()=>toast(t('ההעתקה נחסמה בדפדפן הזה','Copying is blocked in this browser'));try{navigator.clipboard.writeText(text).then(ok,no)}catch(e){no()}}
 
@@ -105,9 +114,10 @@ function ed1(a,b){if(a===b)return false;const la=a.length,lb=b.length;if(Math.ab
   while(i<la&&j<lb){if(a[i]===b[j]){i++;j++;continue}if(++e>1)return false;if(la>lb)i++;else if(lb>la)j++;else{i++;j++}}return e+(la-i)+(lb-j)<=1}
 const hex2rgb=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]};
 function chartBase(){const rtl=LANG!=='en';return{responsive:true,maintainAspectRatio:false,animation:{duration:500},interaction:{mode:'index',intersect:false},
-  plugins:{legend:{display:false},tooltip:{rtl,textDirection:rtl?'rtl':'ltr',backgroundColor:css('--ink'),titleColor:css('--bg'),bodyColor:css('--bg'),padding:10,boxPadding:4,usePointStyle:true}},
-  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:'IBM Plex Sans Hebrew'}},border:{color:css('--line')}},
-          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:'IBM Plex Sans Hebrew'}},border:{display:false},beginAtZero:true}}}}
+  plugins:{legend:{display:false},tooltip:{rtl,textDirection:rtl?'rtl':'ltr',backgroundColor:css('--elev'),titleColor:css('--ink'),bodyColor:css('--ink-2'),borderColor:css('--line'),borderWidth:1,cornerRadius:12,padding:12,boxPadding:6,usePointStyle:true,
+    titleFont:{family:FONT_UI,size:13,weight:'600'},bodyFont:{family:FONT_UI,size:13}}},
+  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:FONT_UI,size:12}},border:{color:css('--line')}},
+          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:FONT_UI,size:12}},border:{display:false},beginAtZero:true}}}}
 const charts={};
 function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElementById(id);if(!el)return;charts[id]=new Chart(el,cfg);return charts[id]}
 const line=(label,data,color,fill)=>({label,data:Array.from(data),borderColor:color,backgroundColor:fill?color+'22':color,fill:!!fill,borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBorderWidth:2,pointHoverBorderColor:css('--surface'),tension:.3});
@@ -135,7 +145,10 @@ const IC={
  close:'<path d="M6 6l12 12M18 6 6 18"/>',
  play:'<path d="M8 5v14l11-7z"/>',pause:'<path d="M8 5v14M16 5v14"/>',
  dice:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h.01M15 15h.01M15 9h.01M9 15h.01"/>',
- arrow:'<path d="M15 6l-6 6 6 6"/>'};
+ arrow:'<path d="M15 6l-6 6 6 6"/>',
+ share:'<path d="M12 15V3.5M8 7.5l4-4 4 4"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16"/>',
+ image:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5-8.5 8.5"/>',
+ compare:'<path d="M7 4v16M17 4v16M3.5 8H10.5M13.5 16h7"/>'};
 const icon=(k,fill)=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="${fill?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
 function tabShort(k){return{home:t('ראשי','Home'),names:t('שמות','Names'),gen:t('מחולל','Finder'),trends:t('מגמות','Trends'),games:t('משחקים','Games')}[k]}
 function tabLabel(k){return{home:t('ראשי','Home'),names:t('חקר שמות','Explore names'),gen:t('מחולל שמות','Name finder'),trends:t('מגמות ודאטה','Trends & data'),games:t('משחקים','Games')}[k]}
@@ -144,7 +157,7 @@ function renderShell(){
   const app=$('#app');app.dir=LANG==='en'?'ltr':'rtl';
   const madeBy=`${t('נוצר ע״י','Created by')} <a class="credit" href="${LINKEDIN}" target="_blank" rel="noopener">${t('עידן דיוה','Idan Diva')}</a>`;
   app.innerHTML=`
-  <div class="bar">
+  <header class="bar">
     <div class="toprow">
       <button class="brandbtn" id="home" aria-label="${t('לדף הבית','Home')}"><h1>${t('השמות של ישראל','Names of Israel')}</h1></button>
       <div class="search tsearch">${icon('search')}<input id="q" type="search" placeholder="${t('חיפוש שם…','Search a name…')}" autocomplete="off" aria-label="${t('חיפוש שם','Search a name')}"><div class="sugg" id="sugg" hidden></div></div>
@@ -152,15 +165,15 @@ function renderShell(){
       <button class="srchbtn" id="srchbtn" aria-label="${t('חיפוש שם','Search')}">${icon('search')}</button>
       <button class="langbtn" id="lang" aria-label="${t('Switch to English','מעבר לעברית')}">${LANG==='en'?'עב':'EN'}</button>
     </div>
-    <nav class="mainnav" role="tablist">${['home','names','gen','trends','games'].map(k=>`<button role="tab" data-tab="${k}" class="${k==='gen'?'hl':''}" aria-selected="${k===TAB}">${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
-  </div>
-  ${TABS.map(k=>`<section id="tab-${k}" ${k===TAB?'':'hidden'}></section>`).join('')}
-  <p class="madeby">${madeBy}</p>
+    <nav class="mainnav" aria-label="${t('ניווט ראשי','Main')}">${['home','names','gen','trends','games'].map(k=>`<button data-tab="${k}" class="${k==='gen'?'hl':''}" ${k===TAB?'aria-current="page"':''}>${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
+  </header>
+  <main id="main">${TABS.map(k=>`<section id="tab-${k}" ${k===TAB?'':'hidden'}></section>`).join('')}</main>
+  <footer class="appfoot"><p class="madeby">${madeBy}</p>
   <details class="note"><summary>${t('על הנתונים והמקורות','About the data')}</summary><p>${t('המקור: הלשכה המרכזית לסטטיסטיקה, דרך חבילת babynamesIL. הנתונים כוללים כל שם שניתן לפחות ל-5 תינוקות באותה שנה, באותו מגדר ובאותו מגזר. לכן שמות נדירים חסרים, ו״אחוז מהתינוקות״ מחושב מתוך התינוקות שנרשמו בשמות שבנתונים. ה״גיל הטיפוסי״ מבוסס על שנות הלידה בלבד, בלי תמותה והגירה. פירושי השמות הם הפירושים המקובלים, ולחלק מהשמות יש יותר מפירוש אחד. תגיות ״עדכון 2025״ ו״תשפ״ו״ מבוססות על רשימות 10 השמות המובילים שפרסמה רשות האוכלוסין וההגירה, ואינן חלק מנתוני הלמ״ס.',
     'Source: Israel Central Bureau of Statistics, via the babynamesIL package. The data includes every name given to at least 5 babies in a given year, sex and community, so very rare names are missing and percentages are out of the babies listed. "Typical age" uses birth years only. English spellings are approximate transliterations of the Hebrew. "2025 update" tags come from Population Authority top-10 lists, not CBS data.')}</p>
     <p>${cloudOn()?t('פרטיות: אין הרשמה. השמות ששמרתם, התשובות במחולל וההתקדמות במשחקים נשמרים רק בדפדפן במכשיר הזה. בבחירת שם בזוג, השם שבחרתם להציג בחדר והבחירות שלכם בו נשמרים בשרת מאובטח (Supabase), כדי שבן או בת הזוג יראו אותם בזמן אמת. רק מי שהצטרף לחדר יכול לראות אותם, וחדרים שלא היה בהם שימוש 90 יום נמחקים אוטומטית. הכפתור כאן מוחק את מה שנשמר במכשיר.','Privacy: no sign-up. Saved names, finder answers and game progress stay in this browser. In couple rooms, your display name and swipes are stored on a secure server (Supabase) so your partner sees them live. Only room members can see them, and rooms unused for 90 days are deleted automatically. This button deletes what is stored on this device.'):t('פרטיות: אין הרשמה ואין שרת. השמות ששמרתם, התשובות במחולל, ההתקדמות במשחקים והבחירות הזוגיות נשמרים רק בדפדפן במכשיר הזה. מה שעובר בין אנשים עובר רק בקישורים שאתם בוחרים לשלוח.','Privacy: no sign-up and no server. Saved names, finder answers, game progress and couple picks stay in this browser on this device. Only links you choose to send carry anything to others.')}</p>
     <button class="copybtn danger" id="wipeall">${cloudOn()?t('מחיקת כל הנתונים שלי (במכשיר ובשרת)','Delete all my data (device and server)'):t('מחיקת כל הנתונים השמורים במכשיר','Delete all data saved on this device')}</button></details>
-  ${docLinksHTML()}
+  ${docLinksHTML()}</footer>
   <div id="favbar" class="favbar" hidden></div>`;
   document.querySelector('.mainnav').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){PUSH_ONCE=true;setTab(b.dataset.tab)}});
   $('#home').onclick=()=>{PUSH_ONCE=true;setTab('home')};
@@ -178,13 +191,13 @@ function setMode(m){if(m===MODE)return;MODE=m;store.set('mode',MODE);rerender()}
 function setF(v){F=v;store.set('F',F);GAME_BUILT=null;rerender()}
 const LEGACY={name:['names','file'],me:['names','me'],compare:['names','compare'],explore:['trends'],game:['games']};
 function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
-  TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
+  TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>{if(b.dataset.tab===k)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
   if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=NMX.showRooms?null:R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
   stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
 function renderNames(){const sec=$('#tab-names');
-  sec.innerHTML=`<div class="subnav seg" role="tablist">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
+  sec.innerHTML=`<div class="subnav seg" role="group" aria-label="${t('תצוגות תיק השם','Name views')}">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
     <div id="tab-name"></div><div id="tab-me"></div><div id="tab-compare"></div>`;
   sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();PUSH_ONCE=true;syncURL()}};
   ({file:renderName,me:renderMe,compare:renderCompare})[NSUB]();}
@@ -220,13 +233,13 @@ function cap(name){if(!(name in CAP))CAP[name]=(window.claude&&window.claude.use
 function nameFacts(i,Fx){const st=stats(Fx);const c=comb(st,i),sh=share(st,i);let pk=0;for(let y=1;y<NY;y++)if(sh[y]>sh[pk])pk=y;
   const s=T(st,i);return{st,c,sh,pk,tot:s,med:st.med[i],gp:s?st.tot[0][i]/s:0,oneIn:c[pk]?Math.round(st.DD[pk]/c[pk]):0,last:c[NY-1]}}
 async function makeCard(i,extra){
-  try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
+  try{await Promise.all([document.fonts.load('700 200px Karantina'),Promise.resolve()])}catch(e){}
   const f=nameFacts(i,-1);const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   const C={bg:'#14152a',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',girl:'#f07a4a',boy:'#4a95ee'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
   const grd=g.createRadialGradient(W*.8,H*.15,50,W*.8,H*.15,700);grd.addColorStop(0,'rgba(164,157,255,.28)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?80:W-80;g.textAlign=en?'left':'right';
-  const body='"IBM Plex Sans Hebrew", Arial, sans-serif';
+  const body=FONT_UI;
   g.fillStyle=C.mut;g.font=`600 34px ${body}`;g.fillText(en?'NAMES OF ISRAEL':'השמות של ישראל',X0,110);
   g.fillStyle=C.ink;let fs=300;g.font=`700 ${fs}px Karantina, ${body}`;const label=en?rom(i):NAMES[i];while(g.measureText(label).width>W-160&&fs>120){fs-=10;g.font=`700 ${fs}px Karantina, ${body}`}
   g.fillText(label,X0,120+fs*.85);
@@ -272,5 +285,5 @@ async function showCard(cv,fname,alt,title){const url=cv.toDataURL('image/png');
 
 /* mobile: hide header while scrolling down, show on scroll up */
 (function(){let last=0,tk=false;addEventListener('scroll',()=>{if(tk)return;tk=true;requestAnimationFrame(()=>{tk=false;const y=scrollY,bar=document.querySelector('.bar');if(!bar)return;
-  if(innerWidth>700||TAB==='match'){bar.classList.remove('hid');last=y;return}
+  if(innerWidth>767||TAB==='match'){bar.classList.remove('hid');last=y;return}
   if(y>last+8&&y>140&&!bar.classList.contains('sopen')&&document.activeElement.id!=='q')bar.classList.add('hid');else if(y<last-8||y<80)bar.classList.remove('hid');last=y})},{passive:true})})();

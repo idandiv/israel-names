@@ -37,6 +37,8 @@ function renderName(){
   pills.push(`<span class="pill">${t(`נפוץ יותר מ-${pct}% מהשמות`,`More common than ${pct}% of names`)}</span>`);
   if(best[0]<=10)pills.push(`<span class="pill acc">${best[0]===1?t('היה מקום ראשון','Was #1'):t('היה בטופ 10','Was top 10')} (${t('מקום ','#')}${best[0]} ${t('ב-','in ')}${Y0+best[1]})</span>`);
   if(yrsIn===NY)pills.push(`<span class="pill">${t(`נוכח בכל ${NY} השנים`,`Present in all ${NY} years`)}</span>`);
+  /* the three that say the most go first (character, top rank, trend), the rest fold under "more" */
+  {const pri=p=>/pill acc/.test(p)?0:/pill (up|down)/.test(p)?1:/pill sec/.test(p)?2:3;pills.sort((a,b)=>pri(a)-pri(b));}
   const oneIn=Math.round(st.DD[pk]/c[pk]);
   const age=NOW-med;const gw=(fem,mas,both)=>gp>=80?fem:gp<=20?mas:both;
   const secTot=where.reduce((a,q)=>a+q,0);
@@ -52,7 +54,7 @@ function renderName(){
       `Since ${Y0}, <b>${fmt(tot)}</b> babies got this name. ${atStart(pk)?`It was already most common when records began in <b>${Y0}</b> (1 in <b>${fmt(oneIn)}</b>).`:`It peaked in <b>${Y0+pk}</b>, when 1 in every <b>${fmt(oneIn)}</b> babies was named ${dn}.`} The typical ${dn} was born in <b>${med}</b>, so is about <b>${age}</b> today.`)}</p>
     ${LANG!=='en'&&MEAN.has(nm)?`<p class="meaning"><span>${t('פירוש השם','Meaning')}</span>${esc(MEAN.get(nm))}</p>`:''}
     ${LANG!=='en'&&STORY.has(nm)?`<p class="story">${esc(STORY.get(nm))}</p>`:''}
-    <div class="pills">${(S?pills.slice(0,3):pills).join('')}</div>
+    <div class="pills">${pills.slice(0,3).join('')}${!S&&pills.length>3?`<details class="pmore"><summary>${t(`עוד ${pills.length-3}`,`${pills.length-3} more`)}</summary><div class="pills">${pills.slice(3).join('')}</div></details>`:''}</div>
     ${`<div class="heat">${Array.from(sh,(q,y)=>`<i title="${Y0+y}: ${fmt(c[y])}" style="background:var(--accent);opacity:${q?(.08+.92*q/mxs).toFixed(2):0}"></i>`).join('')}</div>
     <div class="heatlab"><span>${Y0}</span><span>1970</span><span>1990</span><span>2010</span><span>${Y1}</span></div>`}
     <div class="stats">
@@ -63,7 +65,7 @@ function renderName(){
     </div>
     <div class="meter"><div class="row"><span class="g">${t('בנות','Girls')} ${gp.toFixed(gp>99||gp<1?1:0)}%</span><span class="b">${t('בנים','Boys')} ${(100-gp).toFixed(gp>99||gp<1?1:0)}%</span></div>
       <div class="track"><i style="width:${gp}%;background:var(--girl)"></i><i style="width:${100-gp}%;background:var(--boy)"></i></div></div>
-    <div class="actions">${favBtn(nm,'lbl big')}<button class="next" id="shlink">${icon('link')}${t(' שיתוף העמוד',' Share page')}</button><button class="copybtn" id="card">${t('כרטיס לשיתוף','Share card')}</button><button class="copybtn" id="cpy">${t('העתקת סיכום','Copy summary')}</button><button class="copybtn" id="tocmp">${t('הוספה להשוואה','Add to compare')}</button></div>
+    <div class="actions">${favBtn(nm,'lbl big')}<button class="next" id="shmenu" aria-haspopup="dialog">${icon('share')}${t('שיתוף','Share')}</button></div>
   </div>
   <div class="grid">
     <div class="card wide"><div class="head"><div><h3>${t(`הסיפור של ${esc(nm)} לאורך השנים`,`${dn} through the years`)}</h3><div class="sub" id="tsub"></div></div>
@@ -84,10 +86,12 @@ function renderName(){
       <div class="seg" id="relseg">${[['tw',t('תאומי זהות','Twins')],['var',t('כתיבים','Spellings')],['rhy',t('חרוזים','Rhymes')],['gem',t('גימטריה','Gematria')]].map(([k,l])=>`<button data-r="${k}" aria-pressed="${REL===k}">${l}</button>`).join('')}</div></div>
       <div class="rel" id="rel"></div></div>
   </div>`;
-  $('#card').onclick=()=>shareCard(i);
-
-  $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);
-  $('#tocmp').onclick=()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')};
+  /* one Share button opens an action sheet with every way to pass the name on */
+  $('#shmenu').onclick=()=>actionSheet(t(`שיתוף השם ${nm}`,`Share ${NM(i)}`),[
+    [t('שיתוף קישור לעמוד','Share link to this page'),'link',()=>shareName(i)],
+    [t('כרטיס לשיתוף (תמונה)','Share card (image)'),'image',()=>shareCard(i)],
+    [t('העתקת סיכום','Copy summary'),'copy',()=>copy(summary+'\n'+nameURL(i))],
+    [t('הוספה להשוואה','Add to compare'),'compare',()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')}]]);
   if(!S){$('#mseg').onclick=e=>{const bt=e.target.closest('[data-m]');if(bt){metric=bt.dataset.m;renderName();}};
   $('#tseg').onclick=e=>{const bt=e.target.closest('[data-t]');if(bt){tmode=bt.dataset.t;store.set('tmode',tmode);renderName();}};}
   // time chart

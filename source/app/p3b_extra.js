@@ -22,14 +22,14 @@ addEventListener('hashchange',()=>{const L=compareFromHash((location.hash||'').s
 
 /* ---------- "my name" story card (1080x1920) ---------- */
 async function makeMeCard(me,o){
-  try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
+  try{await Promise.all([document.fonts.load('700 200px Karantina'),Promise.resolve()])}catch(e){}
   const i=IDX.get(me.n),W=1080,H=1920;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   const C={bg:'#121326',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',line:me.x?'#4a95ee':'#f07a4a'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
   let grd=g.createRadialGradient(W*.85,H*.12,40,W*.85,H*.12,900);grd.addColorStop(0,'rgba(164,157,255,.32)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   grd=g.createRadialGradient(W*.1,H*.9,40,W*.1,H*.9,800);grd.addColorStop(0,'rgba(255,127,155,.16)');grd.addColorStop(1,'rgba(255,127,155,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?90:W-90;const AL=en?'left':'right';g.textAlign=AL;
-  const body='"IBM Plex Sans Hebrew", Arial, sans-serif';const K=s=>`700 ${s}px Karantina, ${body}`,B=(w,s)=>`${w} ${s}px ${body}`;
+  const body=FONT_UI;const K=s=>`700 ${s}px Karantina, ${body}`,B=(w,s)=>`${w} ${s}px ${body}`;
   const fit=(txt,font,size,max)=>{let s=size;g.font=font(s);while(g.measureText(txt).width>max&&s>40){s-=6;g.font=font(s)}return s};
   g.fillStyle=C.mut;g.font=B(600,36);g.fillText(en?'NAMES OF ISRAEL':'השמות של ישראל',X0,140);
   g.fillStyle=C.st;g.font=B(700,40);g.fillText(en?'What my name says about me':'מה השם שלי אומר עליי',X0,250);

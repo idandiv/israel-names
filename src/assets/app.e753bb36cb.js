@@ -1287,6 +1287,8 @@ function shareName(i){const url=nameURL(i);const title=nameMeta(i).title;
   if(navigator.share&&matchMedia('(pointer:coarse)').matches){navigator.share({title,text:t(`הסיפור של השם ${NAMES[i]}`,`The story of the name ${NM(i)}`),url}).catch(()=>{});return}
   copy(url)}
 
+/* system UI font for canvas text (charts, share cards): same stack as --f-body in tokens.css */
+const FONT_UI='-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Arial, sans-serif';
 const Y0=DATA.y0, NY=DATA.T[0][0].length, Y1=Y0+NY-1, YEARS=Array.from({length:NY},(_,i)=>Y0+i);
 const NOW=new Date().getFullYear();   /* ages and 'X years ago' follow today's date */
 const LINKEDIN='https://www.linkedin.com/in/idan-diva/';
@@ -1324,6 +1326,13 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const m=$('#m
   if(m&&!m.hidden){m.hidden=true;e.preventDefault();return}
   const open=[...document.querySelectorAll('.sugg')].filter(b=>!b.hidden);if(open.length){open.forEach(b=>b.hidden=true);return}
   const bar=document.querySelector('.bar.sopen');if(bar){bar.classList.remove('sopen');const q=$('#q');if(q)q.blur()}});
+/* iOS-style action sheet in the shared #modal: a titled group of actions and a separate Cancel.
+   items: [[label, iconKey, onTap]]. Tapping outside, Cancel or Escape closes it. */
+function actionSheet(title,items){const m=$('#modal');if(!m)return;
+  m.innerHTML=`<div class="asheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="asgroup"><div class="astitle">${esc(title)}</div>${items.map((it,k)=>`<button class="asact" data-k="${k}">${icon(it[1])}<span>${it[0]}</span></button>`).join('')}</div><button class="asact ascancel" data-k="x">${t('ביטול','Cancel')}</button></div>`;
+  m.hidden=false;
+  m.onclick=e=>{const b=e.target.closest('.asact');if(e.target!==m&&!b)return;m.hidden=true;m.innerHTML='';if(b&&b.dataset.k!=='x')items[+b.dataset.k][2]()};
+  setTimeout(()=>{const b=m.querySelector('.asact');if(b)b.focus({preventScroll:true})},30)}
 let toastT;function toast(m,ms){const el=$("#toast");el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,ms||Math.max(2400,Math.min(6000,m.length*55)))}
 function copy(text){const ok=()=>toast(t('הועתק! אפשר להדביק בוואטסאפ','Copied! Paste it anywhere'));const no=()=>toast(t('ההעתקה נחסמה בדפדפן הזה','Copying is blocked in this browser'));try{navigator.clipboard.writeText(text).then(ok,no)}catch(e){no()}}
 
@@ -1394,9 +1403,10 @@ function ed1(a,b){if(a===b)return false;const la=a.length,lb=b.length;if(Math.ab
   while(i<la&&j<lb){if(a[i]===b[j]){i++;j++;continue}if(++e>1)return false;if(la>lb)i++;else if(lb>la)j++;else{i++;j++}}return e+(la-i)+(lb-j)<=1}
 const hex2rgb=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]};
 function chartBase(){const rtl=LANG!=='en';return{responsive:true,maintainAspectRatio:false,animation:{duration:500},interaction:{mode:'index',intersect:false},
-  plugins:{legend:{display:false},tooltip:{rtl,textDirection:rtl?'rtl':'ltr',backgroundColor:css('--ink'),titleColor:css('--bg'),bodyColor:css('--bg'),padding:10,boxPadding:4,usePointStyle:true}},
-  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:'IBM Plex Sans Hebrew'}},border:{color:css('--line')}},
-          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:'IBM Plex Sans Hebrew'}},border:{display:false},beginAtZero:true}}}}
+  plugins:{legend:{display:false},tooltip:{rtl,textDirection:rtl?'rtl':'ltr',backgroundColor:css('--elev'),titleColor:css('--ink'),bodyColor:css('--ink-2'),borderColor:css('--line'),borderWidth:1,cornerRadius:12,padding:12,boxPadding:6,usePointStyle:true,
+    titleFont:{family:FONT_UI,size:13,weight:'600'},bodyFont:{family:FONT_UI,size:13}}},
+  scales:{x:{grid:{display:false},ticks:{color:css('--muted'),maxTicksLimit:8,maxRotation:0,font:{family:FONT_UI,size:12}},border:{color:css('--line')}},
+          y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),maxTicksLimit:5,font:{family:FONT_UI,size:12}},border:{display:false},beginAtZero:true}}}}
 const charts={};
 function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElementById(id);if(!el)return;charts[id]=new Chart(el,cfg);return charts[id]}
 const line=(label,data,color,fill)=>({label,data:Array.from(data),borderColor:color,backgroundColor:fill?color+'22':color,fill:!!fill,borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBorderWidth:2,pointHoverBorderColor:css('--surface'),tension:.3});
@@ -1424,7 +1434,10 @@ const IC={
  close:'<path d="M6 6l12 12M18 6 6 18"/>',
  play:'<path d="M8 5v14l11-7z"/>',pause:'<path d="M8 5v14M16 5v14"/>',
  dice:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h.01M15 15h.01M15 9h.01M9 15h.01"/>',
- arrow:'<path d="M15 6l-6 6 6 6"/>'};
+ arrow:'<path d="M15 6l-6 6 6 6"/>',
+ share:'<path d="M12 15V3.5M8 7.5l4-4 4 4"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16"/>',
+ image:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5-8.5 8.5"/>',
+ compare:'<path d="M7 4v16M17 4v16M3.5 8H10.5M13.5 16h7"/>'};
 const icon=(k,fill)=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="${fill?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
 function tabShort(k){return{home:t('ראשי','Home'),names:t('שמות','Names'),gen:t('מחולל','Finder'),trends:t('מגמות','Trends'),games:t('משחקים','Games')}[k]}
 function tabLabel(k){return{home:t('ראשי','Home'),names:t('חקר שמות','Explore names'),gen:t('מחולל שמות','Name finder'),trends:t('מגמות ודאטה','Trends & data'),games:t('משחקים','Games')}[k]}
@@ -1433,7 +1446,7 @@ function renderShell(){
   const app=$('#app');app.dir=LANG==='en'?'ltr':'rtl';
   const madeBy=`${t('נוצר ע״י','Created by')} <a class="credit" href="${LINKEDIN}" target="_blank" rel="noopener">${t('עידן דיוה','Idan Diva')}</a>`;
   app.innerHTML=`
-  <div class="bar">
+  <header class="bar">
     <div class="toprow">
       <button class="brandbtn" id="home" aria-label="${t('לדף הבית','Home')}"><h1>${t('השמות של ישראל','Names of Israel')}</h1></button>
       <div class="search tsearch">${icon('search')}<input id="q" type="search" placeholder="${t('חיפוש שם…','Search a name…')}" autocomplete="off" aria-label="${t('חיפוש שם','Search a name')}"><div class="sugg" id="sugg" hidden></div></div>
@@ -1441,15 +1454,15 @@ function renderShell(){
       <button class="srchbtn" id="srchbtn" aria-label="${t('חיפוש שם','Search')}">${icon('search')}</button>
       <button class="langbtn" id="lang" aria-label="${t('Switch to English','מעבר לעברית')}">${LANG==='en'?'עב':'EN'}</button>
     </div>
-    <nav class="mainnav" role="tablist">${['home','names','gen','trends','games'].map(k=>`<button role="tab" data-tab="${k}" class="${k==='gen'?'hl':''}" aria-selected="${k===TAB}">${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
-  </div>
-  ${TABS.map(k=>`<section id="tab-${k}" ${k===TAB?'':'hidden'}></section>`).join('')}
-  <p class="madeby">${madeBy}</p>
+    <nav class="mainnav" aria-label="${t('ניווט ראשי','Main')}">${['home','names','gen','trends','games'].map(k=>`<button data-tab="${k}" class="${k==='gen'?'hl':''}" ${k===TAB?'aria-current="page"':''}>${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
+  </header>
+  <main id="main">${TABS.map(k=>`<section id="tab-${k}" ${k===TAB?'':'hidden'}></section>`).join('')}</main>
+  <footer class="appfoot"><p class="madeby">${madeBy}</p>
   <details class="note"><summary>${t('על הנתונים והמקורות','About the data')}</summary><p>${t('המקור: הלשכה המרכזית לסטטיסטיקה, דרך חבילת babynamesIL. הנתונים כוללים כל שם שניתן לפחות ל-5 תינוקות באותה שנה, באותו מגדר ובאותו מגזר. לכן שמות נדירים חסרים, ו״אחוז מהתינוקות״ מחושב מתוך התינוקות שנרשמו בשמות שבנתונים. ה״גיל הטיפוסי״ מבוסס על שנות הלידה בלבד, בלי תמותה והגירה. פירושי השמות הם הפירושים המקובלים, ולחלק מהשמות יש יותר מפירוש אחד. תגיות ״עדכון 2025״ ו״תשפ״ו״ מבוססות על רשימות 10 השמות המובילים שפרסמה רשות האוכלוסין וההגירה, ואינן חלק מנתוני הלמ״ס.',
     'Source: Israel Central Bureau of Statistics, via the babynamesIL package. The data includes every name given to at least 5 babies in a given year, sex and community, so very rare names are missing and percentages are out of the babies listed. "Typical age" uses birth years only. English spellings are approximate transliterations of the Hebrew. "2025 update" tags come from Population Authority top-10 lists, not CBS data.')}</p>
     <p>${cloudOn()?t('פרטיות: אין הרשמה. השמות ששמרתם, התשובות במחולל וההתקדמות במשחקים נשמרים רק בדפדפן במכשיר הזה. בבחירת שם בזוג, השם שבחרתם להציג בחדר והבחירות שלכם בו נשמרים בשרת מאובטח (Supabase), כדי שבן או בת הזוג יראו אותם בזמן אמת. רק מי שהצטרף לחדר יכול לראות אותם, וחדרים שלא היה בהם שימוש 90 יום נמחקים אוטומטית. הכפתור כאן מוחק את מה שנשמר במכשיר.','Privacy: no sign-up. Saved names, finder answers and game progress stay in this browser. In couple rooms, your display name and swipes are stored on a secure server (Supabase) so your partner sees them live. Only room members can see them, and rooms unused for 90 days are deleted automatically. This button deletes what is stored on this device.'):t('פרטיות: אין הרשמה ואין שרת. השמות ששמרתם, התשובות במחולל, ההתקדמות במשחקים והבחירות הזוגיות נשמרים רק בדפדפן במכשיר הזה. מה שעובר בין אנשים עובר רק בקישורים שאתם בוחרים לשלוח.','Privacy: no sign-up and no server. Saved names, finder answers, game progress and couple picks stay in this browser on this device. Only links you choose to send carry anything to others.')}</p>
     <button class="copybtn danger" id="wipeall">${cloudOn()?t('מחיקת כל הנתונים שלי (במכשיר ובשרת)','Delete all my data (device and server)'):t('מחיקת כל הנתונים השמורים במכשיר','Delete all data saved on this device')}</button></details>
-  ${docLinksHTML()}
+  ${docLinksHTML()}</footer>
   <div id="favbar" class="favbar" hidden></div>`;
   document.querySelector('.mainnav').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){PUSH_ONCE=true;setTab(b.dataset.tab)}});
   $('#home').onclick=()=>{PUSH_ONCE=true;setTab('home')};
@@ -1467,13 +1480,13 @@ function setMode(m){if(m===MODE)return;MODE=m;store.set('mode',MODE);rerender()}
 function setF(v){F=v;store.set('F',F);GAME_BUILT=null;rerender()}
 const LEGACY={name:['names','file'],me:['names','me'],compare:['names','compare'],explore:['trends'],game:['games']};
 function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
-  TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
+  TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>{if(b.dataset.tab===k)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
   if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=NMX.showRooms?null:R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
   stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
 function renderNames(){const sec=$('#tab-names');
-  sec.innerHTML=`<div class="subnav seg" role="tablist">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
+  sec.innerHTML=`<div class="subnav seg" role="group" aria-label="${t('תצוגות תיק השם','Name views')}">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
     <div id="tab-name"></div><div id="tab-me"></div><div id="tab-compare"></div>`;
   sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();PUSH_ONCE=true;syncURL()}};
   ({file:renderName,me:renderMe,compare:renderCompare})[NSUB]();}
@@ -1509,13 +1522,13 @@ function cap(name){if(!(name in CAP))CAP[name]=(window.claude&&window.claude.use
 function nameFacts(i,Fx){const st=stats(Fx);const c=comb(st,i),sh=share(st,i);let pk=0;for(let y=1;y<NY;y++)if(sh[y]>sh[pk])pk=y;
   const s=T(st,i);return{st,c,sh,pk,tot:s,med:st.med[i],gp:s?st.tot[0][i]/s:0,oneIn:c[pk]?Math.round(st.DD[pk]/c[pk]):0,last:c[NY-1]}}
 async function makeCard(i,extra){
-  try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
+  try{await Promise.all([document.fonts.load('700 200px Karantina'),Promise.resolve()])}catch(e){}
   const f=nameFacts(i,-1);const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   const C={bg:'#14152a',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',girl:'#f07a4a',boy:'#4a95ee'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
   const grd=g.createRadialGradient(W*.8,H*.15,50,W*.8,H*.15,700);grd.addColorStop(0,'rgba(164,157,255,.28)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?80:W-80;g.textAlign=en?'left':'right';
-  const body='"IBM Plex Sans Hebrew", Arial, sans-serif';
+  const body=FONT_UI;
   g.fillStyle=C.mut;g.font=`600 34px ${body}`;g.fillText(en?'NAMES OF ISRAEL':'השמות של ישראל',X0,110);
   g.fillStyle=C.ink;let fs=300;g.font=`700 ${fs}px Karantina, ${body}`;const label=en?rom(i):NAMES[i];while(g.measureText(label).width>W-160&&fs>120){fs-=10;g.font=`700 ${fs}px Karantina, ${body}`}
   g.fillText(label,X0,120+fs*.85);
@@ -1561,7 +1574,7 @@ async function showCard(cv,fname,alt,title){const url=cv.toDataURL('image/png');
 
 /* mobile: hide header while scrolling down, show on scroll up */
 (function(){let last=0,tk=false;addEventListener('scroll',()=>{if(tk)return;tk=true;requestAnimationFrame(()=>{tk=false;const y=scrollY,bar=document.querySelector('.bar');if(!bar)return;
-  if(innerWidth>700||TAB==='match'){bar.classList.remove('hid');last=y;return}
+  if(innerWidth>767||TAB==='match'){bar.classList.remove('hid');last=y;return}
   if(y>last+8&&y>140&&!bar.classList.contains('sopen')&&document.activeElement.id!=='q')bar.classList.add('hid');else if(y<last-8||y<80)bar.classList.remove('hid');last=y})},{passive:true})})();
 
 /* =========================================================
@@ -1618,7 +1631,7 @@ function drawGalaxy(){
   const pts=[];let mx=0;for(let i=0;i<N;i++){const s=T(st,i);if(s<MIN)continue;pts.push({i,t:s,gp:st.tot[0][i]/s,m:st.med[i]});if(s>mx)mx=s}
   const l0=Math.log10(MIN),l1=Math.log10(mx*1.15);
   const X=y=>P.l+(y-Y0)/(Y1-Y0)*(W-P.l-P.r),Yf=v=>H-P.b-(Math.log10(v)-l0)/(l1-l0)*(H-P.t-P.b);
-  const fnt='IBM Plex Sans Hebrew, system-ui, sans-serif';
+  const fnt='-apple-system, BlinkMacSystemFont, Segoe UI, system-ui, Arial, sans-serif';
   ctx.strokeStyle=css('--grid');ctx.fillStyle=css('--muted');ctx.lineWidth=1;ctx.font=`11px ${fnt}`;
   ctx.textAlign='center';for(let d=1950;d<=2020;d+=10){const x=X(d);ctx.beginPath();ctx.moveTo(x,P.t);ctx.lineTo(x,H-P.b);ctx.stroke();ctx.fillText(d,x,H-7)}
   ctx.textAlign='right';for(const v of[300,1000,3000,10000,30000,100000]){if(v>mx*1.15||v<MIN)continue;const y=Yf(v);ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(W-P.r,y);ctx.stroke();ctx.fillText(kfmt(v),P.l-6,y+4)}
@@ -1730,6 +1743,8 @@ function renderName(){
   pills.push(`<span class="pill">${t(`נפוץ יותר מ-${pct}% מהשמות`,`More common than ${pct}% of names`)}</span>`);
   if(best[0]<=10)pills.push(`<span class="pill acc">${best[0]===1?t('היה מקום ראשון','Was #1'):t('היה בטופ 10','Was top 10')} (${t('מקום ','#')}${best[0]} ${t('ב-','in ')}${Y0+best[1]})</span>`);
   if(yrsIn===NY)pills.push(`<span class="pill">${t(`נוכח בכל ${NY} השנים`,`Present in all ${NY} years`)}</span>`);
+  /* the three that say the most go first (character, top rank, trend), the rest fold under "more" */
+  {const pri=p=>/pill acc/.test(p)?0:/pill (up|down)/.test(p)?1:/pill sec/.test(p)?2:3;pills.sort((a,b)=>pri(a)-pri(b));}
   const oneIn=Math.round(st.DD[pk]/c[pk]);
   const age=NOW-med;const gw=(fem,mas,both)=>gp>=80?fem:gp<=20?mas:both;
   const secTot=where.reduce((a,q)=>a+q,0);
@@ -1745,7 +1760,7 @@ function renderName(){
       `Since ${Y0}, <b>${fmt(tot)}</b> babies got this name. ${atStart(pk)?`It was already most common when records began in <b>${Y0}</b> (1 in <b>${fmt(oneIn)}</b>).`:`It peaked in <b>${Y0+pk}</b>, when 1 in every <b>${fmt(oneIn)}</b> babies was named ${dn}.`} The typical ${dn} was born in <b>${med}</b>, so is about <b>${age}</b> today.`)}</p>
     ${LANG!=='en'&&MEAN.has(nm)?`<p class="meaning"><span>${t('פירוש השם','Meaning')}</span>${esc(MEAN.get(nm))}</p>`:''}
     ${LANG!=='en'&&STORY.has(nm)?`<p class="story">${esc(STORY.get(nm))}</p>`:''}
-    <div class="pills">${(S?pills.slice(0,3):pills).join('')}</div>
+    <div class="pills">${pills.slice(0,3).join('')}${!S&&pills.length>3?`<details class="pmore"><summary>${t(`עוד ${pills.length-3}`,`${pills.length-3} more`)}</summary><div class="pills">${pills.slice(3).join('')}</div></details>`:''}</div>
     ${`<div class="heat">${Array.from(sh,(q,y)=>`<i title="${Y0+y}: ${fmt(c[y])}" style="background:var(--accent);opacity:${q?(.08+.92*q/mxs).toFixed(2):0}"></i>`).join('')}</div>
     <div class="heatlab"><span>${Y0}</span><span>1970</span><span>1990</span><span>2010</span><span>${Y1}</span></div>`}
     <div class="stats">
@@ -1756,7 +1771,7 @@ function renderName(){
     </div>
     <div class="meter"><div class="row"><span class="g">${t('בנות','Girls')} ${gp.toFixed(gp>99||gp<1?1:0)}%</span><span class="b">${t('בנים','Boys')} ${(100-gp).toFixed(gp>99||gp<1?1:0)}%</span></div>
       <div class="track"><i style="width:${gp}%;background:var(--girl)"></i><i style="width:${100-gp}%;background:var(--boy)"></i></div></div>
-    <div class="actions">${favBtn(nm,'lbl big')}<button class="next" id="shlink">${icon('link')}${t(' שיתוף העמוד',' Share page')}</button><button class="copybtn" id="card">${t('כרטיס לשיתוף','Share card')}</button><button class="copybtn" id="cpy">${t('העתקת סיכום','Copy summary')}</button><button class="copybtn" id="tocmp">${t('הוספה להשוואה','Add to compare')}</button></div>
+    <div class="actions">${favBtn(nm,'lbl big')}<button class="next" id="shmenu" aria-haspopup="dialog">${icon('share')}${t('שיתוף','Share')}</button></div>
   </div>
   <div class="grid">
     <div class="card wide"><div class="head"><div><h3>${t(`הסיפור של ${esc(nm)} לאורך השנים`,`${dn} through the years`)}</h3><div class="sub" id="tsub"></div></div>
@@ -1777,10 +1792,12 @@ function renderName(){
       <div class="seg" id="relseg">${[['tw',t('תאומי זהות','Twins')],['var',t('כתיבים','Spellings')],['rhy',t('חרוזים','Rhymes')],['gem',t('גימטריה','Gematria')]].map(([k,l])=>`<button data-r="${k}" aria-pressed="${REL===k}">${l}</button>`).join('')}</div></div>
       <div class="rel" id="rel"></div></div>
   </div>`;
-  $('#card').onclick=()=>shareCard(i);
-
-  $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);
-  $('#tocmp').onclick=()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')};
+  /* one Share button opens an action sheet with every way to pass the name on */
+  $('#shmenu').onclick=()=>actionSheet(t(`שיתוף השם ${nm}`,`Share ${NM(i)}`),[
+    [t('שיתוף קישור לעמוד','Share link to this page'),'link',()=>shareName(i)],
+    [t('כרטיס לשיתוף (תמונה)','Share card (image)'),'image',()=>shareCard(i)],
+    [t('העתקת סיכום','Copy summary'),'copy',()=>copy(summary+'\n'+nameURL(i))],
+    [t('הוספה להשוואה','Add to compare'),'compare',()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')}]]);
   if(!S){$('#mseg').onclick=e=>{const bt=e.target.closest('[data-m]');if(bt){metric=bt.dataset.m;renderName();}};
   $('#tseg').onclick=e=>{const bt=e.target.closest('[data-t]');if(bt){tmode=bt.dataset.t;store.set('tmode',tmode);renderName();}};}
   // time chart
@@ -1905,14 +1922,14 @@ addEventListener('hashchange',()=>{const L=compareFromHash((location.hash||'').s
 
 /* ---------- "my name" story card (1080x1920) ---------- */
 async function makeMeCard(me,o){
-  try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
+  try{await Promise.all([document.fonts.load('700 200px Karantina'),Promise.resolve()])}catch(e){}
   const i=IDX.get(me.n),W=1080,H=1920;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   const C={bg:'#121326',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',line:me.x?'#4a95ee':'#f07a4a'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
   let grd=g.createRadialGradient(W*.85,H*.12,40,W*.85,H*.12,900);grd.addColorStop(0,'rgba(164,157,255,.32)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   grd=g.createRadialGradient(W*.1,H*.9,40,W*.1,H*.9,800);grd.addColorStop(0,'rgba(255,127,155,.16)');grd.addColorStop(1,'rgba(255,127,155,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?90:W-90;const AL=en?'left':'right';g.textAlign=AL;
-  const body='"IBM Plex Sans Hebrew", Arial, sans-serif';const K=s=>`700 ${s}px Karantina, ${body}`,B=(w,s)=>`${w} ${s}px ${body}`;
+  const body=FONT_UI;const K=s=>`700 ${s}px Karantina, ${body}`,B=(w,s)=>`${w} ${s}px ${body}`;
   const fit=(txt,font,size,max)=>{let s=size;g.font=font(s);while(g.measureText(txt).width>max&&s>40){s-=6;g.font=font(s)}return s};
   g.fillStyle=C.mut;g.font=B(600,36);g.fillText(en?'NAMES OF ISRAEL':'השמות של ישראל',X0,140);
   g.fillStyle=C.st;g.font=B(700,40);g.fillText(en?'What my name says about me':'מה השם שלי אומר עליי',X0,250);
@@ -2029,7 +2046,7 @@ function classHTML(nm,c,st,pk,gw,dom){const L=NY-1,sh=y=>st.DD[y]?c[y]/st.DD[y]:
    EXPLORE
    ========================================================= */
 let RY=store.get('ry',Y1), raceTimer=null, exEnd=store.get('end',0);
-const ROWH=30;
+const ROWH=44;   /* race rows: 44pt touch rows (HIG) */
 function stopRace(){if(raceTimer){clearInterval(raceTimer);raceTimer=null;const b=$('#rp');if(b)b.innerHTML=icon('play',1)+t(' ניגון',' Play')}}
 function drawRace(st){const y=RY-Y0;$('#ry').textContent=RY;const r2=$('#ry2');if(r2)r2.textContent=RY;
   for(const [x,sel] of [[0,'#rg'],[1,'#rb']]){const box=$(sel);if(!box)continue;const ids=st.top[x][y].slice(0,10);const mx=ids.length?st.Y[x][ids[0]*NY+y]:1;
@@ -2134,7 +2151,7 @@ function renderExplore(){
   let lx=store.get('lx',2);
   const drawLet=()=>{$('#lseg').innerHTML=[[2,t('כולם','All')],[0,t('בנות','Girls')],[1,t('בנים','Boys')]].map(([k,l])=>`<button data-k="${k}" aria-pressed="${k===lx}">${l}</button>`).join('');
     const AB='אבגדהוזחטיכלמנסעפצקרשת'.split('');const cnt=(a,b)=>{const m=Object.fromEntries(AB.map(c=>[c,0]));let TT=0;for(let i=0;i<N;i++){const f=NAMES[i][0];if(!(f in m))continue;for(const x of[0,1]){if(lx!==2&&x!==lx)continue;for(let y=a;y<=b;y++){const q=st.Y[x][i*NY+y];m[f]+=q;TT+=q}}}return AB.map(c=>TT?m[c]/TT*100:0)};
-    const o4=chartBase();o4.scales.x.ticks.maxTicksLimit=30;o4.scales.x.ticks.font={size:13,family:'IBM Plex Sans Hebrew',weight:'600'};o4.scales.x.reverse=true;o4.scales.y.ticks.callback=q=>q+'%';o4.plugins.tooltip.callbacks={label:q=>` ${q.dataset.label}: ${q.parsed.y.toFixed(1)}%`};
+    const o4=chartBase();o4.scales.x.ticks.maxTicksLimit=30;o4.scales.x.ticks.font={size:13,family:FONT_UI,weight:'600'};o4.scales.x.reverse=true;o4.scales.y.ticks.callback=q=>q+'%';o4.plugins.tooltip.callbacks={label:q=>` ${q.dataset.label}: ${q.parsed.y.toFixed(1)}%`};
     mk('cLet',{type:'bar',data:{labels:AB,datasets:[{label:t('שנות ה-50','1950s'),data:cnt(1,10),backgroundColor:css('--c4'),borderRadius:4,borderSkipped:'bottom'},{label:`${Y1-4}–${Y1}`,data:cnt(NY-5,NY-1),backgroundColor:css('--c3'),borderRadius:4,borderSkipped:'bottom'}]},options:o4});};
   drawLet();$('#lseg').onclick=e=>{const b=e.target.closest('[data-k]');if(b){lx=+b.dataset.k;store.set('lx',lx);drawLet()}};
   const o6=chartBase();o6.scales.y.stacked=true;o6.plugins.tooltip.callbacks={label:q=>` ${q.dataset.label}: ${fmt(q.parsed.y)}`};
@@ -3266,6 +3283,8 @@ function renderDec(){const el=$('#g-dec');if(!G.q)newQ();
 (function boot(){const H0=(location.hash||'').slice(1);let t0=H0;if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0='home';   /* a plain visit always opens the home page */TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
   const isSaved=/^saved\./.test(H0);if(isSaved){t0='home';TAB='home'}const miss=URL_MISS;if(miss){t0='home';TAB='home'}renderShell();setTab(t0);if(isSaved)checkSavedHash(H0);if(miss)notFound(miss);try{document.activeElement&&document.activeElement.blur()}catch(e){}
   const mq=matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',()=>{GAME_BUILT=null;rerender()});
-  new MutationObserver(()=>{GAME_BUILT=null;rerender()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});})();
+  new MutationObserver(()=>{GAME_BUILT=null;rerender()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  /* the theme follows the device: redraw the charts (they read the CSS colors) when it switches */
+  try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{GAME_BUILT=null;rerender()})}catch(e){}})();
 
 })();
