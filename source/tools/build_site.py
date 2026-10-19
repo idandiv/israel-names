@@ -290,6 +290,11 @@ for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
         title, desc, path, static_shell(k, f'<p class="k">השמות של ישראל · אוספי שמות</p><h1>{name}</h1>{lead}{lists}'),
         app=False))
 
+# ---- temporary /design-preview for the redesign (noindex, not in the sitemap; remove before merging) ----
+import design_preview
+open(SRC + 'design-preview.html', 'w').write(page('בחירת צבע | השמות של ישראל', 'תצוגה זמנית לבחירת עיצוב.', '/design-preview',
+    design_preview.body(), noindex=True, app=False))
+
 # ---- home + 404 ----
 top = [x['n'] for x in sorted(NAMES, key=lambda x: -x['last'])[:40]]
 home_body = f'''<article class="seo"><h1>השמות של ישראל</h1><p>{H.escape(SITE_D)}</p>
