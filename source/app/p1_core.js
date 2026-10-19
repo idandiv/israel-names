@@ -222,9 +222,9 @@ function nameFacts(i,Fx){const st=stats(Fx);const c=comb(st,i),sh=share(st,i);le
 async function makeCard(i,extra){
   try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
   const f=nameFacts(i,-1);const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
-  const C={bg:'#14152a',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',girl:'#f07a4a',boy:'#4a95ee'};
+  const C={bg:'#101119',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#9d99ed',st:'#ff7f9b',girl:'#f07a4a',boy:'#4a95ee'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
-  const grd=g.createRadialGradient(W*.8,H*.15,50,W*.8,H*.15,700);grd.addColorStop(0,'rgba(164,157,255,.28)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
+
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?80:W-80;g.textAlign=en?'left':'right';
   const body='"IBM Plex Sans Hebrew", Arial, sans-serif';
   g.fillStyle=C.mut;g.font=`600 34px ${body}`;g.fillText(en?'NAMES OF ISRAEL':'השמות של ישראל',X0,110);
@@ -243,7 +243,7 @@ async function makeCard(i,extra){
   // chart
   const cx=80,cw=W-160,ch=360,cy=y+ch;const m=Math.max(...f.sh)||1;
   g.beginPath();g.moveTo(cx,cy);f.sh.forEach((v,k)=>g.lineTo(cx+k/(NY-1)*cw,cy-v/m*ch));g.lineTo(cx+cw,cy);g.closePath();
-  const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(164,157,255,.55)');ag.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=ag;g.fill();
+  const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(157,153,237,.4)');ag.addColorStop(1,'rgba(157,153,237,0)');g.fillStyle=ag;g.fill();
   g.beginPath();f.sh.forEach((v,k)=>{const px=cx+k/(NY-1)*cw,py=cy-v/m*ch;k?g.lineTo(px,py):g.moveTo(px,py)});g.strokeStyle=C.acc;g.lineWidth=6;g.lineJoin='round';g.stroke();
   g.fillStyle=C.mut;g.font=`500 26px ${body}`;g.direction='ltr';g.textAlign='left';g.fillText(String(Y0),cx,cy+40);g.textAlign='right';g.fillText(String(Y1),cx+cw,cy+40);g.direction=en?'ltr':'rtl';
   y=cy+80;

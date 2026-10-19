@@ -1511,9 +1511,9 @@ function nameFacts(i,Fx){const st=stats(Fx);const c=comb(st,i),sh=share(st,i);le
 async function makeCard(i,extra){
   try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
   const f=nameFacts(i,-1);const W=1080,H=1350;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
-  const C={bg:'#14152a',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',girl:'#f07a4a',boy:'#4a95ee'};
+  const C={bg:'#101119',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#9d99ed',st:'#ff7f9b',girl:'#f07a4a',boy:'#4a95ee'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
-  const grd=g.createRadialGradient(W*.8,H*.15,50,W*.8,H*.15,700);grd.addColorStop(0,'rgba(164,157,255,.28)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
+
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?80:W-80;g.textAlign=en?'left':'right';
   const body='"IBM Plex Sans Hebrew", Arial, sans-serif';
   g.fillStyle=C.mut;g.font=`600 34px ${body}`;g.fillText(en?'NAMES OF ISRAEL':'השמות של ישראל',X0,110);
@@ -1532,7 +1532,7 @@ async function makeCard(i,extra){
   // chart
   const cx=80,cw=W-160,ch=360,cy=y+ch;const m=Math.max(...f.sh)||1;
   g.beginPath();g.moveTo(cx,cy);f.sh.forEach((v,k)=>g.lineTo(cx+k/(NY-1)*cw,cy-v/m*ch));g.lineTo(cx+cw,cy);g.closePath();
-  const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(164,157,255,.55)');ag.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=ag;g.fill();
+  const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(157,153,237,.4)');ag.addColorStop(1,'rgba(157,153,237,0)');g.fillStyle=ag;g.fill();
   g.beginPath();f.sh.forEach((v,k)=>{const px=cx+k/(NY-1)*cw,py=cy-v/m*ch;k?g.lineTo(px,py):g.moveTo(px,py)});g.strokeStyle=C.acc;g.lineWidth=6;g.lineJoin='round';g.stroke();
   g.fillStyle=C.mut;g.font=`500 26px ${body}`;g.direction='ltr';g.textAlign='left';g.fillText(String(Y0),cx,cy+40);g.textAlign='right';g.fillText(String(Y1),cx+cw,cy+40);g.direction=en?'ltr':'rtl';
   y=cy+80;
@@ -1585,7 +1585,7 @@ function renderHome(){
   <div class="card homesaved" id="homesaved" hidden></div>
   <div class="ctapair">
   <button class="gencta" id="gencta"><span class="gl1">${icon('gen')}</span><span><b>${t('מחפשים שם לתינוק?','Looking for a baby name?')}</b><span>${t('פתחו את מחולל השמות: לפי משמעות, אופי ומגמה, עם רשימת מועדפים לשיתוף.','Open the name finder: by meaning, vibe and trend, with a shareable shortlist.')}</span></span><span class="go">${t('למחולל','Open')} ${icon('arrow')}</span></button>
-  <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
+  <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}</button>
   </div>
   ${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<div class="nmnewwrap"><button class="linkbtn" id="nmnewroom">${t('+ חדר חדש','+ New room')}</button><span aria-hidden="true">·</span><button class="linkbtn" id="nmallrooms">${t(`החדרים שלי (${nmRoomCount()})`,`My rooms (${nmRoomCount()})`)}</button></div>`:''})()}
   <div class="tiles3 two">
@@ -1718,14 +1718,14 @@ function renderName(){
   {const wt=where.reduce((a,q)=>a+q,0);const ds=where.indexOf(Math.max(...where));const dp=where[ds]/wt*100;
    pills.push(dp>=97?`<span class="pill sec s${ds}">${t('ניתן כמעט רק אצל ','Almost only ')}${sectName(ds)}</span>`:`<span class="pill sec s${ds}">${t('בעיקר אצל ','Mostly ')}${sectName(ds)} · ${Math.round(dp)}%</span>`);}
   {const pp=paPill(nm);if(pp)pills.push(pp);}
-  if(mom>=9)pills.push(`<span class="pill up">${t('שם חדש לגמרי','Brand-new name')}</span>`);
-  else if(mom>0.5)pills.push(`<span class="pill up">${t('בהמראה','Taking off')}: <bdi dir="ltr">+${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
-  else if(mom>0.1)pills.push(`<span class="pill up">${t('בעלייה','Rising')}: <bdi dir="ltr">+${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
-  else if(mom<-0.5)pills.push(`<span class="pill down">${t('בצניחה','Plunging')}: <bdi dir="ltr">${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
-  else if(mom<-0.1)pills.push(`<span class="pill down">${t('בירידה','Falling')}: <bdi dir="ltr">${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  if(mom>=9)pills.push(`<span class="pill up">↑ ${t('שם חדש לגמרי','Brand-new name')}</span>`);
+  else if(mom>0.5)pills.push(`<span class="pill up">↑ ${t('בהמראה','Taking off')}: <bdi dir="ltr">+${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  else if(mom>0.1)pills.push(`<span class="pill up">↑ ${t('בעלייה','Rising')}: <bdi dir="ltr">+${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  else if(mom<-0.5)pills.push(`<span class="pill down">↓ ${t('בצניחה','Plunging')}: <bdi dir="ltr">${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  else if(mom<-0.1)pills.push(`<span class="pill down">↓ ${t('בירידה','Falling')}: <bdi dir="ltr">${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
   else if(c[L])pills.push(`<span class="pill">${t('יציב בעשור האחרון','Stable this decade')}</span>`);
   if(!c[L])pills.push(`<span class="pill down">${t(`לא ניתן ב-${Y1} (פחות מ-5)`,`Not given in ${Y1} (under 5)`)}</span>`);
-  pills.push(`<span class="pill acc">${sexWord}</span>`);
+  pills.push(`<span class="pill ${gp>=60?'sxg':gp<=40?'sxb':''}">${sexWord}</span>`);
   pills.push(`<span class="pill">${generation(med)}</span>`);
   pills.push(`<span class="pill">${t(`נפוץ יותר מ-${pct}% מהשמות`,`More common than ${pct}% of names`)}</span>`);
   if(best[0]<=10)pills.push(`<span class="pill acc">${best[0]===1?t('היה מקום ראשון','Was #1'):t('היה בטופ 10','Was top 10')} (${t('מקום ','#')}${best[0]} ${t('ב-','in ')}${Y0+best[1]})</span>`);
@@ -1745,7 +1745,7 @@ function renderName(){
       `Since ${Y0}, <b>${fmt(tot)}</b> babies got this name. ${atStart(pk)?`It was already most common when records began in <b>${Y0}</b> (1 in <b>${fmt(oneIn)}</b>).`:`It peaked in <b>${Y0+pk}</b>, when 1 in every <b>${fmt(oneIn)}</b> babies was named ${dn}.`} The typical ${dn} was born in <b>${med}</b>, so is about <b>${age}</b> today.`)}</p>
     ${LANG!=='en'&&MEAN.has(nm)?`<p class="meaning"><span>${t('פירוש השם','Meaning')}</span>${esc(MEAN.get(nm))}</p>`:''}
     ${LANG!=='en'&&STORY.has(nm)?`<p class="story">${esc(STORY.get(nm))}</p>`:''}
-    <div class="pills">${(S?pills.slice(0,3):pills).join('')}</div>
+    <div class="pills">${(()=>{const P=S?pills.slice(0,3):pills,M=5;return P.length>M+1?P.slice(0,M).join('')+`<span class="pmore" hidden>${P.slice(M).join('')}</span><button class="pill more" id="pmore" aria-expanded="false">${t(`עוד ${P.length-M}`,`${P.length-M} more`)}</button>`:P.join('')})()}</div>
     ${`<div class="heat">${Array.from(sh,(q,y)=>`<i title="${Y0+y}: ${fmt(c[y])}" style="background:var(--accent);opacity:${q?(.08+.92*q/mxs).toFixed(2):0}"></i>`).join('')}</div>
     <div class="heatlab"><span>${Y0}</span><span>1970</span><span>1990</span><span>2010</span><span>${Y1}</span></div>`}
     <div class="stats">
@@ -1778,6 +1778,7 @@ function renderName(){
       <div class="rel" id="rel"></div></div>
   </div>`;
   $('#card').onclick=()=>shareCard(i);
+  {const pm=$('#pmore');if(pm)pm.onclick=()=>{pm.previousElementSibling.hidden=false;pm.remove()}}
 
   $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);
   $('#tocmp').onclick=()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')};
@@ -1907,10 +1908,8 @@ addEventListener('hashchange',()=>{const L=compareFromHash((location.hash||'').s
 async function makeMeCard(me,o){
   try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
   const i=IDX.get(me.n),W=1080,H=1920;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
-  const C={bg:'#121326',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',line:me.x?'#4a95ee':'#f07a4a'};
+  const C={bg:'#101119',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#9d99ed',st:'#ff7f9b',line:me.x?'#4a95ee':'#f07a4a'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
-  let grd=g.createRadialGradient(W*.85,H*.12,40,W*.85,H*.12,900);grd.addColorStop(0,'rgba(164,157,255,.32)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
-  grd=g.createRadialGradient(W*.1,H*.9,40,W*.1,H*.9,800);grd.addColorStop(0,'rgba(255,127,155,.16)');grd.addColorStop(1,'rgba(255,127,155,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?90:W-90;const AL=en?'left':'right';g.textAlign=AL;
   const body='"IBM Plex Sans Hebrew", Arial, sans-serif';const K=s=>`700 ${s}px Karantina, ${body}`,B=(w,s)=>`${w} ${s}px ${body}`;
   const fit=(txt,font,size,max)=>{let s=size;g.font=font(s);while(g.measureText(txt).width>max&&s>40){s-=6;g.font=font(s)}return s};
@@ -1935,7 +1934,7 @@ async function makeMeCard(me,o){
   // chart with birth-year marker
   const ch=Math.max(160,Math.min(340,H-265-y)),cx=90,cw=W-180,cy=y+ch;const m=Math.max(...o.sh)||1;
   g.beginPath();g.moveTo(cx,cy);o.sh.forEach((v,k)=>g.lineTo(cx+k/(NY-1)*cw,cy-v/m*ch));g.lineTo(cx+cw,cy);g.closePath();
-  const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(164,157,255,.5)');ag.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=ag;g.fill();
+  const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(157,153,237,.4)');ag.addColorStop(1,'rgba(157,153,237,0)');g.fillStyle=ag;g.fill();
   g.beginPath();o.sh.forEach((v,k)=>{const px=cx+k/(NY-1)*cw,py=cy-v/m*ch;k?g.lineTo(px,py):g.moveTo(px,py)});g.strokeStyle=C.line;g.lineWidth=7;g.lineJoin='round';g.stroke();
   const yi=me.y-Y0,mx=cx+yi/(NY-1)*cw,my=cy-o.sh[yi]/m*ch;g.setLineDash([10,10]);g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=3;g.beginPath();g.moveTo(mx,cy);g.lineTo(mx,my);g.stroke();g.setLineDash([]);
   g.fillStyle=C.st;g.beginPath();g.arc(mx,my,16,0,7);g.fill();g.strokeStyle=C.bg;g.lineWidth=6;g.stroke();
@@ -2235,7 +2234,7 @@ function quickView(i){const st=stats(-1),n=NAMES[i],inf=nameInfo(st,i),tag=charT
   m.innerHTML=`<div class="mbox qv" role="dialog" aria-label="${esc(NM(i))}"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>
     <div class="qvtop"><div><div class="qvn">${nmh(i)}</div>${LANG==='en'?`<div class="nmhe" dir="rtl">${esc(n)}</div>`:''}</div>${favBtn(n,'lbl')}</div>
     ${MEAN.has(n)&&LANG!=='en'?`<p class="qvm">${esc(MEAN.get(n))}</p>`:''}
-    <div class="qvtags"><span class="ctag c-${tag[0]}">${tag[1]}</span>${paPill(n)}<span class="pill">${gp>=.85?t('שם של בנות','Girls’ name'):gp<=.15?t('שם של בנים','Boys’ name'):t('יוניסקס','Unisex')}</span>${secTag(i)}${th.map(l=>`<span class="pill acc">${l}</span>`).join('')}</div>
+    <div class="qvtags"><span class="ctag c-${tag[0]}">${tag[0]==='up'||tag[0]==='new'?'↑ ':tag[0]==='down'?'↓ ':''}${tag[1]}</span>${paPill(n)}<span class="pill ${gp>=.6?'sxg':gp<=.4?'sxb':''}">${gp>=.85?t('שם של בנות','Girls’ name'):gp<=.15?t('שם של בנים','Boys’ name'):t('יוניסקס','Unisex')}</span>${secTag(i)}${th.map(l=>`<span class="pill">${l}</span>`).join('')}</div>
     <div class="qvchart">${spark(sh,320,64)}<div class="heatlab"><span>${Y0}</span><span>${Y1}</span></div></div>
     <div class="endst"><div><b>${fmt(inf.c[NY-1])}</b><span>${t(`תינוקות ב-${Y1}`,`babies in ${Y1}`)}${rk?` · ${t('מקום ','#')}${rk}`:''}</span></div><div><b>${Y0+pk}</b><span>${t('שנת השיא','peak year')}</span></div><div><b>${st.med[i]||'—'}</b><span>${t('שנת לידה טיפוסית','typical birth year')}</span></div></div>
     <div class="qvfacts"><span>${LEN[i]} ${t('אותיות','letters')}</span>${syl?`<span>${t(`בערך ${syl} הברות`,`~${syl} syllables`)}</span>`:''}<span>${t('גימטריה','Gematria')} ${GEMS[i]}</span><span>${kfmt(s)} ${t('מאז 1949','since 1949')}</span></div>
@@ -2258,7 +2257,7 @@ function genCard(st,i,extra=''){const inf=nameInfo(st,i);const tag=charTag(st,i,
   return `<div class="gcard2 fade" data-q="${i}" role="button" tabindex="0" aria-label="${esc(NM(i))}">${favBtn(n,'corner')}
     <span class="nm3">${nmh(i)}</span>${LANG==='en'?`<small dir="rtl">${esc(n)}</small>`:''}
     ${shortMean(i)?`<span class="gmean">${esc(shortMean(i))}</span>`:''}
-    <span class="ctag c-${tag[0]}">${tag[1]}</span>${extra}
+    <span class="ctag c-${tag[0]}">${tag[0]==='up'||tag[0]==='new'?'↑ ':tag[0]==='down'?'↓ ':''}${tag[1]}</span>${extra}
     <span class="gfoot">${spark(share(st,i).slice(NY-30),84,20,tag[0]==='up'||tag[0]==='new'?'var(--good)':'var(--accent)')}<small>${inf.c[NY-1]?t(`${fmt(inf.c[NY-1])} ב-${Y1}`,`${fmt(inf.c[NY-1])} in ${Y1}`):t(`שיא ב-${Y0+inf.my}`,`peaked ${Y0+inf.my}`)}</small></span></div>`}
 function wireCards(el){el.addEventListener('click',e=>{if(e.target.closest('[data-fav]'))return;const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)});
   el.addEventListener('keydown',e=>{if(e.key==='Enter'){const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)}})}
@@ -2274,9 +2273,9 @@ function renderGen(){const sec=$('#tab-gen');
 function genFree(){const body=$('#gbody');const opt=(k,v,l,ex)=>`<button data-k="${k}" data-v="${v}" aria-pressed="${GEN[k]===v}" class="${ex?'rich':''}">${l}${ex?`<small>${ex}</small>`:''}</button>`;
   const AB='אבגדהוזחטיכלמנסעפצקרשת'.split('');const TL=THEME_LAB();
   body.innerHTML=`<div class="card genpanel" id="genf">
-    <div class="gstep"><div class="gsl"><span class="num">1</span>${t('למי?','For a')}</div><div class="seg big">${opt('sex','F',t('בת','Girl'))}${opt('sex','M',t('בן','Boy'))}${opt('sex','U',t('יוניסקס','Unisex'))}</div></div>
-    <div class="gstep"><div class="gsl"><span class="num">2</span>${t('משמעות ועולם תוכן','Meaning & theme')}</div><div class="themegrid">${['any','nature','light','bible','intl','strength'].map(k=>opt('theme',k,TL[k],k==='any'?t('כל המשמעויות','All meanings'):THEME_EX[k])).join('')}</div></div>
-    <div class="gstep"><div class="gsl"><span class="num">3</span>${t('אופי ומגמה','Character & trend')}</div><div class="chips sel">${opt('vibe','any',t('הכול','Any'))}${opt('vibe','trend',t('טרנדי עכשיו','Trending'))}${opt('vibe','classic',t('קלאסי','Classic'))}${opt('vibe','rare',t('נדיר ומיוחד','Rare'))}${opt('vibe','vintage',t('וינטג׳','Vintage'))}${opt('vibe','new',t('חדש לגמרי','Brand new'))}</div></div>
+    <div class="gstep"><div class="gsl">${t('למי?','For a')}</div><div class="seg big">${opt('sex','F',t('בת','Girl'))}${opt('sex','M',t('בן','Boy'))}${opt('sex','U',t('יוניסקס','Unisex'))}</div></div>
+    <div class="gstep"><div class="gsl">${t('משמעות ועולם תוכן','Meaning & theme')}</div><div class="themegrid">${['any','nature','light','bible','intl','strength'].map(k=>opt('theme',k,TL[k],k==='any'?t('כל המשמעויות','All meanings'):THEME_EX[k])).join('')}</div></div>
+    <div class="gstep"><div class="gsl">${t('אופי ומגמה','Character & trend')}</div><div class="chips sel">${opt('vibe','any',t('הכול','Any'))}${opt('vibe','trend',t('טרנדי עכשיו','Trending'))}${opt('vibe','classic',t('קלאסי','Classic'))}${opt('vibe','rare',t('נדיר ומיוחד','Rare'))}${opt('vibe','vintage',t('וינטג׳','Vintage'))}${opt('vibe','new',t('חדש לגמרי','Brand new'))}</div></div>
     <button class="moretoggle" id="gmore" aria-expanded="${GEN.more}">${GEN.more?t('פחות אפשרויות','Fewer options'):t('עוד אפשרויות: מגזר, אורך ואות ראשונה','More: community, length, first letter')}</button>
     ${GEN.more?`<div class="gextra">
       <div class="fl"><span>${t('מגזר','Community')}</span><div class="chips sel">${[[-1,t('כולם','All')],...SECT().map((s,k)=>[k,s])].map(([v,l])=>`<button data-f="${v}" aria-pressed="${F===v}">${l}</button>`).join('')}</div></div>

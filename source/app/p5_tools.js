@@ -81,7 +81,7 @@ function quickView(i){const st=stats(-1),n=NAMES[i],inf=nameInfo(st,i),tag=charT
   m.innerHTML=`<div class="mbox qv" role="dialog" aria-label="${esc(NM(i))}"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>
     <div class="qvtop"><div><div class="qvn">${nmh(i)}</div>${LANG==='en'?`<div class="nmhe" dir="rtl">${esc(n)}</div>`:''}</div>${favBtn(n,'lbl')}</div>
     ${MEAN.has(n)&&LANG!=='en'?`<p class="qvm">${esc(MEAN.get(n))}</p>`:''}
-    <div class="qvtags"><span class="ctag c-${tag[0]}">${tag[1]}</span>${paPill(n)}<span class="pill">${gp>=.85?t('שם של בנות','Girls’ name'):gp<=.15?t('שם של בנים','Boys’ name'):t('יוניסקס','Unisex')}</span>${secTag(i)}${th.map(l=>`<span class="pill acc">${l}</span>`).join('')}</div>
+    <div class="qvtags"><span class="ctag c-${tag[0]}">${tag[0]==='up'||tag[0]==='new'?'↑ ':tag[0]==='down'?'↓ ':''}${tag[1]}</span>${paPill(n)}<span class="pill ${gp>=.6?'sxg':gp<=.4?'sxb':''}">${gp>=.85?t('שם של בנות','Girls’ name'):gp<=.15?t('שם של בנים','Boys’ name'):t('יוניסקס','Unisex')}</span>${secTag(i)}${th.map(l=>`<span class="pill">${l}</span>`).join('')}</div>
     <div class="qvchart">${spark(sh,320,64)}<div class="heatlab"><span>${Y0}</span><span>${Y1}</span></div></div>
     <div class="endst"><div><b>${fmt(inf.c[NY-1])}</b><span>${t(`תינוקות ב-${Y1}`,`babies in ${Y1}`)}${rk?` · ${t('מקום ','#')}${rk}`:''}</span></div><div><b>${Y0+pk}</b><span>${t('שנת השיא','peak year')}</span></div><div><b>${st.med[i]||'—'}</b><span>${t('שנת לידה טיפוסית','typical birth year')}</span></div></div>
     <div class="qvfacts"><span>${LEN[i]} ${t('אותיות','letters')}</span>${syl?`<span>${t(`בערך ${syl} הברות`,`~${syl} syllables`)}</span>`:''}<span>${t('גימטריה','Gematria')} ${GEMS[i]}</span><span>${kfmt(s)} ${t('מאז 1949','since 1949')}</span></div>
@@ -104,7 +104,7 @@ function genCard(st,i,extra=''){const inf=nameInfo(st,i);const tag=charTag(st,i,
   return `<div class="gcard2 fade" data-q="${i}" role="button" tabindex="0" aria-label="${esc(NM(i))}">${favBtn(n,'corner')}
     <span class="nm3">${nmh(i)}</span>${LANG==='en'?`<small dir="rtl">${esc(n)}</small>`:''}
     ${shortMean(i)?`<span class="gmean">${esc(shortMean(i))}</span>`:''}
-    <span class="ctag c-${tag[0]}">${tag[1]}</span>${extra}
+    <span class="ctag c-${tag[0]}">${tag[0]==='up'||tag[0]==='new'?'↑ ':tag[0]==='down'?'↓ ':''}${tag[1]}</span>${extra}
     <span class="gfoot">${spark(share(st,i).slice(NY-30),84,20,tag[0]==='up'||tag[0]==='new'?'var(--good)':'var(--accent)')}<small>${inf.c[NY-1]?t(`${fmt(inf.c[NY-1])} ב-${Y1}`,`${fmt(inf.c[NY-1])} in ${Y1}`):t(`שיא ב-${Y0+inf.my}`,`peaked ${Y0+inf.my}`)}</small></span></div>`}
 function wireCards(el){el.addEventListener('click',e=>{if(e.target.closest('[data-fav]'))return;const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)});
   el.addEventListener('keydown',e=>{if(e.key==='Enter'){const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)}})}
@@ -120,9 +120,9 @@ function renderGen(){const sec=$('#tab-gen');
 function genFree(){const body=$('#gbody');const opt=(k,v,l,ex)=>`<button data-k="${k}" data-v="${v}" aria-pressed="${GEN[k]===v}" class="${ex?'rich':''}">${l}${ex?`<small>${ex}</small>`:''}</button>`;
   const AB='אבגדהוזחטיכלמנסעפצקרשת'.split('');const TL=THEME_LAB();
   body.innerHTML=`<div class="card genpanel" id="genf">
-    <div class="gstep"><div class="gsl"><span class="num">1</span>${t('למי?','For a')}</div><div class="seg big">${opt('sex','F',t('בת','Girl'))}${opt('sex','M',t('בן','Boy'))}${opt('sex','U',t('יוניסקס','Unisex'))}</div></div>
-    <div class="gstep"><div class="gsl"><span class="num">2</span>${t('משמעות ועולם תוכן','Meaning & theme')}</div><div class="themegrid">${['any','nature','light','bible','intl','strength'].map(k=>opt('theme',k,TL[k],k==='any'?t('כל המשמעויות','All meanings'):THEME_EX[k])).join('')}</div></div>
-    <div class="gstep"><div class="gsl"><span class="num">3</span>${t('אופי ומגמה','Character & trend')}</div><div class="chips sel">${opt('vibe','any',t('הכול','Any'))}${opt('vibe','trend',t('טרנדי עכשיו','Trending'))}${opt('vibe','classic',t('קלאסי','Classic'))}${opt('vibe','rare',t('נדיר ומיוחד','Rare'))}${opt('vibe','vintage',t('וינטג׳','Vintage'))}${opt('vibe','new',t('חדש לגמרי','Brand new'))}</div></div>
+    <div class="gstep"><div class="gsl">${t('למי?','For a')}</div><div class="seg big">${opt('sex','F',t('בת','Girl'))}${opt('sex','M',t('בן','Boy'))}${opt('sex','U',t('יוניסקס','Unisex'))}</div></div>
+    <div class="gstep"><div class="gsl">${t('משמעות ועולם תוכן','Meaning & theme')}</div><div class="themegrid">${['any','nature','light','bible','intl','strength'].map(k=>opt('theme',k,TL[k],k==='any'?t('כל המשמעויות','All meanings'):THEME_EX[k])).join('')}</div></div>
+    <div class="gstep"><div class="gsl">${t('אופי ומגמה','Character & trend')}</div><div class="chips sel">${opt('vibe','any',t('הכול','Any'))}${opt('vibe','trend',t('טרנדי עכשיו','Trending'))}${opt('vibe','classic',t('קלאסי','Classic'))}${opt('vibe','rare',t('נדיר ומיוחד','Rare'))}${opt('vibe','vintage',t('וינטג׳','Vintage'))}${opt('vibe','new',t('חדש לגמרי','Brand new'))}</div></div>
     <button class="moretoggle" id="gmore" aria-expanded="${GEN.more}">${GEN.more?t('פחות אפשרויות','Fewer options'):t('עוד אפשרויות: מגזר, אורך ואות ראשונה','More: community, length, first letter')}</button>
     ${GEN.more?`<div class="gextra">
       <div class="fl"><span>${t('מגזר','Community')}</span><div class="chips sel">${[[-1,t('כולם','All')],...SECT().map((s,k)=>[k,s])].map(([v,l])=>`<button data-f="${v}" aria-pressed="${F===v}">${l}</button>`).join('')}</div></div>
