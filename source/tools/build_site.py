@@ -32,24 +32,24 @@ css += """
 .seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;line-height:1.7}
 .seo h1{font-family:'Karantina',system-ui;font-size:56px;line-height:1;margin:8px 0 12px}
 .seo .k{color:var(--muted);font-size:14px}.seo ul{padding-inline-start:18px}
-.seo a{color:var(--accent,#a78bfa)}.seo .rel{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0}
+.seo a{color:var(--accent)}.seo .rel{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0}
 .seo .rel a{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 12px;text-decoration:none;color:var(--ink)}
 .seo .az a{display:inline-block;margin:2px 6px}
 /* app-less static pages: collections and the all-names hub (same look as the info pages) */
 .docin>.docbody .k{color:var(--muted);font-size:13px;margin:0}
 .docbody .coll{list-style:none;padding:0;margin:8px 0 8px;columns:2 260px;column-gap:24px}
 .docbody .coll li{margin:0;padding:8px 2px;border-bottom:1px solid var(--line);min-width:0;break-inside:avoid}
-.docbody .coll a{display:flex;align-items:baseline;gap:10px;border:0;color:var(--ink);font-weight:400;min-height:28px}
-.docbody .coll a:hover b{color:var(--accent)}
+.docbody .coll a{display:flex;align-items:baseline;gap:12px;border:0;color:var(--ink);font-weight:400;min-height:28px}
+.docbody .coll a b{transition:color var(--dur) ease}.docbody .coll a:hover b{color:var(--accent)}
 .docbody .coll .cr{color:var(--muted);font-size:13px;min-width:24px;font-variant-numeric:tabular-nums}
 .docbody .coll b{font-size:17px;font-weight:700}
 .docbody .coll .cn{margin-inline-start:auto;color:var(--muted);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .docbody .coll .cm{display:block;padding-inline-start:34px;color:var(--muted);font-size:13px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.docbody .coll .sx{font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:0 7px;margin-inline-end:6px}
+.docbody .coll .sx{font-size:var(--t-xs);border:1px solid var(--line);border-radius:var(--r-pill);padding:0 8px;margin-inline-end:8px}
 .docbody .coll .sx0{color:var(--girl,var(--muted))}.docbody .coll .sx1{color:var(--boy,var(--muted))}
 .collcta{margin-top:28px}
-.docbody .azjump{display:flex;flex-wrap:wrap;gap:4px;margin:18px 0 0}
-.docbody .azjump a{border:1px solid var(--line);border-radius:10px;min-width:36px;min-height:36px;display:inline-grid;place-items:center;color:var(--ink)}
+.docbody .azjump{display:flex;flex-wrap:wrap;gap:4px;margin:16px 0 0}
+.docbody .azjump a{border:1px solid var(--line);border-radius:var(--r-sm);min-width:36px;min-height:36px;display:inline-grid;place-items:center;color:var(--ink)}
 .docbody .seo-az h2{scroll-margin-top:80px}
 .docbody .seo-az .az a{display:inline-block;margin:2px 6px;border:0;font-weight:400}
 .docfoot p{margin:6px 0}.docfoot p a{color:var(--muted);font-weight:400}

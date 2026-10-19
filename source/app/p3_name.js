@@ -25,14 +25,14 @@ function renderName(){
   {const wt=where.reduce((a,q)=>a+q,0);const ds=where.indexOf(Math.max(...where));const dp=where[ds]/wt*100;
    pills.push(dp>=97?`<span class="pill sec s${ds}">${t('ניתן כמעט רק אצל ','Almost only ')}${sectName(ds)}</span>`:`<span class="pill sec s${ds}">${t('בעיקר אצל ','Mostly ')}${sectName(ds)} · ${Math.round(dp)}%</span>`);}
   {const pp=paPill(nm);if(pp)pills.push(pp);}
-  if(mom>=9)pills.push(`<span class="pill up">${t('שם חדש לגמרי','Brand-new name')}</span>`);
-  else if(mom>0.5)pills.push(`<span class="pill up">${t('בהמראה','Taking off')}: <bdi dir="ltr">+${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
-  else if(mom>0.1)pills.push(`<span class="pill up">${t('בעלייה','Rising')}: <bdi dir="ltr">+${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
-  else if(mom<-0.5)pills.push(`<span class="pill down">${t('בצניחה','Plunging')}: <bdi dir="ltr">${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
-  else if(mom<-0.1)pills.push(`<span class="pill down">${t('בירידה','Falling')}: <bdi dir="ltr">${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  if(mom>=9)pills.push(`<span class="pill up">↑ ${t('שם חדש לגמרי','Brand-new name')}</span>`);
+  else if(mom>0.5)pills.push(`<span class="pill up">↑ ${t('בהמראה','Taking off')}: <bdi dir="ltr">+${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  else if(mom>0.1)pills.push(`<span class="pill up">↑ ${t('בעלייה','Rising')}: <bdi dir="ltr">+${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  else if(mom<-0.5)pills.push(`<span class="pill down">↓ ${t('בצניחה','Plunging')}: <bdi dir="ltr">${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
+  else if(mom<-0.1)pills.push(`<span class="pill down">↓ ${t('בירידה','Falling')}: <bdi dir="ltr">${Math.round(mom*100)}%</bdi> ${t('בעשור','in a decade')}</span>`);
   else if(c[L])pills.push(`<span class="pill">${t('יציב בעשור האחרון','Stable this decade')}</span>`);
   if(!c[L])pills.push(`<span class="pill down">${t(`לא ניתן ב-${Y1} (פחות מ-5)`,`Not given in ${Y1} (under 5)`)}</span>`);
-  pills.push(`<span class="pill acc">${sexWord}</span>`);
+  pills.push(`<span class="pill ${gp>=60?'sxg':gp<=40?'sxb':''}">${sexWord}</span>`);
   pills.push(`<span class="pill">${generation(med)}</span>`);
   pills.push(`<span class="pill">${t(`נפוץ יותר מ-${pct}% מהשמות`,`More common than ${pct}% of names`)}</span>`);
   if(best[0]<=10)pills.push(`<span class="pill acc">${best[0]===1?t('היה מקום ראשון','Was #1'):t('היה בטופ 10','Was top 10')} (${t('מקום ','#')}${best[0]} ${t('ב-','in ')}${Y0+best[1]})</span>`);
@@ -52,7 +52,7 @@ function renderName(){
       `Since ${Y0}, <b>${fmt(tot)}</b> babies got this name. ${atStart(pk)?`It was already most common when records began in <b>${Y0}</b> (1 in <b>${fmt(oneIn)}</b>).`:`It peaked in <b>${Y0+pk}</b>, when 1 in every <b>${fmt(oneIn)}</b> babies was named ${dn}.`} The typical ${dn} was born in <b>${med}</b>, so is about <b>${age}</b> today.`)}</p>
     ${LANG!=='en'&&MEAN.has(nm)?`<p class="meaning"><span>${t('פירוש השם','Meaning')}</span>${esc(MEAN.get(nm))}</p>`:''}
     ${LANG!=='en'&&STORY.has(nm)?`<p class="story">${esc(STORY.get(nm))}</p>`:''}
-    <div class="pills">${(S?pills.slice(0,3):pills).join('')}</div>
+    <div class="pills">${(()=>{const P=S?pills.slice(0,3):pills,M=5;return P.length>M+1?P.slice(0,M).join('')+`<span class="pmore" hidden>${P.slice(M).join('')}</span><button class="pill more" id="pmore" aria-expanded="false">${t(`עוד ${P.length-M}`,`${P.length-M} more`)}</button>`:P.join('')})()}</div>
     ${`<div class="heat">${Array.from(sh,(q,y)=>`<i title="${Y0+y}: ${fmt(c[y])}" style="background:var(--accent);opacity:${q?(.08+.92*q/mxs).toFixed(2):0}"></i>`).join('')}</div>
     <div class="heatlab"><span>${Y0}</span><span>1970</span><span>1990</span><span>2010</span><span>${Y1}</span></div>`}
     <div class="stats">
@@ -85,6 +85,7 @@ function renderName(){
       <div class="rel" id="rel"></div></div>
   </div>`;
   $('#card').onclick=()=>shareCard(i);
+  {const pm=$('#pmore');if(pm)pm.onclick=()=>{pm.previousElementSibling.hidden=false;pm.remove()}}
 
   $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);
   $('#tocmp').onclick=()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')};
