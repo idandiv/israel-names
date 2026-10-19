@@ -200,7 +200,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .cmptbl td{padding:8px;border-top:1px solid var(--line);white-space:nowrap}
 .cmptbl td:first-child{display:flex;align-items:center;gap:8px}
 .cmptbl .cdot{width:10px;height:10px;border-radius:50%;flex:none}
-.cmptbl .up{color:#5fd39a}.cmptbl .dn{color:#ff7f9b}
+.cmptbl .up{color:var(--good)}.cmptbl .dn{color:var(--bad)}
 .linkname{all:unset;cursor:pointer;font-weight:700;color:var(--ink)}.linkname:hover{text-decoration:underline}
 .cmpact{display:flex;justify-content:flex-start;margin-top:12px}
 @media (max-width:520px){.cmptbl table{font-size:13px}.cmptbl th,.cmptbl td{padding:7px 5px}.lsrow{grid-template-columns:84px minmax(0,1fr) 40px}}

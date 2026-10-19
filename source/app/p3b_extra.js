@@ -24,10 +24,8 @@ addEventListener('hashchange',()=>{const L=compareFromHash((location.hash||'').s
 async function makeMeCard(me,o){
   try{await Promise.all([document.fonts.load('700 200px Karantina'),document.fonts.load('600 40px "IBM Plex Sans Hebrew"')])}catch(e){}
   const i=IDX.get(me.n),W=1080,H=1920;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
-  const C={bg:'#121326',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#a49dff',st:'#ff7f9b',line:me.x?'#4a95ee':'#f07a4a'};
+  const C={bg:'#101119',ink:'#f3f2ff',mut:'#a8a9c8',acc:'#9d99ed',st:'#ff7f9b',line:me.x?'#4a95ee':'#f07a4a'};
   g.fillStyle=C.bg;g.fillRect(0,0,W,H);
-  let grd=g.createRadialGradient(W*.85,H*.12,40,W*.85,H*.12,900);grd.addColorStop(0,'rgba(164,157,255,.32)');grd.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
-  grd=g.createRadialGradient(W*.1,H*.9,40,W*.1,H*.9,800);grd.addColorStop(0,'rgba(255,127,155,.16)');grd.addColorStop(1,'rgba(255,127,155,0)');g.fillStyle=grd;g.fillRect(0,0,W,H);
   const en=LANG==='en';g.direction=en?'ltr':'rtl';const X0=en?90:W-90;const AL=en?'left':'right';g.textAlign=AL;
   const body='"IBM Plex Sans Hebrew", Arial, sans-serif';const K=s=>`700 ${s}px Karantina, ${body}`,B=(w,s)=>`${w} ${s}px ${body}`;
   const fit=(txt,font,size,max)=>{let s=size;g.font=font(s);while(g.measureText(txt).width>max&&s>40){s-=6;g.font=font(s)}return s};
@@ -52,7 +50,7 @@ async function makeMeCard(me,o){
   // chart with birth-year marker
   const ch=Math.max(160,Math.min(340,H-265-y)),cx=90,cw=W-180,cy=y+ch;const m=Math.max(...o.sh)||1;
   g.beginPath();g.moveTo(cx,cy);o.sh.forEach((v,k)=>g.lineTo(cx+k/(NY-1)*cw,cy-v/m*ch));g.lineTo(cx+cw,cy);g.closePath();
-  const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(164,157,255,.5)');ag.addColorStop(1,'rgba(164,157,255,0)');g.fillStyle=ag;g.fill();
+  const ag=g.createLinearGradient(0,cy-ch,0,cy);ag.addColorStop(0,'rgba(157,153,237,.4)');ag.addColorStop(1,'rgba(157,153,237,0)');g.fillStyle=ag;g.fill();
   g.beginPath();o.sh.forEach((v,k)=>{const px=cx+k/(NY-1)*cw,py=cy-v/m*ch;k?g.lineTo(px,py):g.moveTo(px,py)});g.strokeStyle=C.line;g.lineWidth=7;g.lineJoin='round';g.stroke();
   const yi=me.y-Y0,mx=cx+yi/(NY-1)*cw,my=cy-o.sh[yi]/m*ch;g.setLineDash([10,10]);g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=3;g.beginPath();g.moveTo(mx,cy);g.lineTo(mx,my);g.stroke();g.setLineDash([]);
   g.fillStyle=C.st;g.beginPath();g.arc(mx,my,16,0,7);g.fill();g.strokeStyle=C.bg;g.lineWidth=6;g.stroke();

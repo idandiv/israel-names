@@ -105,7 +105,7 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
 {'<meta name="robots" content="noindex">' if noindex else f'<link rel="canonical" href="{canon}">'}
-<meta name="theme-color" content="#0f0e17">
+<meta name="theme-color" content="#101119">
 <meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="he_IL">

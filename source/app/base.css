@@ -163,8 +163,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 
 /* game */
 .vs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:stretch}
-.opt{border:2px solid var(--line);background:var(--surface);border-radius:18px;padding:22px 10px;text-align:center;color:var(--ink);transition:transform .15s,border-color .15s}
-.opt:hover{transform:translateY(-2px);border-color:var(--accent)}
+.opt{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-lg);padding:24px 12px;text-align:center;color:var(--ink);transition:border-color var(--dur) ease,background-color var(--dur) ease}
+.opt:hover{border-color:var(--accent)}
 .opt .nm2{font-family:var(--f-display);font-size:clamp(46px,10vw,72px);font-weight:700;line-height:.95}
 .opt .res{font-size:14px;color:var(--muted);min-height:22px;font-variant-numeric:tabular-nums}
 .opt.win{border-color:var(--good);background:color-mix(in srgb,var(--good) 10%,var(--surface))}
@@ -174,7 +174,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .score b{color:var(--ink);font-size:18px}
 .qopts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
 @media (max-width:520px){.qopts{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.qopts button{border:2px solid var(--line);background:var(--surface-2);border-radius:12px;padding:12px 6px;font-weight:700;font-size:16px;color:var(--ink)}
+.qopts button{border:1px solid var(--line);background:var(--surface-2);border-radius:var(--r);padding:12px 6px;font-weight:700;font-size:16px;color:var(--ink)}
 .qopts button.win{border-color:var(--good);color:var(--good)}
 .qopts button.lose{border-color:var(--bad);color:var(--bad)}
 .feedback{margin-top:10px;font-size:14px;color:var(--ink-2);min-height:22px}
