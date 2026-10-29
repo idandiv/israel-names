@@ -7,7 +7,7 @@
     "data": "python3 tools/make_data.py",
     "bundle": "python3 tools/build_bundle.py",
     "seo": "node tools/export_seo.mjs",
-    "site": "python3 tools/build_site.py",
+    "site": "python3 tools/meanings.py && python3 tools/build_site.py",
     "build": "npm run bundle && npm run seo && npm run site"
   },
   "dependencies": {
