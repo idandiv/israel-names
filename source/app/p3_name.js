@@ -47,7 +47,7 @@ function renderName(){
   <div class="hero fade">
     <div class="stamp"><div><small>${t('גימטריה','GEMATRIA')}</small><b class="tn">${gem(nm)}</b><small>${letters(nm)} ${t('אותיות','letters')}</small></div></div>
     <div class="eyebrow">${t('תיק שם','NAME FILE')} · ${F<0?t('כל המגזרים','All communities'):sectName(F)}</div>
-    <div class="nm">${dn}</div>${LANG==='en'?`<div class="nmhe" dir="rtl">${esc(nm)}</div>`:''}
+    <h1 class="nm">${dn}</h1>${LANG==='en'?`<div class="nmhe" dir="rtl">${esc(nm)}</div>`:''}
     <p class="tagline">${t(`מאז ${Y0} קיבלו את השם <b>${fmt(tot)}</b> תינוקות. ${atStart(pk)?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-<b>${Y0}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`:`השיא היה ב-<b>${Y0+pk}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`} ה${esc(nm)} ${gw('הטיפוסית נולדה','הטיפוסי נולד','הטיפוסי/ת נולד/ה')} ב-<b>${med}</b>, כלומר ${gw('בערך בת','בערך בן','בערך בן/בת')} <b>${age}</b> היום.`,
       `Since ${Y0}, <b>${fmt(tot)}</b> babies got this name. ${atStart(pk)?`It was already most common when records began in <b>${Y0}</b> (1 in <b>${fmt(oneIn)}</b>).`:`It peaked in <b>${Y0+pk}</b>, when 1 in every <b>${fmt(oneIn)}</b> babies was named ${dn}.`} The typical ${dn} was born in <b>${med}</b>, so is about <b>${age}</b> today.`)}</p>
     ${LANG!=='en'&&MEAN.has(nm)?`<p class="meaning"><span>${t('פירוש השם','Meaning')}</span>${esc(MEAN.get(nm))}</p>`:''}
@@ -79,7 +79,7 @@ function renderName(){
     <div class="card ${S?'wide':''}"><div class="head"><div><h3>${t('השנה שלך','Your year')}</h3><div class="sub">${t(`בחרו שנת לידה וגלו כמה ${esc(nm)} נולדו איתכם`,`Pick a birth year to see how many were born with you`)}</div></div></div>
       <div class="yr"><select id="ysel" aria-label="${t('שנת לידה','Birth year')}">${YEARS.slice().reverse().map(y=>`<option ${y===store.get('yr',1990)?'selected':''}>${y}</option>`).join('')}</select></div><div class="yrout" id="yout"></div></div>
     <div class="card wide"><div class="head"><div><h3>${t('פרופיל אופי השם','Name character profile')}</h3><div class="sub">${t(`איך ${esc(nm)} נראה בנתונים, לעומת שם טיפוסי`,`How ${dn} looks in the data, compared with a typical name`)}</div></div></div><div id="prof"></div></div>
-    <div class="card wide"><div class="head"><div><h3>${t('האם ידעת?','Did you know?')}</h3></div></div><div class="faq" id="faq"></div></div>
+    <div class="card wide"><div class="head"><div><h3>${t(`שאלות נפוצות על השם ${esc(nm)}`,'Did you know?')}</h3></div></div><div class="faq" id="faq"></div></div>
     <div class="card wide"><div class="head"><div><h3>${t(`שמות קרובים ל${esc(nm)}`,`Names related to ${dn}`)}</h3><div class="sub" id="relsub"></div></div>
       <div class="seg" id="relseg">${[['tw',t('תאומי זהות','Twins')],['var',t('כתיבים','Spellings')],['rhy',t('חרוזים','Rhymes')],['gem',t('גימטריה','Gematria')]].map(([k,l])=>`<button data-r="${k}" aria-pressed="${REL===k}">${l}</button>`).join('')}</div></div>
       <div class="rel" id="rel"></div></div>
@@ -145,7 +145,7 @@ function renderName(){
      return `<div class="ctile"><div class="ck">${lab}</div><div class="cv">${head}</div>${viz}</div>`};
    {const pf=$('#prof');if(pf)pf.innerHTML=profileHTML(i);const ls=$('#lstage');if(ls)ls.innerHTML=lifeStagesHTML(nm,c);}
    $('#classbox').innerHTML=classHTML(nm,c,st,pk,gw,dom);}
-  {const q=[];let my=0;for(let y=1;y<NY;y++)if(c[y]>c[my])my=y;
+  {const q=LANG==='en'?[]:seoFAQ(i).map(([a,b])=>[esc(a),esc(b)]);let my=0;for(let y=1;y<NY;y++)if(c[y]>c[my])my=y;
    q.push([t(`באיזו שנה נולדו הכי הרבה ${esc(nm)}?`,`Which year had the most babies named ${dn}?`),my===pk?t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. זו גם שנת השיא שלו.`,`${Y0+my}, with ${fmt(c[my])} babies, also its peak year.`):t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. ${atStart(pk)?`אבל ביחס למספר התינוקות שנולדו, הוא היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא היא ${Y0+pk}, כי אז הוא היה הכי נפוץ ביחס למספר התינוקות שנולדו באותה שנה.`}`,`${Y0+my}, with ${fmt(c[my])} babies. Its peak year is ${Y0+pk}, when it was most common relative to all births that year.`)]);
    let k10=0,k100=0;for(let y=0;y<NY;y++){const r=st.rank[dom][i*NY+y];if(r&&r<=10)k10++;if(r&&r<=100)k100++}
    q.push([t('כמה זמן השם היה בצמרת?','How long was it near the top?'),k10?t(`${k10} שנים בטופ 10, ו-${k100} שנים בטופ 100.`,`${k10} years in the top 10 and ${k100} in the top 100.`):k100?t(`הוא לא הגיע לטופ 10, אבל היה ${k100} שנים בטופ 100.`,`Never top 10, but ${k100} years in the top 100.`):t('הוא אף פעם לא נכנס לטופ 100. שם מיוחד באמת.','It never made the top 100. Truly distinctive.')]);

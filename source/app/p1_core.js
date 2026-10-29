@@ -146,7 +146,7 @@ function renderShell(){
   app.innerHTML=`
   <div class="bar">
     <div class="toprow">
-      <button class="brandbtn" id="home" aria-label="${t('לדף הבית','Home')}"><h1>${t('השמות של ישראל','Names of Israel')}</h1></button>
+      <button class="brandbtn" id="home" aria-label="${t('לדף הבית','Home')}"><h1 class="bt">${t('השמות של ישראל','Names of Israel')}</h1></button>
       <div class="search tsearch">${icon('search')}<input id="q" type="search" placeholder="${t('חיפוש שם…','Search a name…')}" autocomplete="off" aria-label="${t('חיפוש שם','Search a name')}"><div class="sugg" id="sugg" hidden></div></div>
       <button class="favtop" id="favtop" aria-label="${t('השמות ששמרתי','Saved names')}">${icon('save',1)}<span>${t('שמורים','Saved')}</span><b id="favcnt">0</b></button>
       <button class="srchbtn" id="srchbtn" aria-label="${t('חיפוש שם','Search')}">${icon('search')}</button>

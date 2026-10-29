@@ -3,7 +3,7 @@
 .bar{padding:10px 16px 0}
 .toprow{display:flex;align-items:center;gap:12px}
 .brandbtn{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:1px;flex:none}
-.brandbtn h1{font-family:var(--f-display);font-weight:700;font-size:32px;line-height:.95;color:var(--accent);margin:0}
+.brandbtn .bt{font-family:var(--f-display);font-weight:700;font-size:32px;line-height:.95;color:var(--accent);margin:0}
 .brandbtn small{font-size:11px;color:var(--muted);font-weight:600}
 .brandbtn:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 .tsearch{flex:1;margin:0;display:flex;align-items:center;position:relative;max-width:420px;margin-inline-start:auto}
@@ -18,7 +18,7 @@
 .mainnav button.hl{color:var(--ink)}
 .mainnav button.hl[aria-selected="true"]{color:var(--accent)}
 .mainnav button.hl span{background:linear-gradient(90deg,var(--accent),var(--stamp));-webkit-background-clip:text;background-clip:text;color:transparent}
-@media (max-width:560px){.toprow{flex-wrap:wrap}.tsearch{order:3;flex-basis:100%;max-width:none}.brandbtn h1{font-size:28px}.langbtn{margin-inline-start:auto}
+@media (max-width:560px){.toprow{flex-wrap:wrap}.tsearch{order:3;flex-basis:100%;max-width:none}.brandbtn .bt{font-size:28px}.langbtn{margin-inline-start:auto}
   .mainnav button{flex-direction:column;gap:3px;font-size:12px;padding:8px 2px 9px}}
 .pagehead{margin-top:18px}
 .pagehead h2{font-family:var(--f-display);font-size:clamp(46px,8vw,64px);font-weight:700;line-height:.9;margin:0;color:var(--ink)}
