@@ -3,7 +3,7 @@
 Reads:  source/dist/js_bundle.js + css_bundle.css (build_bundle.py), source/data/data.b64,
         source/data/seo.json (export_seo.mjs), source/assets/, source/node_modules (chart.js, supabase-js)
 Writes: <repo>/src/   (pages with the __BASE_URL__ placeholder, filled at deploy time by scripts/finalize.mjs)
-        <repo>/scripts/paths.json (sitemap list)
+        <repo>/scripts/paths.json (sitemap list), <repo>/scripts/lastmod.json (date each page's content last changed)
 Only src/ is replaced; the other repo-root files (vercel.json, finalize.mjs, supabase/...) are kept as they are.
 """
 import gzip, base64, json, hashlib, os, shutil, html as H
@@ -91,12 +91,40 @@ SITE_T = 'השמות של ישראל | מאגר שמות לתינוקות ומש
 SITE_D = 'מחפשים שם לתינוק? מאגר השמות המלא בישראל עם משמעויות, פופולריות לאורך השנים, ומשחק זוגי חדשני למציאת מאץ\' על השם המושלם. חינם לגמרי!'
 fmt = lambda n: f'{n:,}'
 enc = lambda n: __import__('urllib.parse').parse.quote(n, safe="'")
+LINKEDIN = 'https://www.linkedin.com/in/idan-diva/'
+# shared JSON-LD nodes: the site and its author (referenced by @id from every page)
+LD_SITE = {"@type": "WebSite", "@id": PH + "/#website", "name": "השמות של ישראל", "url": PH + "/", "inLanguage": "he",
+           "description": SITE_D, "publisher": {"@id": PH + "/#author"}}
+LD_AUTHOR = {"@type": "Person", "@id": PH + "/#author", "name": "עידן דיוה", "alternateName": "Idan Diva", "url": LINKEDIN, "sameAs": [LINKEDIN]}
+LD_DATA = {"@type": "CreativeWork", "name": f"שמות התינוקות שנולדו בישראל {Y0}–{Y1}",
+           "creator": {"@type": "Organization", "name": "הלשכה המרכזית לסטטיסטיקה", "url": "https://www.cbs.gov.il"}}
+
+# sitemap <lastmod>: a page's date changes only when its content does (hash kept in scripts/lastmod.json)
+LASTMOD_F = OUT + 'scripts/lastmod.json'
+try:
+    LASTMOD_OLD = json.load(open(LASTMOD_F, encoding='utf-8'))
+except (OSError, ValueError):
+    LASTMOD_OLD = {}
+LASTMOD = {}
+TODAY = __import__('datetime').date.today().isoformat()
+
+
+def modified(path, content):
+    path = __import__('urllib.parse').parse.unquote(path)   # readable keys: /names/נועה
+    h = hashlib.sha1(content.encode()).hexdigest()[:10]
+    old = LASTMOD_OLD.get(path)
+    LASTMOD[path] = [h, old[1] if old and old[0] == h else TODAY]
+    return LASTMOD[path][1]
 
 
 def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
-    """app=False: a plain static page (collections, the all-names hub) that the app does not take over."""
+    """app=False: a plain static page (collections, the all-names hub) that the app does not take over.
+    jsonld may hold "__MODIFIED__", which becomes the date the page content last changed."""
     canon = PH + path
     e = H.escape
+    ld = json.dumps(jsonld, ensure_ascii=False) if jsonld else ''
+    if not noindex:
+        ld = ld.replace('__MODIFIED__', modified(path, title + desc + body + ld))
     return f'''<!doctype html>
 <html lang="he" dir="rtl">
 <head>
@@ -130,7 +158,7 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
 <link rel="stylesheet" href="{A_CSS}">
 <meta name="google-adsense-account" content="ca-pub-8412399730348585">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8412399730348585" crossorigin="anonymous"></script>
-{f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ''}
+{f'<script type="application/ld+json">{ld}</script>' if ld else ''}
 </head>
 <body>
 {f"""<div id="app" dir="rtl">{body}</div>
@@ -155,12 +183,66 @@ def nav_links():
 
 
 # ---- name pages ----
+# title, description and FAQ texts: the app builds the same ones (nameMeta / nameFAQ in app/p0f_url.js), keep them in sync
+GEM = dict(zip('אבגדהוזחטיכךלמםנןסעפףצץקרשת', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400]))
+gem = lambda n: sum(GEM.get(c, 0) for c in n)
+dot = lambda s: s if s[-1:] in '.!?' else s + '.'
+
+
+def fit(parts, cap=155):
+    """whole sentences while they fit in cap characters; a first sentence that is too long is cut at a word"""
+    s = parts[0] if len(parts[0]) <= cap else parts[0][:cap - 1].rsplit(' ', 1)[0] + '…'
+    for p in parts[1:]:
+        if len(s) + 1 + len(p) > cap:
+            break
+        s += ' ' + p
+    return s
+
+
+def sex_answer(n, g):
+    b = 100 - g
+    if g >= 85: return f'{n} הוא שם של בנות: {g}% מהתינוקות שנקראו כך הם בנות.'
+    if g <= 15: return f'{n} הוא שם של בנים: {b}% מהתינוקות שנקראו כך הם בנים.'
+    if g >= 60: return f'{n} ניתן בעיקר לבנות: {g}% בנות ו-{b}% בנים.'
+    if g <= 40: return f'{n} ניתן בעיקר לבנים: {b}% בנים ו-{g}% בנות.'
+    return f'{n} הוא שם יוניסקס: {g}% בנות ו-{b}% בנים.'
+
+
+def name_meta(x):
+    n = x['n']
+    peak = f'השם היה הכי נפוץ כבר בתחילת הרישום, ב-{Y0}.' if x['start'] else f'שנת השיא: {x["pk"]}, כשאחד מכל {fmt(x["oneIn"])} תינוקות נקרא כך.'
+    rest = [f'{fmt(x["tot"])} תינוקות נקראו {n} בישראל מאז {Y0}.', peak, f'בנות {x["g"]}% · בנים {100 - x["g"]}%.', f'גימטריה: {gem(n)}.']
+    if x['mean']:
+        return f'משמעות השם {n} – מקור, פופולריות וגימטריה | השמות של ישראל', fit([f'משמעות השם {n}: {dot(x["mean"])}'] + rest)
+    return f'השם {n} – פופולריות בישראל, סטטיסטיקה וגימטריה | השמות של ישראל', fit(rest)
+
+
+def name_faq(x):
+    n = x['n']
+    q = [(f'מה המשמעות של השם {n}?', dot(x['mean']))] if x['mean'] else []
+    last = ((f'ב-{Y1} נקראו כך {fmt(x["last"])} תינוקות' + (f', מקום {x["rk"]} {"בבנות" if x["x"] == 0 else "בבנים"}.' if x['rk'] else '.'))
+            if x['last'] else f'ב-{Y1} השם לא ניתן, או שניתן לפחות מ-5 תינוקות.')
+    q.append((f'כמה תינוקות נקראו {n} בישראל?', f'מאז {Y0} קיבלו את השם {n} {fmt(x["tot"])} תינוקות בישראל. {last}'))
+    q.append((f'האם {n} הוא שם לבן או לבת?', sex_answer(n, x['g'])))
+    q.append((f'מתי השם {n} היה הכי פופולרי?', f'השם היה הכי נפוץ כבר בתחילת הרישום, ב-{Y0}.' if x['start']
+              else f'שנת השיא של השם הייתה {x["pk"]}, כשאחד מכל {fmt(x["oneIn"])} תינוקות נקרא {n}.'))
+    q.append((f'מה הגימטריה של השם {n}?', f'הגימטריה של השם {n} היא {gem(n)}.'))
+    return q
+
+
+def sex_kind(g):
+    return 'שם של בנות' if g >= 85 else 'שם של בנים' if g <= 15 else 'שם שניתן בעיקר לבנות' if g >= 60 else 'שם שניתן בעיקר לבנים' if g <= 40 else 'שם יוניסקס'
+
+
 by_name = {x['n']: x for x in NAMES}
 for x in NAMES:
     n = x['n']
     sexw = 'בנות' if x['x'] == 0 else 'בנים'
-    desc = x['desc'][:300]
-    title = f'השם {n} – משמעות, מקור וסטטיסטיקה | השמות של ישראל'
+    title, desc = name_meta(x)
+    faq = name_faq(x)
+    url = f'{PH}/names/{enc(n)}'
+    lead = (f'{n} הוא {sex_kind(x["g"])}. מאז {Y0} קיבלו את השם {fmt(x["tot"])} תינוקות בישראל, '
+            + (f'והוא היה הכי נפוץ כבר בתחילת הרישום.' if x['start'] else f'ושנת השיא של השם הייתה {x["pk"]}.'))
     facts = [
         f"{fmt(x['tot'])} תינוקות נקראו {n} בישראל מאז {Y0}.",
         (f"השם היה הכי נפוץ כבר בתחילת הרישום, ב-{Y0}." if x['start'] else f"שנת השיא: {x['pk']}, כשאחד מכל {fmt(x['oneIn'])} תינוקות נקרא כך."),
@@ -168,24 +250,39 @@ for x in NAMES:
         (f"ב-{Y1} נקראו כך {fmt(x['last'])} תינוקות" + (f", מקום {x['rk']} ב{sexw}." if x['rk'] else '.')) if x['last'] else f"ב-{Y1} כמעט לא ניתן השם.",
         f"שנת הלידה הטיפוסית: {x['med']}. הופעה ראשונה ברשימות: {x['first']}.",
         f"בנות {x['g']}% · בנים {100 - x['g']}%." + (f" מגזר: {x['sec']}." if x['sec'] else ''),
+        f"גימטריה: {gem(n)}.",
     ]
     rel = ''.join(f'<li><a href="/names/{enc(r)}">{H.escape(r)}</a></li>' for r in x['rel'] if r in by_name)
+    e = H.escape
     body = f'''<article class="seo">
 <p class="k">השמות של ישראל · תיק שם</p>
-<h1>{H.escape(n)}</h1>
-{f'<p><b>משמעות:</b> {H.escape(x["mean"])}</p>' if x['mean'] else ''}
-{f'<p>{H.escape(x["story"])}</p>' if x['story'] and x['story'] != x['mean'] else ''}
-<ul>{''.join(f'<li>{H.escape(f)}</li>' for f in facts)}</ul>
+<h1>{e(n)}</h1>
+<p>{e(lead)}</p>
+{f'<h2>משמעות השם {e(n)}</h2><p>{e(x["mean"])}</p>' if x['mean'] else ''}
+{f'<p>{e(x["story"])}</p>' if x['story'] and x['story'] != x['mean'] else ''}
+<h2>{e(n)} במספרים</h2>
+<ul>{''.join(f'<li>{e(f)}</li>' for f in facts)}</ul>
+<h2>שאלות נפוצות על השם {e(n)}</h2>
+{''.join(f'<h3>{e(a)}</h3><p>{e(b)}</p>' for a, b in faq)}
 {f'<h2>שמות מאותה תקופה</h2><ul class="rel">{rel}</ul>' if rel else ''}
 {nav_links()}
-<p class="k">מקור: הלשכה המרכזית לסטטיסטיקה. נוצר ע״י <a href="https://www.linkedin.com/in/idan-diva/">עידן דיוה</a>.</p>
+<p class="k">מקור: נתוני הלשכה המרכזית לסטטיסטיקה, {Y0}–{Y1}. נוצר ע״י <a href="{LINKEDIN}">עידן דיוה</a>.</p>
 </article>'''
-    ld = {"@context": "https://schema.org", "@type": "WebPage", "name": title, "description": desc, "inLanguage": "he",
-          "url": f"{PH}/names/{enc(n)}",
-          "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [
-              {"@type": "ListItem", "position": 1, "name": "השמות של ישראל", "item": PH + "/"},
-              {"@type": "ListItem", "position": 2, "name": "כל השמות", "item": PH + "/names"},
-              {"@type": "ListItem", "position": 3, "name": n}]}}
+    term = {"@type": "DefinedTerm", "@id": url + "#name", "name": n, "alternateName": x['en'], "inLanguage": "he",
+            "inDefinedTermSet": {"@type": "DefinedTermSet", "name": "שמות פרטיים בישראל", "url": PH + "/names"}}
+    if x['mean']:
+        term["description"] = x['mean']
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": ["WebPage", "FAQPage"], "@id": url, "url": url, "name": title, "description": desc, "inLanguage": "he",
+         "dateModified": "__MODIFIED__", "isPartOf": {"@id": PH + "/#website"}, "about": {"@id": url + "#name"},
+         "author": {"@id": PH + "/#author"}, "isBasedOn": LD_DATA, "breadcrumb": {"@id": url + "#breadcrumb"},
+         "mainEntity": [{"@type": "Question", "name": a, "acceptedAnswer": {"@type": "Answer", "text": b}} for a, b in faq]},
+        term,
+        {"@type": "BreadcrumbList", "@id": url + "#breadcrumb", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "השמות של ישראל", "item": PH + "/"},
+            {"@type": "ListItem", "position": 2, "name": "כל השמות", "item": PH + "/names"},
+            {"@type": "ListItem", "position": 3, "name": n}]},
+        LD_SITE, LD_AUTHOR]}
     open(SRC + 'names/' + n + '.html', 'w').write(page(title, desc, '/names/' + enc(n), body, jsonld=ld))
 
 # ---- all-names directory (crawl hub) ----
@@ -229,11 +326,24 @@ def static_shell(cur, inner):
 </div>'''
 
 
+def coll_ld(path, title, desc, lists):
+    """CollectionPage + one ItemList per list of names (lists: [(name, rows)])"""
+    url = PH + path
+    return {"@context": "https://schema.org", "@graph": [
+        {"@type": "CollectionPage", "@id": url, "url": url, "name": title, "description": desc, "inLanguage": "he",
+         "dateModified": "__MODIFIED__", "isPartOf": {"@id": PH + "/#website"}, "author": {"@id": PH + "/#author"}, "isBasedOn": LD_DATA,
+         **({"mainEntity": [{"@type": "ItemList", "name": ln, "numberOfItems": len(rows), "itemListOrder": "https://schema.org/ItemListOrderDescending",
+                             "itemListElement": [{"@type": "ListItem", "position": i, "name": x['n'], "url": f"{PH}/names/{enc(x['n'])}"}
+                                                 for i, x in enumerate(rows, 1)]} for ln, rows in lists]} if lists else {})},
+        LD_SITE, LD_AUTHOR]}
+
+
+HUB_T = 'כל שמות התינוקות בישראל לפי א״ב | השמות של ישראל'
+HUB_D = f'רשימת כל {fmt(len(NAMES))} השמות שניתנו לתינוקות בישראל מאז {Y0}, לפי אותיות, עם משמעות וסטטיסטיקה לכל שם.'
 open(SRC + 'names/index.html', 'w').write(page(
-    'כל שמות התינוקות בישראל לפי א״ב | השמות של ישראל',
-    f'רשימת כל {fmt(len(NAMES))} השמות שניתנו לתינוקות בישראל מאז {Y0}, לפי אותיות, עם משמעות וסטטיסטיקה לכל שם.',
+    HUB_T, HUB_D,
     '/names', static_shell('', f'<h1>כל השמות</h1><p class="dlead">{fmt(len(NAMES))} שמות, מסודרים לפי אות ראשונה ולפי פופולריות.</p>{coll_nav("")}{letters}<div class="seo-az">{az}</div>'),
-    app=False))
+    jsonld=coll_ld('/names', HUB_T, HUB_D, []), app=False))
 
 
 # ---- collection pages: /names/boys, /names/girls, /names/unisex, /names/popular ----
@@ -283,12 +393,15 @@ COLL_PAGES = {
                 f'<h2>50 השמות המובילים ב-{Y1}</h2>' + coll_list(top_now, lambda x: mark(x) + born(x))
                 + f'<h2>50 השמות הנפוצים מאז {Y0}</h2>' + coll_list(top_ever, lambda x: mark(x) + f'{fmt(x["tot"])} תינוקות')),
 }
+COLL_ROWS = {'boys': [(f'100 שמות הבנים המובילים ב-{Y1}', boys)], 'girls': [(f'100 שמות הבנות המובילים ב-{Y1}', girls)],
+             'unisex': [('שמות לבנים ולבנות', unisex)],
+             'popular': [(f'50 השמות המובילים ב-{Y1}', top_now), (f'50 השמות הנפוצים מאז {Y0}', top_ever)]}
 for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
     path = '/names/' + k
     title = h1 + ' | השמות של ישראל'
     open(SRC + f'names/{k}.html', 'w').write(page(
         title, desc, path, static_shell(k, f'<p class="k">השמות של ישראל · אוספי שמות</p><h1>{name}</h1>{lead}{lists}'),
-        app=False))
+        jsonld=coll_ld(path, title, desc, COLL_ROWS[k]), app=False))
 
 # ---- home + 404 ----
 top = [x['n'] for x in sorted(NAMES, key=lambda x: -x['last'])[:40]]
@@ -296,7 +409,7 @@ home_body = f'''<article class="seo"><h1>השמות של ישראל</h1><p>{H.es
 <h2>השמות הפופולריים ב-{Y1}</h2><ul class="rel">{''.join(f'<li><a href="/names/{enc(n)}">{H.escape(n)}</a></li>' for n in top)}</ul>
 <p><a href="/names">לכל {fmt(len(NAMES))} השמות</a></p></article>'''
 open(SRC + 'index.html', 'w').write(page(SITE_T, SITE_D, '/', home_body,
-    jsonld={"@context": "https://schema.org", "@type": "WebSite", "name": "השמות של ישראל", "url": PH + "/", "inLanguage": "he"}))
+    jsonld={"@context": "https://schema.org", "@graph": [LD_SITE, LD_AUTHOR]}))
 # ---- info pages (same content the app shows at /about, /privacy, /terms) ----
 PAGES = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'pages.json'), encoding='utf-8'))
 for k, P in PAGES.items():
@@ -308,6 +421,10 @@ open(SRC + '404.html', 'w').write(page('הדף לא נמצא | השמות של �
 # list of indexable paths for the sitemap (finalize.mjs adds the base URL)
 paths = ['/', '/names'] + [f'/names/{k}' for k, _ in COLLS] + ['/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
 json.dump(paths, open(OUT + 'scripts/paths.json', 'w'), ensure_ascii=False)
+# one page per line, so a rebuild's git diff shows exactly which pages changed
+with open(LASTMOD_F, 'w', encoding='utf-8') as f:
+    f.write('{\n' + ',\n'.join(f'{json.dumps(p, ensure_ascii=False)}:{json.dumps(LASTMOD[p])}'
+                         for p in map(__import__('urllib.parse').parse.unquote, paths)) + '\n}\n')
 # runtime config as an external file (filled by finalize.mjs) so the CSP needs no inline scripts
 open(SRC + 'site-config.js', 'w').write('window.SITE_CONFIG={baseUrl:"__RUNTIME_BASE_URL__",routing:"path",supabase:{url:"__SUPABASE_URL__",key:"__SUPABASE_KEY__",lib:"' + A_SB + '"}};\n')
 print('pages', len(NAMES) + 3, 'assets', A_APP, A_DATA)

@@ -456,7 +456,7 @@ button.fact:hover{border-color:var(--accent)}
 .bar{padding:10px 16px 0}
 .toprow{display:flex;align-items:center;gap:12px}
 .brandbtn{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:1px;flex:none}
-.brandbtn h1{font-family:var(--f-display);font-weight:700;font-size:32px;line-height:.95;color:var(--accent);margin:0}
+.brandbtn .bt{font-family:var(--f-display);font-weight:700;font-size:32px;line-height:.95;color:var(--accent);margin:0}
 .brandbtn small{font-size:11px;color:var(--muted);font-weight:600}
 .brandbtn:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 .tsearch{flex:1;margin:0;display:flex;align-items:center;position:relative;max-width:420px;margin-inline-start:auto}
@@ -471,7 +471,7 @@ button.fact:hover{border-color:var(--accent)}
 .mainnav button.hl{color:var(--ink)}
 .mainnav button.hl[aria-selected="true"]{color:var(--accent)}
 .mainnav button.hl span{background:linear-gradient(90deg,var(--accent),var(--stamp));-webkit-background-clip:text;background-clip:text;color:transparent}
-@media (max-width:560px){.toprow{flex-wrap:wrap}.tsearch{order:3;flex-basis:100%;max-width:none}.brandbtn h1{font-size:28px}.langbtn{margin-inline-start:auto}
+@media (max-width:560px){.toprow{flex-wrap:wrap}.tsearch{order:3;flex-basis:100%;max-width:none}.brandbtn .bt{font-size:28px}.langbtn{margin-inline-start:auto}
   .mainnav button{flex-direction:column;gap:3px;font-size:12px;padding:8px 2px 9px}}
 .pagehead{margin-top:18px}
 .pagehead h2{font-family:var(--f-display);font-size:clamp(46px,8vw,64px);font-weight:700;line-height:.9;margin:0;color:var(--ink)}
@@ -804,7 +804,7 @@ details.note p{margin:8px 0 0}
 .leaders .ld1.hl{background:var(--accent);color:#14122e}.leaders .ld1.hl small{color:#14122e}
 .leaders .ldstrip button.hl{filter:brightness(1.2);box-shadow:inset 0 0 0 2px #fff}
 @media (max-width:560px){.ldrow{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px}.ldlab{grid-column:1/-1}.ldrest{grid-column:1/-1}.ldaxis span:nth-child(even){display:none}}
-.brandbtn:focus-visible{outline:none}.brandbtn:focus-visible h1{text-decoration:underline;text-underline-offset:6px}
+.brandbtn:focus-visible{outline:none}.brandbtn:focus-visible .bt{text-decoration:underline;text-underline-offset:6px}
 /* ---- v14: compact mobile header & type ---- */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .srchbtn{display:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;width:36px;height:36px;place-items:center;padding:0;flex:none}
@@ -815,7 +815,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .bar{padding:8px 12px 0;margin-inline:-16px}
   .bar.hid{transform:translateY(calc(-100% - env(safe-area-inset-top,0px)))}
   .toprow{flex-wrap:nowrap;gap:8px}
-  .brandbtn h1{font-size:25px}
+  .brandbtn .bt{font-size:25px}
   .brandbtn small{display:none}
   .srchbtn{display:grid;margin-inline-start:auto}
   .langbtn{margin-inline-start:0;padding:6px 10px;height:36px}

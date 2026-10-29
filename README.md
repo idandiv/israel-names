@@ -31,7 +31,8 @@
 
 - `source/` – **קוד המקור**: קוד האפליקציה (`app/`), נתוני הלמ״ס (`data/`) וכלי הבנייה (`tools/`). הוראות מפורטות ב-[`source/README.md`](source/README.md).
 - `src/` – **האתר הבנוי** (נוצר מ-`source/`): עמוד לכל שם ב-`names/<שם>.html`, עמודי האוספים, האינדקס, עמודי המידע והנכסים ב-`assets/`.
-- `scripts/finalize.mjs` – שלב ה-build ב-Vercel: מעתיק את `src` ל-`public`, ממלא את כתובת האתר ואת הגדרות Supabase, וכותב `sitemap.xml`, `robots.txt` ו-`ads.txt`.
+- `scripts/finalize.mjs` – שלב ה-build ב-Vercel: מעתיק את `src` ל-`public`, ממלא את כתובת האתר ואת הגדרות Supabase, וכותב `sitemap.xml`, `robots.txt`, `llms.txt` ו-`ads.txt`.
+- `scripts/lastmod.json` – נוצר ב-`build_site.py`: לכל עמוד, התאריך שבו התוכן שלו השתנה לאחרונה (ה-`lastmod` ב-sitemap). נכנס לריפו יחד עם `src/`.
 - `supabase/migrations/` – הטבלאות, פונקציות ה-RPC והרשאות ה-RLS של NameMatch.
 - `vercel.json` – הגדרות הפריסה, כתובות נקיות וכותרות אבטחה.
 

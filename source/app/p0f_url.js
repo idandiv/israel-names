@@ -37,12 +37,37 @@ function syncURL(){if(TAB==='match')return;const u=currentURL();
 let PUSH_ONCE=false;
 /* <title>, description, canonical and Open Graph follow the screen */
 function metaTag(sel,attr,key,val){let m=document.head.querySelector(sel);if(!m){m=document.createElement(sel.startsWith('link')?'link':'meta');m.setAttribute(attr,key);document.head.appendChild(m)}m.setAttribute(sel.startsWith('link')?'href':'content',val)}
+/* Hebrew title, description and FAQ of a name: the same texts as the static pages
+   (name_meta / name_faq in tools/build_site.py, from the same numbers as data/seo.json), keep them in sync */
+function seoFacts(i){const st=stats(-1),c=comb(st,i);let tot=0;for(let y=0;y<NY;y++)tot+=c[y];tot=Math.round(tot);
+  const pk=peakOf(st,i),gf=tot?st.tot[0][i]/tot:.5,x=gf>=.5?0:1;
+  return{n:NAMES[i],tot,pk:Y0+pk,start:pk===0,oneIn:c[pk]?Math.round(st.DD[pk]/c[pk]):0,last:Math.round(c[NY-1]),rk:st.rank[x][i*NY+NY-1]||0,x,g:Math.round(gf*100),mean:MEAN.get(NAMES[i])||''}}
+const endDot=s=>/[.!?]$/.test(s)?s:s+'.';
+function fitDesc(parts,cap=155){let s=parts[0].length<=cap?parts[0]:parts[0].slice(0,cap-1).replace(/ [^ ]*$/,'')+'…';
+  for(const p of parts.slice(1)){if(s.length+1+p.length>cap)break;s+=' '+p}return s}
+function sexAnswer(n,g){const b=100-g;
+  return g>=85?`${n} הוא שם של בנות: ${g}% מהתינוקות שנקראו כך הם בנות.`:g<=15?`${n} הוא שם של בנים: ${b}% מהתינוקות שנקראו כך הם בנים.`
+    :g>=60?`${n} ניתן בעיקר לבנות: ${g}% בנות ו-${b}% בנים.`:g<=40?`${n} ניתן בעיקר לבנים: ${b}% בנים ו-${g}% בנות.`:`${n} הוא שם יוניסקס: ${g}% בנות ו-${b}% בנים.`}
+function seoMeta(i){const x=seoFacts(i),n=x.n;
+  const peak=x.start?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא: ${x.pk}, כשאחד מכל ${fmt(x.oneIn)} תינוקות נקרא כך.`;
+  const rest=[`${fmt(x.tot)} תינוקות נקראו ${n} בישראל מאז ${Y0}.`,peak,`בנות ${x.g}% · בנים ${100-x.g}%.`,`גימטריה: ${gem(n)}.`];
+  return x.mean?{title:`משמעות השם ${n} – מקור, פופולריות וגימטריה | השמות של ישראל`,desc:fitDesc([`משמעות השם ${n}: ${endDot(x.mean)}`,...rest])}
+    :{title:`השם ${n} – פופולריות בישראל, סטטיסטיקה וגימטריה | השמות של ישראל`,desc:fitDesc(rest)}}
+function seoFAQ(i){const x=seoFacts(i),n=x.n,q=x.mean?[[`מה המשמעות של השם ${n}?`,endDot(x.mean)]]:[];
+  const last=x.last?`ב-${Y1} נקראו כך ${fmt(x.last)} תינוקות`+(x.rk?`, מקום ${x.rk} ${x.x===0?'בבנות':'בבנים'}.`:'.'):`ב-${Y1} השם לא ניתן, או שניתן לפחות מ-5 תינוקות.`;
+  q.push([`כמה תינוקות נקראו ${n} בישראל?`,`מאז ${Y0} קיבלו את השם ${n} ${fmt(x.tot)} תינוקות בישראל. ${last}`]);
+  q.push([`האם ${n} הוא שם לבן או לבת?`,sexAnswer(n,x.g)]);
+  q.push([`מתי השם ${n} היה הכי פופולרי?`,x.start?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא של השם הייתה ${x.pk}, כשאחד מכל ${fmt(x.oneIn)} תינוקות נקרא ${n}.`]);
+  q.push([`מה הגימטריה של השם ${n}?`,`הגימטריה של השם ${n} היא ${gem(n)}.`]);
+  return q}
 function nameMeta(i){const nm=NAMES[i];
-  return{title:t(`השם ${nm} – משמעות, מקור וסטטיסטיקה | השמות של ישראל`,`The name ${NM(i)} (${nm}) – meaning, origin and statistics | Names of Israel`),desc:peakDesc(i)}}
+  return LANG==='en'?{title:`The name ${NM(i)} (${nm}) – meaning, origin and statistics | Names of Israel`,desc:peakDesc(i)}:seoMeta(i)}
 const SITE_TITLE=()=>t('השמות של ישראל | מאגר שמות לתינוקות ומשחק בחירת שם ביחד','Names of Israel | Baby names database and a couples name-matching game');
 const SITE_DESC=()=>t('מחפשים שם לתינוק? מאגר השמות המלא בישראל עם משמעויות, פופולריות לאורך השנים, ומשחק זוגי חדשני למציאת מאץ\' על השם המושלם. חינם לגמרי!','Looking for a baby name? Every name given in Israel, with meanings, popularity over the years and a couples game to find your match. Completely free!');
 function setMeta(){const onName=TAB==='names'&&NSUB==='file';const m=onName?nameMeta(CUR):{title:SITE_TITLE(),desc:SITE_DESC()};
   document.title=m.title;metaTag('meta[name="description"]','name','description',m.desc);
+  /* one h1 per screen: on a name page the name is the h1 (renderName), so the brand becomes plain text there */
+  {const b=document.querySelector('#home>.bt'),tag=onName?'SPAN':'H1';if(b&&b.tagName!==tag){const e=document.createElement(tag);e.className='bt';e.innerHTML=b.innerHTML;b.replaceWith(e)}}
   metaTag('meta[property="og:title"]','property','og:title',m.title);metaTag('meta[property="og:description"]','property','og:description',m.desc);
   if(SITE.base&&SITE.routing==='path'){const u=onName?nameURL(CUR):SITE.root;metaTag('link[rel="canonical"]','rel','canonical',u);metaTag('meta[property="og:url"]','property','og:url',u)}}
 addEventListener('popstate',()=>{if(docFromURL())return;const h=(location.hash||'').slice(1);
