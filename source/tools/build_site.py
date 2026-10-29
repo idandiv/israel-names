@@ -1,12 +1,13 @@
 """Step 4: build the deployable static site into the repo root.
 
 Reads:  source/dist/js_bundle.js + css_bundle.css (build_bundle.py), source/data/data.b64,
-        source/data/seo.json (export_seo.mjs), source/assets/, source/node_modules (chart.js, supabase-js)
+        source/data/seo.json (export_seo.mjs), source/data/meanings.json (meanings and stories, see meanings.py), source/assets/, source/node_modules (chart.js, supabase-js)
 Writes: <repo>/src/   (pages with the __BASE_URL__ placeholder, filled at deploy time by scripts/finalize.mjs)
         <repo>/scripts/paths.json (sitemap list), <repo>/scripts/lastmod.json (date each page's content last changed)
 Only src/ is replaced; the other repo-root files (vercel.json, finalize.mjs, supabase/...) are kept as they are.
 """
 import gzip, base64, json, hashlib, os, shutil, html as H
+import meanings
 
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 D = S
@@ -26,6 +27,11 @@ chart = open(D + 'node_modules/chart.js/dist/chart.umd.js').read()
 seo = json.load(open(D + 'data/seo.json'))
 import re
 Y0, Y1, NAMES = seo['y0'], seo['y1'], [x for x in seo['names'] if re.fullmatch(r"[א-ת' \-]+", x['n'])]
+# meanings and stories come from data/meanings.json (not seo.json), so new content needs no seo.json export
+MEANINGS = meanings.load()
+for x in NAMES:
+    x['mean'] = meanings.meaning(MEANINGS, x['n'])
+    x['story'] = (MEANINGS.get(x['n']) or {}).get('story', '')
 
 css += """
 /* static fallback content (visible until the app boots, and to crawlers) */
@@ -76,6 +82,7 @@ A_CSS = hashed('app', 'css', css)
 shutil.copy(D + 'assets/og.png', SRC + 'og.png')
 A_CHART = hashed('chart', 'js', chart)
 A_DATA = hashed('data', 'js', 'const DATA=' + data + ';')
+A_MEAN = hashed('meanings', 'js', 'const MEANINGS=' + json.dumps(meanings.compact(MEANINGS), ensure_ascii=False, separators=(',', ':')) + ';')
 A_APP = hashed('app', 'js', '(()=>{\n' + js + '\n})();')
 A_SB = hashed('supabase', 'js', open(D + 'node_modules/@supabase/supabase-js/dist/umd/supabase.js').read())
 
@@ -167,6 +174,7 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
 <script src="/site-config.js"></script>
 <script src="{A_CHART}"></script>
 <script src="{A_DATA}"></script>
+<script src="{A_MEAN}"></script>
 <script src="{A_APP}"></script>""" if app else body}
 <script defer src="/_vercel/insights/script.js"></script>
 </body>
