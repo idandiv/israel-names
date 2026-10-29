@@ -255,7 +255,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (max-width:520px){.prrow{grid-template-columns:minmax(0,132px) minmax(0,1fr);gap:10px}}
 /* v20: comfortable touch targets on phones (min ~36px), same look */
 @media (pointer:coarse){
-  .chips button,.seg button,.chips.sel button{min-height:36px;padding-block:6px}
+  .chips button,.chips .nlink,.seg button,.chips.sel button{min-height:36px;padding-block:6px}
   .seg button{padding-inline:12px}
   .tag{padding-block:2px}.tag button{min-width:36px;min-height:36px;font-size:18px;display:inline-flex;align-items:center;justify-content:center}
   .iconbtn{min-width:40px;min-height:40px}

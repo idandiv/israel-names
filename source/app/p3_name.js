@@ -173,7 +173,7 @@ function renderName(){
     if(n2.length>2&&nm.length>=2&&n2.endsWith(end)&&(st.tot[0][j]>=st.tot[1][j]?0:1)===dom)rh.push(j);
     if(GEMS[j]===G)gm.push(j);}
   const byT=a=>a.sort((p,q)=>T(st,q)-T(st,p));
-  const chip=(j,s)=>`<button data-i="${j}"><b>${nmh(j)}</b><small>${s}</small></button>`;
+  const chip=(j,s)=>nameLink(j,`<b>${nmh(j)}</b><small>${s}</small>`);
   const REL_DEF={tw:[t(`השמות שהעלייה והירידה שלהם הכי דומות לזו של ${esc(nm)}`,`Names whose rise and fall most resemble ${dn}`),res.slice(0,8).map(([j,s])=>chip(j,Math.round(s*100)+t('% דמיון','% match'))),t('אין מספיק נתונים','Not enough data')],
     var:[t(`כתיבים אחרים של ${esc(nm)}, שנשמעים אותו דבר`,`Other spellings of ${dn} that sound the same`),byT(vs).slice(0,8).map(j=>chip(j,kfmt(T(st,j)))),t('אין כתיבים קרובים בנתונים','No close spellings in the data')],
     rhy:[t('אותן שתי אותיות אחרונות, לאותו מין','Same last two Hebrew letters, same sex'),byT(rh).slice(0,8).map(j=>chip(j,kfmt(T(st,j)))),t('לא מצאנו חרוז','No rhyme found')],

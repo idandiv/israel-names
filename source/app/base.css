@@ -27,6 +27,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 h1,h2,h3{text-wrap:balance;margin:0}
 .num,.tn{font-variant-numeric:tabular-nums}
 button{font-family:inherit;cursor:pointer}
+.nlink{display:inline-block;box-sizing:border-box;text-align:center;line-height:normal;text-decoration:none;cursor:pointer}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* top bar */
