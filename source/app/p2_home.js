@@ -14,7 +14,7 @@ function renderHome(){
     <h2>${t('מה הסיפור<br>מאחורי השם שלך?','What’s the story<br>behind your name?')}</h2>
     <p>${t('כמה ישראלים נקראים כמוך, מתי השם היה בשיא, מה הוא אומר ומה הפירוש שלו.','How many Israelis share it, when it peaked, what it means, and what it says about you.')}</p>
     <div class="search bigsearch">${icon('search')}<input id="hq" type="search" placeholder="${t('הקלידו שם…','Type a name…')}" autocomplete="off" aria-label="${t('חיפוש שם','Search a name')}"><div class="sugg" id="hsugg" hidden></div></div>
-    <div class="chips quick">${popular.map(i=>`<button data-i="${i}">${nmh(i)}</button>`).join('')}<button class="ghost" id="rnd2">${icon('dice')}${t('שם אקראי','Random')}</button></div>
+    <div class="chips quick">${popular.map(i=>nameLink(i,nmh(i))).join('')}<button class="ghost" id="rnd2">${icon('dice')}${t('שם אקראי','Random')}</button></div>
   </div>
   <div class="card homesaved" id="homesaved" hidden></div>
   <div class="ctapair">

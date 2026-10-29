@@ -40,7 +40,7 @@
 #app[dir="ltr"] .search.bigsearch input{padding:16px 20px 16px 52px}
 .bigsearch input:focus{outline:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 25%,transparent)}
 .chips.quick{margin-top:12px}
-.chips.quick button{font-size:13.5px;padding:5px 12px}
+.chips.quick button,.chips.quick .nlink{font-size:13.5px;padding:5px 12px}
 .chips .ghost{background:transparent;border-style:dashed;display:inline-flex;align-items:center;gap:5px}
 .gencta{all:unset;box-sizing:border-box;cursor:pointer;margin-top:14px;width:100%;display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:20px;background:linear-gradient(110deg,var(--accent),color-mix(in srgb,var(--stamp) 75%,var(--accent)));color:#fff}
 .gencta:focus-visible{outline:3px solid var(--ink);outline-offset:3px}

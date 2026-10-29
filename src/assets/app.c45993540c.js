@@ -242,7 +242,11 @@ function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElem
 const line=(label,data,color,fill)=>({label,data:Array.from(data),borderColor:color,backgroundColor:fill?color+'22':color,fill:!!fill,borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBorderWidth:2,pointHoverBorderColor:css('--surface'),tension:.3});
 const CC=['--c1','--c2','--c3','--c4'];
 const SC=['--c1','--c3','--c4','--c2']; // sector colors (match .s0-.s3 tags)
-function openOn(el){if(el)el.addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)pick(+b.dataset.i)})}
+/* a name as a real link (/names/<name>), so search engines can follow it; a plain click still opens it inside the app,
+   and ctrl/cmd/shift-click or "open in new tab" work like any link */
+const nameLink=(i,inner)=>`<a class="nlink" href="${SITE.routing==='path'?'/names/':'#name='}${encodeURIComponent(NAMES[i])}" data-i="${i}">${inner}</a>`;
+function openOn(el){if(el)el.addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(!b)return;
+  if(b.tagName==='A'){if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault()}pick(+b.dataset.i)})}
 const legendHTML=items=>items.map(([c,l])=>`<span><i style="background:var(${c})"></i>${l}</span>`).join('');
 
 /* ---------- shell ---------- */
@@ -420,7 +424,7 @@ function renderHome(){
     <h2>${t('מה הסיפור<br>מאחורי השם שלך?','What’s the story<br>behind your name?')}</h2>
     <p>${t('כמה ישראלים נקראים כמוך, מתי השם היה בשיא, מה הוא אומר ומה הפירוש שלו.','How many Israelis share it, when it peaked, what it means, and what it says about you.')}</p>
     <div class="search bigsearch">${icon('search')}<input id="hq" type="search" placeholder="${t('הקלידו שם…','Type a name…')}" autocomplete="off" aria-label="${t('חיפוש שם','Search a name')}"><div class="sugg" id="hsugg" hidden></div></div>
-    <div class="chips quick">${popular.map(i=>`<button data-i="${i}">${nmh(i)}</button>`).join('')}<button class="ghost" id="rnd2">${icon('dice')}${t('שם אקראי','Random')}</button></div>
+    <div class="chips quick">${popular.map(i=>nameLink(i,nmh(i))).join('')}<button class="ghost" id="rnd2">${icon('dice')}${t('שם אקראי','Random')}</button></div>
   </div>
   <div class="card homesaved" id="homesaved" hidden></div>
   <div class="ctapair">
@@ -706,7 +710,7 @@ function renderName(){
     if(n2.length>2&&nm.length>=2&&n2.endsWith(end)&&(st.tot[0][j]>=st.tot[1][j]?0:1)===dom)rh.push(j);
     if(GEMS[j]===G)gm.push(j);}
   const byT=a=>a.sort((p,q)=>T(st,q)-T(st,p));
-  const chip=(j,s)=>`<button data-i="${j}"><b>${nmh(j)}</b><small>${s}</small></button>`;
+  const chip=(j,s)=>nameLink(j,`<b>${nmh(j)}</b><small>${s}</small>`);
   const REL_DEF={tw:[t(`השמות שהעלייה והירידה שלהם הכי דומות לזו של ${esc(nm)}`,`Names whose rise and fall most resemble ${dn}`),res.slice(0,8).map(([j,s])=>chip(j,Math.round(s*100)+t('% דמיון','% match'))),t('אין מספיק נתונים','Not enough data')],
     var:[t(`כתיבים אחרים של ${esc(nm)}, שנשמעים אותו דבר`,`Other spellings of ${dn} that sound the same`),byT(vs).slice(0,8).map(j=>chip(j,kfmt(T(st,j)))),t('אין כתיבים קרובים בנתונים','No close spellings in the data')],
     rhy:[t('אותן שתי אותיות אחרונות, לאותו מין','Same last two Hebrew letters, same sex'),byT(rh).slice(0,8).map(j=>chip(j,kfmt(T(st,j)))),t('לא מצאנו חרוז','No rhyme found')],

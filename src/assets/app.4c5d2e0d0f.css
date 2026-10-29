@@ -39,6 +39,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 h1,h2,h3{text-wrap:balance;margin:0}
 .num,.tn{font-variant-numeric:tabular-nums}
 button{font-family:inherit;cursor:pointer}
+.nlink{display:inline-block;box-sizing:border-box;text-align:center;line-height:normal;text-decoration:none;cursor:pointer}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* top bar */
@@ -224,9 +225,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .reignrow+.reignrow{margin-top:14px}
 .reignrow h4{margin:0 0 6px;font-size:13.5px}
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.chips button{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:999px;padding:3px 9px;font-size:12.5px;font-weight:600}
-.chips button small{color:var(--muted);font-weight:500;margin-inline-start:4px}
-.chips button:hover{border-color:var(--accent)}
+.chips button,.chips .nlink{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:999px;padding:3px 9px;font-size:12.5px;font-weight:600}
+.chips button small,.chips .nlink small{color:var(--muted);font-weight:500;margin-inline-start:4px}
+.chips button:hover,.chips .nlink:hover{border-color:var(--accent)}
 
 .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
 @media (max-width:860px){.facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -298,8 +299,8 @@ button.fact:hover{border-color:var(--accent)}
 .madeby a:hover{text-decoration:underline}
 .seclab{font-size:13px;color:var(--muted);font-weight:600;align-self:center}
 .rel{display:flex;flex-wrap:wrap;gap:8px}
-.rel button{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:999px;padding:6px 14px;font-family:var(--f-body);font-size:15px}
-.rel button:hover{border-color:var(--accent)}
+.rel button,.rel .nlink{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:999px;padding:6px 14px;font-family:var(--f-body);font-size:15px}
+.rel button:hover,.rel .nlink:hover{border-color:var(--accent)}
 .rel small{color:var(--muted);font-size:12px}
 .stag{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--sc) 16%,transparent);color:var(--sc);white-space:nowrap}
 .s0{--sc:var(--c1)}.s1{--sc:var(--c3)}.s2{--sc:var(--c4)}.s3{--sc:var(--c2)}
@@ -493,7 +494,7 @@ button.fact:hover{border-color:var(--accent)}
 #app[dir="ltr"] .search.bigsearch input{padding:16px 20px 16px 52px}
 .bigsearch input:focus{outline:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 25%,transparent)}
 .chips.quick{margin-top:12px}
-.chips.quick button{font-size:13.5px;padding:5px 12px}
+.chips.quick button,.chips.quick .nlink{font-size:13.5px;padding:5px 12px}
 .chips .ghost{background:transparent;border-style:dashed;display:inline-flex;align-items:center;gap:5px}
 .gencta{all:unset;box-sizing:border-box;cursor:pointer;margin-top:14px;width:100%;display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:20px;background:linear-gradient(110deg,var(--accent),color-mix(in srgb,var(--stamp) 75%,var(--accent)));color:#fff}
 .gencta:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
@@ -988,7 +989,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (max-width:520px){.prrow{grid-template-columns:minmax(0,132px) minmax(0,1fr);gap:10px}}
 /* v20: comfortable touch targets on phones (min ~36px), same look */
 @media (pointer:coarse){
-  .chips button,.seg button,.chips.sel button{min-height:36px;padding-block:6px}
+  .chips button,.chips .nlink,.seg button,.chips.sel button{min-height:36px;padding-block:6px}
   .seg button{padding-inline:12px}
   .tag{padding-block:2px}.tag button{min-width:36px;min-height:36px;font-size:18px;display:inline-flex;align-items:center;justify-content:center}
   .iconbtn{min-width:40px;min-height:40px}
