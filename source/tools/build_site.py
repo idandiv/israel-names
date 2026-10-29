@@ -248,6 +248,31 @@ def sex_kind(g, origin=''):
 
 
 by_name = {x['n']: x for x in NAMES}
+# link blocks under the period block, up to 8 names each: names of the same origin and sex next to it in popularity
+# (babies in Y1, then since Y0), and the names next to it in the Y1 ranking of its sex.
+# Neighbours rather than the top names, so the links reach rare names too
+KIND_PL = {'שם מקראי': 'שמות מקראיים', 'שם עברי': 'שמות עבריים', 'שם ארמי': 'שמות ארמיים', 'שם ערבי': 'שמות ערביים',
+           'שם ביידיש': 'שמות ביידיש', 'שם אמהרי': 'שמות אמהריים', 'שם לועזי': 'שמות לועזיים'}
+kind_of = lambda x: meanings.ORIGIN_KIND.get(x['origin'], '')
+same_kind = {}
+for y in sorted(NAMES, key=lambda y: (-y['last'], -y['tot'])):
+    if kind_of(y):
+        same_kind.setdefault((kind_of(y), y['x']), []).append(y['n'])
+ranked = {s: [y['n'] for y in sorted((y for y in NAMES if y['x'] == s and y['rk']), key=lambda y: y['rk'])] for s in (0, 1)}
+
+
+def neighbours(L, me, skip=(), k=8):
+    """up to k names of L next to me (half above, half below where there are enough), leaving out skip"""
+    L = [n for n in L if n == me or n not in skip]
+    i = L.index(me)
+    a = max(0, min(i - k // 2, len(L) - k - 1))
+    return [n for n in L[a:a + k + 1] if n != me][:k]
+
+
+def chips(names):
+    return '<ul class="rel">' + ''.join(f'<li><a href="/names/{enc(r)}">{H.escape(r)}</a></li>' for r in names) + '</ul>'
+
+
 for x in NAMES:
     n = x['n']
     sexw = 'בנות' if x['x'] == 0 else 'בנים'
@@ -265,7 +290,10 @@ for x in NAMES:
         f"בנות {x['g']}% · בנים {100 - x['g']}%." + (f" מגזר: {x['sec']}." if x['sec'] else ''),
         f"גימטריה: {gem(n)}.",
     ]
-    rel = ''.join(f'<li><a href="/names/{enc(r)}">{H.escape(r)}</a></li>' for r in x['rel'] if r in by_name)
+    rel = [r for r in x['rel'] if r in by_name]
+    k = kind_of(x)
+    same = neighbours(same_kind[(k, x['x'])], n, set(rel)) if k else []
+    near = neighbours(ranked[x['x']], n, set(rel) | set(same)) if x['rk'] else []
     e = H.escape
     body = f'''<article class="seo">
 <p class="k">השמות של ישראל · תיק שם</p>
@@ -277,7 +305,9 @@ for x in NAMES:
 <ul>{''.join(f'<li>{e(f)}</li>' for f in facts)}</ul>
 <h2>שאלות נפוצות על השם {e(n)}</h2>
 {''.join(f'<h3>{e(a)}</h3><p>{e(b)}</p>' for a, b in faq)}
-{f'<h2>שמות מאותה תקופה</h2><ul class="rel">{rel}</ul>' if rel else ''}
+{f'<h2>שמות מאותה תקופה</h2>{chips(rel)}' if rel else ''}
+{f'<h2>{KIND_PL[k]} נוספים ל{sexw}</h2>{chips(same)}' if same else ''}
+{f'<h2>שמות בדירוג דומה ב-{Y1}</h2>{chips(near)}' if near else ''}
 {nav_links()}
 <p class="k">מקור: נתוני הלשכה המרכזית לסטטיסטיקה, {Y0}–{Y1}. נוצר ע״י <a href="{LINKEDIN}">עידן דיוה</a>.</p>
 </article>'''
