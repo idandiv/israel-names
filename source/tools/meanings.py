@@ -16,6 +16,10 @@ import json, os, re, sys
 PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'meanings.json')
 ORIGINS = ['מקראי', 'עברי', 'מקום בישראל', 'חודש/חג', 'ארמי', 'ערבי', 'יידיש', 'לועזי', 'כתיב של שם אחר']
 FIELDS = {'mean', 'story', 'origin', 'source', 'variant_of', 'by', 'date'}
+# how the first sentence of a name page names the origin: "נחשון הוא שם מקראי לבנים."
+# the app has the same map (ORIGIN_KIND in app/p0f_url.js), keep them in sync
+ORIGIN_KIND = {'מקראי': 'שם מקראי', 'עברי': 'שם עברי', 'מקום בישראל': 'שם עברי', 'חודש/חג': 'שם עברי',
+               'ארמי': 'שם ארמי', 'ערבי': 'שם ערבי', 'יידיש': 'שם ביידיש', 'לועזי': 'שם לועזי'}
 
 
 def _no_dupes(pairs):
@@ -76,12 +80,23 @@ def meaning(d, n):
     return (d.get(v.get('variant_of')) or {}).get('mean', '')
 
 
+def origin(d, n):
+    """the origin used in the first sentence: its own, or the one of the name it is a spelling of ('' if none)"""
+    v = d.get(n) or {}
+    if v.get('origin') in ORIGIN_KIND:
+        return v['origin']
+    o = (d.get(v.get('variant_of')) or {}).get('origin', '') if v.get('variant_of') else ''
+    return o if o in ORIGIN_KIND else ''
+
+
 def compact(d):
-    """what the browser gets: {name: [meaning, story]} (story left out when empty)"""
+    """what the browser gets: {name: [meaning, story, origin]} (empty fields at the end left out)"""
     out = {}
     for n, v in d.items():
-        row = [meaning(d, n), v.get('story') or '']
-        out[n] = row if row[1] else row[:1]
+        row = [meaning(d, n), v.get('story') or '', origin(d, n)]
+        while len(row) > 1 and not row[-1]:
+            row.pop()
+        out[n] = row
     return out
 
 

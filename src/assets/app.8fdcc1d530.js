@@ -26,10 +26,10 @@ function romanize(n,arab){if(TRMAP.has(n))return TRMAP.get(n);
   o=o.replace(/aa+/g,'a').replace(/iy(?=[aeiou])/g,'iy').replace(/ii+/g,'i');
   return o.charAt(0).toUpperCase()+o.slice(1);}
 
-/* meanings and stories of names. The content lives in data/meanings.json (see tools/meanings.py);
-   the build serves it as its own asset, const MEANINGS={name:[meaning, story]}, loaded before the app */
-const MEAN=new Map(),STORY=new Map();
-for(const[k,v]of Object.entries(typeof MEANINGS==='undefined'?{}:MEANINGS)){if(v[0])MEAN.set(k,v[0]);if(v[1])STORY.set(k,v[1])}
+/* meanings, stories and origins of names. The content lives in data/meanings.json (see tools/meanings.py);
+   the build serves it as its own asset, const MEANINGS={name:[meaning, story, origin]}, loaded before the app */
+const MEAN=new Map(),STORY=new Map(),ORIGIN=new Map();
+for(const[k,v]of Object.entries(typeof MEANINGS==='undefined'?{}:MEANINGS)){if(v[0])MEAN.set(k,v[0]);if(v[1])STORY.set(k,v[1]);if(v[2])ORIGIN.set(k,v[2])}
 
 const PA={"c": {"boysGeneral": [["מוחמד", 1743], ["יוסף", 1274], ["אדם", 1176], ["אריאל", 1061], ["דוד", 1036], ["לביא", 994], ["רפאל", 875], ["עומר", 867], ["איתן", 744], ["מיכאל", 735]], "boysJewish": [["אריאל", 1032], ["לביא", 973], ["דוד", 970], ["רפאל", 819], ["אורי", 721], ["מיכאל", 692], ["איתן", 674], ["אליה", 665], ["יהודה", 653], ["ארי", 651]], "girlsGeneral": [["אביגיל", 1172], ["מרים", 1010], ["ליבי", 856], ["תמר", 826], ["ליה", 770], ["שרה", 753], ["יעל", 734], ["אלה", 719], ["אילה", 697], ["נועה", 672]], "girlsJewish": [["אביגיל", 1160], ["ליבי", 830], ["תמר", 817], ["יעל", 726], ["אלה", 674], ["נועה", 656], ["שרה", 645], ["ליה", 634], ["אילה", 597], ["אדל", 532]]}, "h": {"boysGeneral": ["מוחמד", "אריאל", "יוסף", "אדם", "דוד", "עומר", "רפאל", "לביא", "מיכאל", "איתן"], "boysJewish": ["אריאל", "דוד", "רפאל", "לביא", "אורי", "מיכאל", "אליה", "איתן", "יהודה", "ארי"], "girlsGeneral": ["אביגיל", "מרים", "ליה", "ליבי", "תמר", "יעל", "אילה", "שרה", "אלה", "נאיה"], "girlsJewish": ["אביגיל", "ליבי", "תמר", "יעל", "ליה", "אלה", "אילה", "שרה", "נועה", "נאיה"]}};
 const PA_ALIAS={'אילה':'איילה'};
@@ -94,6 +94,11 @@ function fitDesc(parts,cap=155){let s=parts[0].length<=cap?parts[0]:parts[0].sli
 function sexAnswer(n,g){const b=100-g;
   return g>=85?`${n} הוא שם של בנות: ${g}% מהתינוקות שנקראו כך הם בנות.`:g<=15?`${n} הוא שם של בנים: ${b}% מהתינוקות שנקראו כך הם בנים.`
     :g>=60?`${n} ניתן בעיקר לבנות: ${g}% בנות ו-${b}% בנים.`:g<=40?`${n} ניתן בעיקר לבנים: ${b}% בנים ו-${g}% בנות.`:`${n} הוא שם יוניסקס: ${g}% בנות ו-${b}% בנים.`}
+/* first sentence of a name page when the origin is known, "נחשון הוא שם מקראי לבנים."
+   (ORIGIN_KIND in tools/meanings.py, sex_kind in tools/build_site.py) */
+const ORIGIN_KIND={'מקראי':'שם מקראי','עברי':'שם עברי','מקום בישראל':'שם עברי','חודש/חג':'שם עברי','ארמי':'שם ארמי','ערבי':'שם ערבי','יידיש':'שם ביידיש','לועזי':'שם לועזי'};
+function originLead(i){const n=NAMES[i],k=ORIGIN_KIND[ORIGIN.get(n)];if(!k)return'';const g=seoFacts(i).g;
+  return `${n} הוא ${g>=85?`${k} לבנות`:g<=15?`${k} לבנים`:g>=60?`${k} שניתן בעיקר לבנות`:g<=40?`${k} שניתן בעיקר לבנים`:`${k} שניתן גם לבנות וגם לבנים`}.`}
 function seoMeta(i){const x=seoFacts(i),n=x.n;
   const peak=x.start?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא: ${x.pk}, כשאחד מכל ${fmt(x.oneIn)} תינוקות נקרא כך.`;
   const rest=[`${fmt(x.tot)} תינוקות נקראו ${n} בישראל מאז ${Y0}.`,peak,`בנות ${x.g}% · בנים ${100-x.g}%.`,`גימטריה: ${gem(n)}.`];
@@ -585,7 +590,7 @@ function renderName(){
     <div class="stamp"><div><small>${t('גימטריה','GEMATRIA')}</small><b class="tn">${gem(nm)}</b><small>${letters(nm)} ${t('אותיות','letters')}</small></div></div>
     <div class="eyebrow">${t('תיק שם','NAME FILE')} · ${F<0?t('כל המגזרים','All communities'):sectName(F)}</div>
     <h1 class="nm">${dn}</h1>${LANG==='en'?`<div class="nmhe" dir="rtl">${esc(nm)}</div>`:''}
-    <p class="tagline">${t(`מאז ${Y0} קיבלו את השם <b>${fmt(tot)}</b> תינוקות. ${atStart(pk)?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-<b>${Y0}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`:`השיא היה ב-<b>${Y0+pk}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`} ה${esc(nm)} ${gw('הטיפוסית נולדה','הטיפוסי נולד','הטיפוסי/ת נולד/ה')} ב-<b>${med}</b>, כלומר ${gw('בערך בת','בערך בן','בערך בן/בת')} <b>${age}</b> היום.`,
+    <p class="tagline">${t(`${originLead(i)?esc(originLead(i))+' ':''}מאז ${Y0} קיבלו את השם <b>${fmt(tot)}</b> תינוקות. ${atStart(pk)?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-<b>${Y0}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`:`השיא היה ב-<b>${Y0+pk}</b>, כשאחד מכל <b>${fmt(oneIn)}</b> תינוקות נקרא ${esc(nm)}.`} ה${esc(nm)} ${gw('הטיפוסית נולדה','הטיפוסי נולד','הטיפוסי/ת נולד/ה')} ב-<b>${med}</b>, כלומר ${gw('בערך בת','בערך בן','בערך בן/בת')} <b>${age}</b> היום.`,
       `Since ${Y0}, <b>${fmt(tot)}</b> babies got this name. ${atStart(pk)?`It was already most common when records began in <b>${Y0}</b> (1 in <b>${fmt(oneIn)}</b>).`:`It peaked in <b>${Y0+pk}</b>, when 1 in every <b>${fmt(oneIn)}</b> babies was named ${dn}.`} The typical ${dn} was born in <b>${med}</b>, so is about <b>${age}</b> today.`)}</p>
     ${LANG!=='en'&&MEAN.has(nm)?`<p class="meaning"><span>${t('פירוש השם','Meaning')}</span>${esc(MEAN.get(nm))}</p>`:''}
     ${LANG!=='en'&&STORY.has(nm)?`<p class="story">${esc(STORY.get(nm))}</p>`:''}

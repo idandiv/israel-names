@@ -48,6 +48,11 @@ function fitDesc(parts,cap=155){let s=parts[0].length<=cap?parts[0]:parts[0].sli
 function sexAnswer(n,g){const b=100-g;
   return g>=85?`${n} הוא שם של בנות: ${g}% מהתינוקות שנקראו כך הם בנות.`:g<=15?`${n} הוא שם של בנים: ${b}% מהתינוקות שנקראו כך הם בנים.`
     :g>=60?`${n} ניתן בעיקר לבנות: ${g}% בנות ו-${b}% בנים.`:g<=40?`${n} ניתן בעיקר לבנים: ${b}% בנים ו-${g}% בנות.`:`${n} הוא שם יוניסקס: ${g}% בנות ו-${b}% בנים.`}
+/* first sentence of a name page when the origin is known, "נחשון הוא שם מקראי לבנים."
+   (ORIGIN_KIND in tools/meanings.py, sex_kind in tools/build_site.py) */
+const ORIGIN_KIND={'מקראי':'שם מקראי','עברי':'שם עברי','מקום בישראל':'שם עברי','חודש/חג':'שם עברי','ארמי':'שם ארמי','ערבי':'שם ערבי','יידיש':'שם ביידיש','לועזי':'שם לועזי'};
+function originLead(i){const n=NAMES[i],k=ORIGIN_KIND[ORIGIN.get(n)];if(!k)return'';const g=seoFacts(i).g;
+  return `${n} הוא ${g>=85?`${k} לבנות`:g<=15?`${k} לבנים`:g>=60?`${k} שניתן בעיקר לבנות`:g<=40?`${k} שניתן בעיקר לבנים`:`${k} שניתן גם לבנות וגם לבנים`}.`}
 function seoMeta(i){const x=seoFacts(i),n=x.n;
   const peak=x.start?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא: ${x.pk}, כשאחד מכל ${fmt(x.oneIn)} תינוקות נקרא כך.`;
   const rest=[`${fmt(x.tot)} תינוקות נקראו ${n} בישראל מאז ${Y0}.`,peak,`בנות ${x.g}% · בנים ${100-x.g}%.`,`גימטריה: ${gem(n)}.`];

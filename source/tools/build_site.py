@@ -32,6 +32,7 @@ MEANINGS = meanings.load()
 for x in NAMES:
     x['mean'] = meanings.meaning(MEANINGS, x['n'])
     x['story'] = (MEANINGS.get(x['n']) or {}).get('story', '')
+    x['origin'] = meanings.origin(MEANINGS, x['n'])
 
 css += """
 /* static fallback content (visible until the app boots, and to crawlers) */
@@ -238,7 +239,11 @@ def name_faq(x):
     return q
 
 
-def sex_kind(g):
+def sex_kind(g, origin=''):
+    # with a known origin: "שם מקראי לבנים"; the app opens the name page with the same sentence (originLead in app/p0f_url.js)
+    k = meanings.ORIGIN_KIND.get(origin)
+    if k:
+        return f'{k} לבנות' if g >= 85 else f'{k} לבנים' if g <= 15 else f'{k} שניתן בעיקר לבנות' if g >= 60 else f'{k} שניתן בעיקר לבנים' if g <= 40 else f'{k} שניתן גם לבנות וגם לבנים'
     return 'שם של בנות' if g >= 85 else 'שם של בנים' if g <= 15 else 'שם שניתן בעיקר לבנות' if g >= 60 else 'שם שניתן בעיקר לבנים' if g <= 40 else 'שם יוניסקס'
 
 
@@ -249,7 +254,7 @@ for x in NAMES:
     title, desc = name_meta(x)
     faq = name_faq(x)
     url = f'{PH}/names/{enc(n)}'
-    lead = (f'{n} הוא {sex_kind(x["g"])}. מאז {Y0} קיבלו את השם {fmt(x["tot"])} תינוקות בישראל, '
+    lead = (f'{n} הוא {sex_kind(x["g"], x["origin"])}. מאז {Y0} קיבלו את השם {fmt(x["tot"])} תינוקות בישראל, '
             + (f'והוא היה הכי נפוץ כבר בתחילת הרישום.' if x['start'] else f'ושנת השיא של השם הייתה {x["pk"]}.'))
     facts = [
         f"{fmt(x['tot'])} תינוקות נקראו {n} בישראל מאז {Y0}.",
