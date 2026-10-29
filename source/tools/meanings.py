@@ -14,12 +14,12 @@ Used by build_bundle.py and build_site.py. Run directly to check the file (npm r
 import json, os, re, sys
 
 PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'meanings.json')
-ORIGINS = ['מקראי', 'עברי', 'מקום בישראל', 'חודש/חג', 'ארמי', 'ערבי', 'יידיש', 'לועזי', 'כתיב של שם אחר']
+ORIGINS = ['מקראי', 'עברי', 'מקום בישראל', 'חודש/חג', 'ארמי', 'ערבי', 'יידיש', 'אמהרי', 'לועזי', 'כתיב של שם אחר']
 FIELDS = {'mean', 'story', 'origin', 'source', 'variant_of', 'by', 'date'}
 # how the first sentence of a name page names the origin: "נחשון הוא שם מקראי לבנים."
 # the app has the same map (ORIGIN_KIND in app/p0f_url.js), keep them in sync
 ORIGIN_KIND = {'מקראי': 'שם מקראי', 'עברי': 'שם עברי', 'מקום בישראל': 'שם עברי', 'חודש/חג': 'שם עברי',
-               'ארמי': 'שם ארמי', 'ערבי': 'שם ערבי', 'יידיש': 'שם ביידיש', 'לועזי': 'שם לועזי'}
+               'ארמי': 'שם ארמי', 'ערבי': 'שם ערבי', 'יידיש': 'שם ביידיש', 'אמהרי': 'שם אמהרי', 'לועזי': 'שם לועזי'}
 
 
 def _no_dupes(pairs):

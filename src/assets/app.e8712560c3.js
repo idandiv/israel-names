@@ -96,7 +96,7 @@ function sexAnswer(n,g){const b=100-g;
     :g>=60?`${n} ניתן בעיקר לבנות: ${g}% בנות ו-${b}% בנים.`:g<=40?`${n} ניתן בעיקר לבנים: ${b}% בנים ו-${g}% בנות.`:`${n} הוא שם יוניסקס: ${g}% בנות ו-${b}% בנים.`}
 /* first sentence of a name page when the origin is known, "נחשון הוא שם מקראי לבנים."
    (ORIGIN_KIND in tools/meanings.py, sex_kind in tools/build_site.py) */
-const ORIGIN_KIND={'מקראי':'שם מקראי','עברי':'שם עברי','מקום בישראל':'שם עברי','חודש/חג':'שם עברי','ארמי':'שם ארמי','ערבי':'שם ערבי','יידיש':'שם ביידיש','לועזי':'שם לועזי'};
+const ORIGIN_KIND={'מקראי':'שם מקראי','עברי':'שם עברי','מקום בישראל':'שם עברי','חודש/חג':'שם עברי','ארמי':'שם ארמי','ערבי':'שם ערבי','יידיש':'שם ביידיש','אמהרי':'שם אמהרי','לועזי':'שם לועזי'};
 function originLead(i){const n=NAMES[i],k=ORIGIN_KIND[ORIGIN.get(n)];if(!k)return'';const g=seoFacts(i).g;
   return `${n} הוא ${g>=85?`${k} לבנות`:g<=15?`${k} לבנים`:g>=60?`${k} שניתן בעיקר לבנות`:g<=40?`${k} שניתן בעיקר לבנים`:`${k} שניתן גם לבנות וגם לבנים`}.`}
 function seoMeta(i){const x=seoFacts(i),n=x.n;
