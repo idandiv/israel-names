@@ -29,7 +29,8 @@ npm run build                    # bundle -> seo.json -> src/
 
 - `npm run bundle` – מחבר את הקוד ל-`dist/` (כולל `dist/names.html`, גרסת התצוגה בקובץ אחד).
 - `npm run seo` – מחשב מחדש את `data/seo.json`.
-- `npm run site` – בודק את `data/meanings.json` (`tools/meanings.py`; שגיאה עוצרת את הבנייה) ובונה את `src/` (כל עמודי השמות, האינדקס, 404 והנכסים עם hash).
+- `npm run site` – בודק את `data/meanings.json` (`tools/meanings.py`; שגיאה עוצרת את הבנייה) ובונה את `src/` (כל עמודי השמות, האינדקס, 404 והנכסים עם hash). בסוף הוא מריץ את `tools/check_site.py`, שבודק את `src/` שנבנה: קישורים פנימיים שבורים, title ו-description, H1 אחד, canonical, JSON-LD תקין, התאמה בין העמודים ל-sitemap, ושהאפליקציה לא נטענת בעמוד שהיא תשתלט עליו. בעיה עוצרת את הבנייה.
+- `npm test` – בדיקות Node ב-`tests/` (שלב ה-build של Vercel, `scripts/finalize.mjs`) ו-`check_site.py`. אותן בדיקות רצות ב-GitHub Actions על כל PR (`.github/workflows/checks.yml`).
 
 ## הוספת פירושים
 עורכים את `data/meanings.json` ומריצים `npm run bundle && npm run site`. אין צורך להריץ מחדש את `npm run seo`: העמודים הסטטיים קוראים את הפירושים ישירות מהקובץ.
