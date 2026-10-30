@@ -22,10 +22,10 @@ function renderHome(){
   <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
   </div>
   ${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<div class="nmnewwrap"><button class="linkbtn" id="nmnewroom">${t('+ חדר חדש','+ New room')}</button><span aria-hidden="true">·</span><button class="linkbtn" id="nmallrooms">${t(`החדרים שלי (${nmRoomCount()})`,`My rooms (${nmRoomCount()})`)}</button></div>`:''})()}
-  <div class="tiles3 two">
+  <div class="tiles3${SITE.routing==='path'?'':' two'}">
     <button class="tilec" data-go="games"><span class="k">${t('משחק יומי','Daily game')}</span><b>${t('השם הסודי','The secret name')}</b><span>${t('נחשו את השם של היום ב-10 ניסיונות','Guess today’s name in 10 tries')}</span></button>
     <button class="tilec" data-go="me"><span class="k">${t('פרופיל אישי','Personal profile')}</span><b>${t('מה השם שלי אומר עליי','What my name says')}</b><span>${t('כמה הוא נדיר בשנתון שלכם ומה התואר שלכם','How rare it was in your year, and your title')}</span></button>
-
+    ${SITE.routing==='path'?`<a class="tilec" href="/names#colls"><span class="k">${t('אוספי שמות','Name lists')}</span><b>${t('רשימות מוכנות','Ready-made lists')}</b><span>${t('מקראיים, בעלייה, שנות ה-80, נדירים ועוד','Biblical, rising, the 80s, rare and more (in Hebrew)')}</span></a>`:''}
   </div>
 `;
   wireSearch($('#hq'),$('#hsugg'),pick);

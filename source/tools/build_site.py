@@ -57,9 +57,14 @@ css += """
 .collcta{margin-top:28px}
 .docbody .azjump{display:flex;flex-wrap:wrap;gap:4px;margin:18px 0 0}
 .docbody .azjump a{border:1px solid var(--line);border-radius:10px;min-width:36px;min-height:36px;display:inline-grid;place-items:center;color:var(--ink)}
-.docbody .seo-az h2{scroll-margin-top:80px}
+.docbody .seo-az h2,.docbody #colls{scroll-margin-top:80px}
 .docbody .seo-az .az a{display:inline-block;margin:2px 6px;border:0;font-weight:400}
 .docfoot p{margin:6px 0}.docfoot p a{color:var(--muted);font-weight:400}
+.docbody .cgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px 24px;margin:6px 0 4px}
+.docbody .cgl{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}
+.docbody .cgc{display:flex;flex-wrap:wrap;gap:6px}
+.docbody .cgc a{display:inline-flex;align-items:center;min-height:36px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink);font-size:14px;font-weight:600;text-decoration:none}
+.docbody .cgc a:hover{border-color:var(--accent);color:var(--accent)}
 """
 
 
@@ -391,11 +396,21 @@ def coll_ld(path, title, desc, lists):
         LD_SITE, LD_AUTHOR]}
 
 
+# every collection page, grouped, at the top of /names (the home page tile "אוספי שמות" opens /names#colls)
+COLL_GROUPS = [('הכי נפוצים', [('boys', 'שמות לבנים'), ('girls', 'שמות לבנות'), ('unisex', 'יוניסקס'), ('popular', 'הנפוצים בישראל')]),
+               ('מגמות', [('rising', 'שמות בעלייה'), ('comeback', 'שמות ישנים שחוזרים')]),
+               ('לפי מקור', [('biblical-boys', 'מקראיים לבנים'), ('biblical-girls', 'מקראיים לבנות'), ('hebrew-boys', 'עבריים לבנים'), ('hebrew-girls', 'עבריים לבנות')]),
+               ('קצרים ונדירים', [('short-boys', 'קצרים לבנים'), ('short-girls', 'קצרים לבנות'), ('rare-boys', 'נדירים לבנים'), ('rare-girls', 'נדירים לבנות')]),
+               ('לפי עשור', [('1960s', 'שנות ה-60'), ('1980s', 'שנות ה-80'), ('2000s', 'שנות ה-2000')])]
+assert sorted(k for _, g in COLL_GROUPS for k, _ in g) == sorted(k for k, _ in COLLS + HUBS)
+colls_html = ('<h2 id="colls">אוספי שמות</h2><div class="cgs">' + ''.join(
+    f'<div><span class="cgl">{g}</span><p class="cgc">' + ''.join(f'<a href="/names/{k}">{v}</a>' for k, v in items) + '</p></div>'
+    for g, items in COLL_GROUPS) + '</div>')
 HUB_T = 'כל שמות התינוקות בישראל לפי א״ב | השמות של ישראל'
 HUB_D = f'רשימת כל {fmt(len(NAMES))} השמות שניתנו לתינוקות בישראל מאז {Y0}, לפי אותיות, עם משמעות וסטטיסטיקה לכל שם.'
 open(SRC + 'names/index.html', 'w').write(page(
     HUB_T, HUB_D,
-    '/names', static_shell('', f'<h1>כל השמות</h1><p class="dlead">{fmt(len(NAMES))} שמות, מסודרים לפי אות ראשונה ולפי פופולריות.</p>{coll_nav("")}{letters}<div class="seo-az">{az}</div>'),
+    '/names', static_shell('', f'<h1>כל השמות</h1><p class="dlead">{fmt(len(NAMES))} שמות, מסודרים לפי אות ראשונה ולפי פופולריות, ו-{len(COLLS + HUBS)} רשימות מוכנות לפי נושא.</p>{colls_html}<h2>כל השמות לפי א״ב</h2>{letters}<div class="seo-az">{az}</div>'),
     jsonld=coll_ld('/names', HUB_T, HUB_D, []), app=False))
 
 
