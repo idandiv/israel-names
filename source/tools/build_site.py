@@ -188,7 +188,8 @@ COLLS = [('boys', 'שמות לבנים'), ('girls', 'שמות לבנות'), ('un
 HUBS = [('rising', 'שמות בעלייה'), ('short-boys', 'שמות קצרים לבנים'), ('short-girls', 'שמות קצרים לבנות'),
         ('rare-boys', 'שמות נדירים לבנים'), ('rare-girls', 'שמות נדירים לבנות'),
         ('biblical-boys', 'שמות מקראיים לבנים'), ('biblical-girls', 'שמות מקראיים לבנות'),
-        ('hebrew-boys', 'שמות עבריים לבנים'), ('hebrew-girls', 'שמות עבריים לבנות')]
+        ('hebrew-boys', 'שמות עבריים לבנים'), ('hebrew-girls', 'שמות עבריים לבנות'),
+        ('comeback', 'שמות ישנים שחוזרים'), ('1960s', 'שמות של שנות ה-60'), ('1980s', 'שמות של שנות ה-80'), ('2000s', 'שמות של שנות ה-2000')]
 # the collection page of an origin kind (meanings.ORIGIN_KIND) and sex, linked under the same-origin block of a name page
 KIND_HUB = {('שם מקראי', 1): 'biblical-boys', ('שם מקראי', 0): 'biblical-girls', ('שם עברי', 1): 'hebrew-boys', ('שם עברי', 0): 'hebrew-girls'}
 
@@ -424,11 +425,13 @@ mark = lambda x: f'<span class="sx sx{x["x"]}">{"בן" if x["x"] else "בת"}</s
 # /names/short-*: names of 2-3 letters; /names/rare-*: 20-100 babies in Y1 and never more than 150 in a year;
 # /names/rising: Y1 against ten years earlier, from the CBS file (sum of all sectors, as in the app)
 import csv
-YC = {}
+YC, SC, ST, SN = {}, {}, {}, {}  # babies by (name, sex, year); by (name, sex, sector, year); sector total by (sex, sector, year); by (name, sex, sector)
 for r in csv.DictReader(open(D + 'data/babynamesIL.csv', encoding='utf-8')):
-    if int(r['year']) in (Y1 - 10, Y1):
-        k = (r['name'], 0 if r['sex'] == 'F' else 1, int(r['year']))
-        YC[k] = YC.get(k, 0) + int(r['n'])
+    nm, sx, sec, y, c = r['name'], 0 if r['sex'] == 'F' else 1, r['sector'], int(r['year']), int(r['n'])
+    YC[(nm, sx, y)] = YC.get((nm, sx, y), 0) + c
+    SC[(nm, sx, sec, y)] = SC.get((nm, sx, sec, y), 0) + c
+    ST[(sx, sec, y)] = ST.get((sx, sec, y), 0) + c
+    SN[(nm, sx, sec)] = SN.get((nm, sx, sec), 0) + c
 letters_n = lambda n: len(re.sub('[^א-ת]', '', n))
 short = {s: sorted([x for x in NAMES if x['x'] == s and letters_n(x['n']) <= 3 and x['last'] >= 20], key=lambda x: -x['last'])[:60] for s in (0, 1)}
 rare = {s: sorted([x for x in NAMES if x['x'] == s and 20 <= x['last'] <= 100 and x['myc'] <= 150], key=lambda x: -x['last'])[:60] for s in (0, 1)}
@@ -469,6 +472,51 @@ def rare_page(s):
 # /names/biblical-* and /names/hebrew-*: names of that origin (meanings.json) given in Y1, most babies first
 by_kind = {(k, s): sorted([x for x in NAMES if x['x'] == s and x['last'] and kind_of(x) == k], key=lambda x: (-x['last'], -x['tot']))[:60]
            for k, s in KIND_HUB}
+
+
+# /names/1960s etc.: names whose peak year (the one on the name page) is in the decade, most babies in the decade first
+DECADES = {'1960s': (1960, '60'), '1980s': (1980, '80'), '2000s': (2000, '2000')}
+dec_n = lambda x, d: sum(YC.get((x['n'], x['x'], y), 0) for y in range(d, d + 10))
+by_dec = {(d, s): sorted([x for x in NAMES if x['x'] == s and d <= x['pk'] < d + 10], key=lambda x: -dec_n(x, d))[:30]
+          for d, _ in DECADES.values() for s in (0, 1)}
+
+
+def dec_links(cur):
+    return ' · '.join(f'<a href="/names/{k}">שנות ה-{lab}</a>' for k, (_, lab) in DECADES.items() if k != cur)
+
+
+def decade_page(k):
+    d, lab = DECADES[k]
+    g, b = by_dec[(d, 0)], by_dec[(d, 1)]
+    stat = lambda x: f'{fmt(dec_n(x, d))} בעשור · שיא ב-{x["pk"]}'
+    return (f'שמות של שנות ה-{lab}', f'שמות של שנות ה-{lab} – השמות שהיו בשיא בעשור',
+            f'השמות לבנות ולבנים שהיו בשיא שלהם בישראל בשנות ה-{lab}, לפי נתוני הלמ״ס, עם מספר התינוקות שנקראו כך בעשור ופירוש לכל שם.',
+            f'<p class="dlead">אילו שמות מזוהים עם שנות ה-{lab}? ברשימה שמות ששנת השיא שלהם, השנה שבה החלק של התינוקות שנקראו כך היה הגבוה ביותר, '
+            f'הייתה בין {d} ל-{d + 9}. הם מסודרים לפי מספר התינוקות שקיבלו אותם בעשור, לפי נתוני הלשכה המרכזית לסטטיסטיקה. '
+            f'שמות שהשיא שלהם היה בעשור אחר לא מופיעים כאן, גם אם היו נפוצים גם אז. עשורים נוספים: {dec_links(k)}.</p>',
+            f'<h2>{len(g)} שמות הבנות של שנות ה-{lab}</h2>' + coll_list(g, stat) + f'<h2>{len(b)} שמות הבנים של שנות ה-{lab}</h2>' + coll_list(b, stat))
+
+
+# /names/comeback: within the sector most of its babies are from (so the sectors' changing share of births doesn't count),
+# a name that peaked by 1975, fell to a third of that or less in 1985-2012, and in the last three years is back to
+# at least double its low and a fifth of its peak; given to 20+ babies in Y1
+SECTORS = sorted({k[1] for k in ST})
+
+
+def comeback(x):
+    s = x['x']
+    sec = max(SECTORS, key=lambda q: SN.get((x['n'], s, q), 0))
+    sh = lambda y: SC.get((x['n'], s, sec, y), 0) / ST[(s, sec, y)] if ST.get((s, sec, y)) else 0
+    ys = [y for y in range(Y0, Y1 + 1) if ST.get((s, sec, y))]
+    if x['last'] < 20 or not any(y <= 1975 for y in ys):
+        return False
+    p = max(sh(y) for y in ys if y <= 1975)
+    low = min(sh(y) for y in range(1985, 2013))
+    now = sum(sh(y) for y in range(Y1 - 2, Y1 + 1)) / 3
+    return p == max(sh(y) for y in ys) and low <= p / 3 and now >= 2 * low and now >= p / 5
+
+
+back = {s: sorted([x for x in NAMES if x['x'] == s and comeback(x)], key=lambda x: -x['last']) for s in (0, 1)}
 
 
 def kind_page(k, s):
@@ -522,6 +570,15 @@ COLL_PAGES = {
                + f'<h2>{len(rising[1])} שמות הבנים שהכי צמחו</h2>' + coll_list(rising[1], grew)),
     'short-boys': short_page(1), 'short-girls': short_page(0), 'rare-boys': rare_page(1), 'rare-girls': rare_page(0),
     **{KIND_HUB[ks]: kind_page(*ks) for ks in KIND_HUB},
+    **{k: decade_page(k) for k in DECADES},
+    'comeback': ('שמות ישנים שחוזרים', 'שמות ישנים שחוזרים – שמות של פעם שעולים שוב',
+                 f'{len(back[0]) + len(back[1])} שמות שהיו בשיא עד שנות ה-70, כמעט נעלמו, ועכשיו חוזרים: בנות ובנים, לפי נתוני הלמ״ס עד {Y1}.',
+                 '<p class="dlead">יש שמות שהיו נפוצים בדור של הסבים והסבתות, כמעט נעלמו, ועכשיו ניתנים שוב. '
+                 'ברשימה שמות שהיו בשיא עד 1975, ירדו בין 1985 ל-2012 לשליש מהשיא או פחות, '
+                 f'ובשלוש השנים האחרונות ({Y1 - 2}–{Y1}) עלו שוב לפחות פי שניים מהשפל. '
+                 'החישוב נעשה בתוך המגזר שבו ניתנים רוב התינוקות בשם, כדי ששינויים בגודל המגזרים לא ייראו כמו חזרה של שם. '
+                 f'הנתונים מהלשכה המרכזית לסטטיסטיקה, והשמות מסודרים לפי מספר התינוקות ב-{Y1}.</p>',
+                 f'<h2>{len(back[0])} שמות בנות שחוזרים</h2>' + coll_list(back[0], born) + f'<h2>{len(back[1])} שמות בנים שחוזרים</h2>' + coll_list(back[1], born)),
 }
 COLL_ROWS = {'boys': [(f'100 שמות הבנים המובילים ב-{Y1}', boys)], 'girls': [(f'100 שמות הבנות המובילים ב-{Y1}', girls)],
              'unisex': [('שמות לבנים ולבנות', unisex)],
@@ -529,7 +586,9 @@ COLL_ROWS = {'boys': [(f'100 שמות הבנים המובילים ב-{Y1}', boys
              'rising': [('שמות הבנות שהכי צמחו', rising[0]), ('שמות הבנים שהכי צמחו', rising[1])],
              'short-boys': [('שמות קצרים לבנים', short[1])], 'short-girls': [('שמות קצרים לבנות', short[0])],
              'rare-boys': [('שמות נדירים לבנים', rare[1])], 'rare-girls': [('שמות נדירים לבנות', rare[0])],
-             **{KIND_HUB[(k, s)]: [(f'{KIND_PL[k]} ל{"בנות" if s == 0 else "בנים"}', by_kind[(k, s)])] for k, s in KIND_HUB}}
+             **{KIND_HUB[(k, s)]: [(f'{KIND_PL[k]} ל{"בנות" if s == 0 else "בנים"}', by_kind[(k, s)])] for k, s in KIND_HUB},
+             **{k: [(f'שמות הבנות של שנות ה-{lab}', by_dec[(d, 0)]), (f'שמות הבנים של שנות ה-{lab}', by_dec[(d, 1)])] for k, (d, lab) in DECADES.items()},
+             'comeback': [('שמות בנות שחוזרים', back[0]), ('שמות בנים שחוזרים', back[1])]}
 for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
     path = '/names/' + k
     title = h1 + ' | השמות של ישראל'

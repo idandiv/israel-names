@@ -78,6 +78,8 @@ fs.writeFileSync(path.join(out, 'llms.txt'), `# השמות של ישראל (Shem
 - [שמות נדירים לבנים](${at}/names/rare-boys) · [לבנות](${at}/names/rare-girls)
 - [שמות מקראיים לבנים](${at}/names/biblical-boys) · [לבנות](${at}/names/biblical-girls)
 - [שמות עבריים לבנים](${at}/names/hebrew-boys) · [לבנות](${at}/names/hebrew-girls)
+- [שמות ישנים שחוזרים](${at}/names/comeback)
+- [שמות של שנות ה-60](${at}/names/1960s) · [ה-80](${at}/names/1980s) · [ה-2000](${at}/names/2000s)
 
 ## מידע
 - [אודות](${at}/about)
