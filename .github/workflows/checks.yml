@@ -1,0 +1,25 @@
+# On every pull request: check the committed site in src/ (links, titles, canonical, JSON-LD, sitemap)
+# and run the Node tests. Standard library only, so nothing to install.
+name: checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Site checks
+        run: python3 source/tools/check_site.py
+      - name: Node tests
+        working-directory: source
+        run: node --test tests/*.test.mjs
