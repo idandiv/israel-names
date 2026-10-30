@@ -1,7 +1,7 @@
 """Guides: long articles at /guides/<slug> and the /guides hub, built by build_site.py (static pages without the app).
 
 Sources:
-  data/guides.json            the guides, in hub order: slug, title (without the site suffix), h1, desc, card (hub text),
+  data/guides.json            the guides, in hub order: slug, title (without the site suffix), h1, desc, card (hub text), badge (hub tag),
                               published (YYYY-MM-DD), optional updated, faq [[q, a]], and per-guide data such as pairs
   content/guides/<slug>.html  the article body, an HTML fragment with these markers:
       <!--toc-->              table of contents of the <h2 id="..."> headings
@@ -18,6 +18,7 @@ S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 GROUPS = {'girls': (0, 0), 'boys': (1, 1), 'mixed': (0, 1)}  # sexes of the first and second name
 SEX_HE = {0: 'בת', 1: 'בן'}
 MIN_BABIES = 20
+SECTION = 'מדריכים ומאמרים'  # the section's name: hub h1, footer, /names group, breadcrumbs
 
 
 def load():
@@ -118,7 +119,7 @@ def build(c):
         faq_html = ('<h2 id="faq">שאלות נפוצות</h2>' + ''.join(
             f'<h3>{e(fill(q, slug, False))}</h3><p>{fill(a, slug)}</p>' for q, a in g['faq'])) if faq else ''
         dates = f'פורסם ב-{date_he(g["published"])}' + (f' · עודכן ב-{date_he(g["updated"])}' if g.get('updated') else '')
-        inner = (f'<p class="k"><a href="/guides">מדריכים</a> · השמות של ישראל</p><h1>{e(g["h1"])}</h1>'
+        inner = (f'<p class="k"><a href="/guides">{SECTION}</a> · השמות של ישראל</p><h1>{e(g["h1"])}</h1>'
                  f'<p class="gmeta">{dates} · הנתונים: הלשכה המרכזית לסטטיסטיקה, {Y0}–{Y1}</p>{body}{faq_html}')
         ld = {"@context": "https://schema.org", "@graph": [
             {"@type": "WebPage", "@id": url, "url": url, "name": title, "description": g['desc'], "inLanguage": "he",
@@ -131,26 +132,28 @@ def build(c):
                 "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faq]}] if faq else []),
             {"@type": "BreadcrumbList", "@id": url + "#breadcrumb", "itemListElement": [
                 {"@type": "ListItem", "position": 1, "name": "השמות של ישראל", "item": PH + "/"},
-                {"@type": "ListItem", "position": 2, "name": "מדריכים", "item": PH + "/guides"},
+                {"@type": "ListItem", "position": 2, "name": SECTION, "item": PH + "/guides"},
                 {"@type": "ListItem", "position": 3, "name": g['h1']}]},
             c['LD_SITE'], c['LD_ORG']]}
         open(c['SRC'] + f'guides/{slug}.html', 'w').write(c['page'](title, g['desc'], path, c['static_shell']('guides', inner), jsonld=ld, app=False))
         paths.append(path)
-        listed.append((slug, g['title'], g['desc'], g['card']))
+        listed.append((slug, g['title'], g['desc'], g['card'], g['badge'], date_he(g.get('updated') or g['published'])))
 
-    # the hub: one card per guide
-    HT, HD = 'מדריכים לבחירת שם לתינוק | השמות של ישראל', 'מדריכים לבחירת שם לתינוק, על בסיס נתוני השמות של ישראל: שמות לתאומים ועוד, עם הפירוש והפופולריות של כל שם.'
+    # the hub: one card per guide (badge, title, summary, date, and a "read" call to action)
+    HT, HD = 'מדריכים ומאמרים לבחירת שם לתינוק | השמות של ישראל', 'מדריכים, מאמרים וטיפים לבחירת שם לתינוק, מבוססים על נתוני הלמ״ס: שמות לתאומים ועוד, עם הפירוש והפופולריות של כל שם.'
     cards = '<ul class="gcards">' + ''.join(
-        f'<li><a href="/guides/{s}"><b>{e(t)}</b><span>{e(cd)}</span></a></li>' for s, t, _, cd in listed) + '</ul>'
+        f'<li><a href="/guides/{s}"><span class="gbadge">{e(bd)}</span><b>{e(t)}</b><span class="gsum">{e(cd)}</span>'
+        f'<span class="gfoot"><span class="gdate">עודכן ב-{d}</span><span class="gcta">לקריאת המאמר המלא {c["arrow"]}</span></span></a></li>'
+        for s, t, _, cd, bd, d in listed) + '</ul>'
     url = PH + '/guides'
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "CollectionPage", "@id": url, "url": url, "name": HT, "description": HD, "inLanguage": "he",
          "dateModified": "__MODIFIED__", "isPartOf": {"@id": PH + "/#website"}, "author": {"@id": PH + "/#organization"},
          "mainEntity": {"@type": "ItemList", "numberOfItems": len(listed), "itemListElement": [
-             {"@type": "ListItem", "position": i, "name": t, "url": f'{PH}/guides/{s}'} for i, (s, t, _, _) in enumerate(listed, 1)]}},
+             {"@type": "ListItem", "position": i, "name": t, "url": f'{PH}/guides/{s}'} for i, (s, t, *_) in enumerate(listed, 1)]}},
         c['LD_SITE'], c['LD_ORG']]}
     open(c['SRC'] + 'guides/index.html', 'w').write(c['page'](
-        HT, HD, '/guides', c['static_shell']('guides', '<p class="k">השמות של ישראל</p><h1>מדריכים</h1>'
-                                             '<p class="dlead">מדריכים לבחירת שם, עם רשימות שבנויות מהנתונים: כמה תינוקות קיבלו כל שם ומה פירושו.</p>' + cards),
+        HT, HD, '/guides', c['static_shell']('guides', f'<p class="k">השמות של ישראל</p><h1>{SECTION}</h1>'
+                                             '<p class="dlead">מדריכים, מאמרים וטיפים לבחירת שם, מבוססים על נתוני הלמ״ס והמחקר.</p>' + cards),
         jsonld=ld, app=False))
-    return ['/guides'] + paths, [(s, t, d) for s, t, d, _ in listed]
+    return ['/guides'] + paths, [(s, t, d) for s, t, d, *_ in listed]
