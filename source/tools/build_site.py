@@ -78,9 +78,18 @@ css += """
 .docbody .gtbl .cn{display:block;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
 .docbody .gtbl .cm{display:block;color:var(--muted);font-size:13px;line-height:1.5}
 .docbody .gcards{list-style:none;padding:0;margin:14px 0;display:grid;gap:10px}
-.docbody .gcards a{display:block;border:1px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--ink);font-weight:400}
-.docbody .gcards a:hover{border-color:var(--accent)}.docbody .gcards b{display:block;font-size:17px;margin-bottom:2px}
-.docbody .gcards span{color:var(--muted);font-size:14px}
+.docbody .gcards a{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:16px;padding:16px 18px;color:var(--ink);font-weight:400;background:var(--surface);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
+.docbody .gcards a:hover,.docbody .gcards a:focus-visible{border-color:var(--accent);background:var(--surface-2);transform:translateY(-2px);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent),0 10px 28px -14px color-mix(in srgb,var(--accent) 60%,transparent)}
+.docbody .gcards .gbadge{align-self:flex-start;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 10px}
+.docbody .gcards b{font-size:19px;line-height:1.35}
+.docbody .gcards .gsum{color:var(--ink-2);font-size:14.5px;line-height:1.6}
+.docbody .gcards .gfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;padding-top:10px;border-top:1px solid var(--line)}
+.docbody .gcards .gdate{color:var(--muted);font-size:13px}
+.docbody .gcards .gcta{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-size:14px;font-weight:700}
+.docbody .gcards .gcta .ic{width:16px;height:16px;transition:transform .18s ease}.docbody .gcards a:hover .gcta .ic{transform:translateX(-3px)}
+@media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gcta .ic{transition:none}.docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gcta .ic{transform:none}}
 """
 
 
@@ -218,7 +227,7 @@ KIND_HUB = {('שם מקראי', 1): 'biblical-boys', ('שם מקראי', 0): 'bi
 
 
 def nav_links():
-    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">מדריכים</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
+    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">' + guides.SECTION + '</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
             '<p>' + ' · '.join(f'<a href="/names/{k}">{v}</a>' for k, v in COLLS + HUBS) + '</p>')
 
 
@@ -425,8 +434,8 @@ COLL_GROUPS = [('הכי נפוצים', [('boys', 'שמות לבנים'), ('girls
 assert sorted(k for _, g in COLL_GROUPS for k, _ in g) == sorted(k for k, _ in COLLS + HUBS)
 colls_html = ('<h2 id="colls">אוספי שמות</h2><div class="cgs">' + ''.join(
     f'<div><span class="cgl">{g}</span><p class="cgc">' + ''.join(f'<a href="/names/{k}">{v}</a>' for k, v in items) + '</p></div>'
-    for g, items in COLL_GROUPS) + '<div><span class="cgl">מדריכים</span><p class="cgc">'
-    + ''.join(f'<a href="/guides/{g["slug"]}">{g["h1"]}</a>' for g in guides.load()) + '<a href="/guides">כל המדריכים</a></p></div></div>')
+    for g, items in COLL_GROUPS) + f'<div><span class="cgl">{guides.SECTION}</span><p class="cgc">'
+    + ''.join(f'<a href="/guides/{g["slug"]}">{g["h1"]}</a>' for g in guides.load()) + '<a href="/guides">כל המדריכים והמאמרים</a></p></div></div>')
 HUB_T = 'כל שמות התינוקות בישראל לפי א״ב | השמות של ישראל'
 HUB_D = f'רשימת כל {fmt(len(NAMES))} השמות שניתנו לתינוקות בישראל מאז {Y0}, לפי אותיות, עם משמעות וסטטיסטיקה לכל שם.'
 open(SRC + 'names/index.html', 'w').write(page(
@@ -720,7 +729,7 @@ for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
 
 # ---- guides: /guides and /guides/<slug> (tools/guides.py) ----
 GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 'by_name': by_name, 'ny': ny, 'enc': enc, 'fmt': fmt,
-                                    'short_mean': short_mean, 'Y0': Y0, 'Y1': Y1, 'SRC': SRC, 'PH': PH,
+                                    'short_mean': short_mean, 'arrow': ic(IC_ARROW), 'Y0': Y0, 'Y1': Y1, 'SRC': SRC, 'PH': PH,
                                     'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG, 'LD_DATA': LD_DATA})
 
 # ---- home + 404 ----
@@ -772,7 +781,7 @@ llms = f"""# השמות של ישראל (Shemotil)
 ## אוספים
 """ + '\n'.join(f'### {g}\n' + '\n'.join(f'- [{COLL_PAGES[k][0]}]({PH}/names/{k}): {coll_desc[k]}' for k, _ in items) for g, items in COLL_GROUPS) + f"""
 
-## מדריכים
+## מדריכים ומאמרים
 """ + '\n'.join(f'- [{t}]({PH}/guides/{s}): {d}' for s, t, d in GUIDES) + f"""
 
 ## איך לצטט

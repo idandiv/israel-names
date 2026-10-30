@@ -1187,6 +1187,15 @@ body.docopen{overflow:hidden}
 .docbody .gtbl .cn{display:block;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
 .docbody .gtbl .cm{display:block;color:var(--muted);font-size:13px;line-height:1.5}
 .docbody .gcards{list-style:none;padding:0;margin:14px 0;display:grid;gap:10px}
-.docbody .gcards a{display:block;border:1px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--ink);font-weight:400}
-.docbody .gcards a:hover{border-color:var(--accent)}.docbody .gcards b{display:block;font-size:17px;margin-bottom:2px}
-.docbody .gcards span{color:var(--muted);font-size:14px}
+.docbody .gcards a{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:16px;padding:16px 18px;color:var(--ink);font-weight:400;background:var(--surface);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
+.docbody .gcards a:hover,.docbody .gcards a:focus-visible{border-color:var(--accent);background:var(--surface-2);transform:translateY(-2px);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent),0 10px 28px -14px color-mix(in srgb,var(--accent) 60%,transparent)}
+.docbody .gcards .gbadge{align-self:flex-start;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 10px}
+.docbody .gcards b{font-size:19px;line-height:1.35}
+.docbody .gcards .gsum{color:var(--ink-2);font-size:14.5px;line-height:1.6}
+.docbody .gcards .gfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;padding-top:10px;border-top:1px solid var(--line)}
+.docbody .gcards .gdate{color:var(--muted);font-size:13px}
+.docbody .gcards .gcta{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-size:14px;font-weight:700}
+.docbody .gcards .gcta .ic{width:16px;height:16px;transition:transform .18s ease}.docbody .gcards a:hover .gcta .ic{transform:translateX(-3px)}
+@media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gcta .ic{transition:none}.docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gcta .ic{transform:none}}
