@@ -7,7 +7,7 @@ Writes: <repo>/src/   (pages with the __BASE_URL__ placeholder, filled at deploy
 Only src/ is replaced; the other repo-root files (vercel.json, finalize.mjs, supabase/...) are kept as they are.
 """
 import gzip, base64, json, hashlib, os, shutil, html as H
-import meanings
+import meanings, guides
 
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 D = S
@@ -65,6 +65,22 @@ css += """
 .docbody .cgc{display:flex;flex-wrap:wrap;gap:6px}
 .docbody .cgc a{display:inline-flex;align-items:center;min-height:36px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink);font-size:14px;font-weight:600;text-decoration:none}
 .docbody .cgc a:hover{border-color:var(--accent);color:var(--accent)}
+/* guides (/guides): table of contents, pair tables, hub cards */
+.docbody .gmeta{color:var(--muted);font-size:13px;margin:-4px 0 14px}
+.docbody .toc{border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:18px 0 8px}
+.docbody .toc b{font-size:14px}.docbody .toc ol{margin:6px 0 0;padding-inline-start:20px}.docbody .toc li{margin-bottom:2px}
+.docbody h2[id]{scroll-margin-top:80px}
+.docbody h3{font-size:16.5px;color:var(--ink);margin:20px 0 4px}
+.docbody .gtbl{width:100%;border-collapse:collapse;table-layout:fixed;margin:6px 0 14px}
+.docbody .gtbl th{text-align:start;font-size:12.5px;font-weight:500;color:var(--muted);padding:4px 8px;border-bottom:1px solid var(--line)}
+.docbody .gtbl td{vertical-align:top;padding:9px 8px;border-bottom:1px solid var(--line);min-width:0}
+.docbody .gtbl td a{border:0;color:var(--ink);font-size:17px;font-weight:700}.docbody .gtbl td a:hover{color:var(--accent)}
+.docbody .gtbl .cn{display:block;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+.docbody .gtbl .cm{display:block;color:var(--muted);font-size:13px;line-height:1.5}
+.docbody .gcards{list-style:none;padding:0;margin:14px 0;display:grid;gap:10px}
+.docbody .gcards a{display:block;border:1px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--ink);font-weight:400}
+.docbody .gcards a:hover{border-color:var(--accent)}.docbody .gcards b{display:block;font-size:17px;margin-bottom:2px}
+.docbody .gcards span{color:var(--muted);font-size:14px}
 """
 
 
@@ -202,7 +218,7 @@ KIND_HUB = {('שם מקראי', 1): 'biblical-boys', ('שם מקראי', 0): 'bi
 
 
 def nav_links():
-    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
+    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">מדריכים</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
             '<p>' + ' · '.join(f'<a href="/names/{k}">{v}</a>' for k, v in COLLS + HUBS) + '</p>')
 
 
@@ -409,7 +425,8 @@ COLL_GROUPS = [('הכי נפוצים', [('boys', 'שמות לבנים'), ('girls
 assert sorted(k for _, g in COLL_GROUPS for k, _ in g) == sorted(k for k, _ in COLLS + HUBS)
 colls_html = ('<h2 id="colls">אוספי שמות</h2><div class="cgs">' + ''.join(
     f'<div><span class="cgl">{g}</span><p class="cgc">' + ''.join(f'<a href="/names/{k}">{v}</a>' for k, v in items) + '</p></div>'
-    for g, items in COLL_GROUPS) + '</div>')
+    for g, items in COLL_GROUPS) + '<div><span class="cgl">מדריכים</span><p class="cgc">'
+    + ''.join(f'<a href="/guides/{g["slug"]}">{g["h1"]}</a>' for g in guides.load()) + '<a href="/guides">כל המדריכים</a></p></div></div>')
 HUB_T = 'כל שמות התינוקות בישראל לפי א״ב | השמות של ישראל'
 HUB_D = f'רשימת כל {fmt(len(NAMES))} השמות שניתנו לתינוקות בישראל מאז {Y0}, לפי אותיות, עם משמעות וסטטיסטיקה לכל שם.'
 open(SRC + 'names/index.html', 'w').write(page(
@@ -701,6 +718,11 @@ for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
         title, desc, path, static_shell(k, f'<p class="k">השמות של ישראל · אוספי שמות</p><h1>{name}</h1>{lead}{lists}{faq_html}'),
         jsonld=coll_ld(path, title, desc, COLL_ROWS[k], faq), app=False))
 
+# ---- guides: /guides and /guides/<slug> (tools/guides.py) ----
+GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 'by_name': by_name, 'ny': ny, 'enc': enc, 'fmt': fmt,
+                                    'short_mean': short_mean, 'Y0': Y0, 'Y1': Y1, 'SRC': SRC, 'PH': PH,
+                                    'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG, 'LD_DATA': LD_DATA})
+
 # ---- home + 404 ----
 top = [x['n'] for x in sorted(NAMES, key=lambda x: -x['last'])[:40]]
 home_body = f'''<article class="seo"><h1>השמות של ישראל</h1><p>{H.escape(SITE_D)}</p>
@@ -750,6 +772,9 @@ llms = f"""# השמות של ישראל (Shemotil)
 ## אוספים
 """ + '\n'.join(f'### {g}\n' + '\n'.join(f'- [{COLL_PAGES[k][0]}]({PH}/names/{k}): {coll_desc[k]}' for k, _ in items) for g, items in COLL_GROUPS) + f"""
 
+## מדריכים
+""" + '\n'.join(f'- [{t}]({PH}/guides/{s}): {d}' for s, t, d in GUIDES) + f"""
+
 ## איך לצטט
 השמות של ישראל (shemotil.co.il), על בסיס נתוני הלשכה המרכזית לסטטיסטיקה. עדיף לקשר לעמוד השם עצמו.
 
@@ -760,7 +785,7 @@ llms = f"""# השמות של ישראל (Shemotil)
 open(SRC + 'llms.txt', 'w').write(llms)
 
 # list of indexable paths for the sitemap (finalize.mjs adds the base URL)
-paths = ['/', '/names'] + [f'/names/{k}' for k, _ in COLLS + HUBS] + ['/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
+paths = ['/', '/names'] + [f'/names/{k}' for k, _ in COLLS + HUBS] + GUIDE_PATHS + ['/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
 json.dump(paths, open(OUT + 'scripts/paths.json', 'w'), ensure_ascii=False)
 # one page per line, so a rebuild's git diff shows exactly which pages changed
 with open(LASTMOD_F, 'w', encoding='utf-8') as f:
