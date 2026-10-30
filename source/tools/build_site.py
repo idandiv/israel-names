@@ -186,7 +186,11 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
 COLLS = [('boys', 'שמות לבנים'), ('girls', 'שמות לבנות'), ('unisex', 'שמות יוניסקס'), ('popular', 'השמות הנפוצים בישראל')]
 # more collections: linked from the footer (nav_links), not from the tabs (coll_nav), which keep the four main ones
 HUBS = [('rising', 'שמות בעלייה'), ('short-boys', 'שמות קצרים לבנים'), ('short-girls', 'שמות קצרים לבנות'),
-        ('rare-boys', 'שמות נדירים לבנים'), ('rare-girls', 'שמות נדירים לבנות')]
+        ('rare-boys', 'שמות נדירים לבנים'), ('rare-girls', 'שמות נדירים לבנות'),
+        ('biblical-boys', 'שמות מקראיים לבנים'), ('biblical-girls', 'שמות מקראיים לבנות'),
+        ('hebrew-boys', 'שמות עבריים לבנים'), ('hebrew-girls', 'שמות עבריים לבנות')]
+# the collection page of an origin kind (meanings.ORIGIN_KIND) and sex, linked under the same-origin block of a name page
+KIND_HUB = {('שם מקראי', 1): 'biblical-boys', ('שם מקראי', 0): 'biblical-girls', ('שם עברי', 1): 'hebrew-boys', ('שם עברי', 0): 'hebrew-girls'}
 
 
 def nav_links():
@@ -256,6 +260,7 @@ by_name = {x['n']: x for x in NAMES}
 # Neighbours rather than the top names, so the links reach rare names too
 KIND_PL = {'שם מקראי': 'שמות מקראיים', 'שם עברי': 'שמות עבריים', 'שם ארמי': 'שמות ארמיים', 'שם ערבי': 'שמות ערביים',
            'שם ביידיש': 'שמות ביידיש', 'שם אמהרי': 'שמות אמהריים', 'שם לועזי': 'שמות לועזיים'}
+KIND_ADJ = {k: v.split(' ', 1)[1] for k, v in KIND_PL.items()}  # "מקראיים", for "השמות המקראיים"
 kind_of = lambda x: meanings.ORIGIN_KIND.get(x['origin'], '')
 same_kind = {}
 for y in sorted(NAMES, key=lambda y: (-y['last'], -y['tot'])):
@@ -310,6 +315,7 @@ for x in NAMES:
 {''.join(f'<h3>{e(a)}</h3><p>{e(b)}</p>' for a, b in faq)}
 {f'<h2>שמות מאותה תקופה</h2>{chips(rel)}' if rel else ''}
 {f'<h2>{KIND_PL[k]} נוספים ל{sexw}</h2>{chips(same)}' if same else ''}
+{f'<p><a href="/names/{KIND_HUB[(k, x["x"])]}">לרשימת השמות ה{KIND_ADJ[k]} ל{sexw}</a></p>' if same and (k, x['x']) in KIND_HUB else ''}
 {f'<h2>שמות בדירוג דומה ב-{Y1}</h2>{chips(near)}' if near else ''}
 {nav_links()}
 <p class="k">מקור: נתוני הלשכה המרכזית לסטטיסטיקה, {Y0}–{Y1}. נוצר ע״י <a href="{LINKEDIN}">עידן דיוה</a>.</p>
@@ -460,6 +466,30 @@ def rare_page(s):
             f'<h2>שמות נדירים ל{w} ב-{Y1}</h2>' + coll_list(rare[s], born))
 
 
+# /names/biblical-* and /names/hebrew-*: names of that origin (meanings.json) given in Y1, most babies first
+by_kind = {(k, s): sorted([x for x in NAMES if x['x'] == s and x['last'] and kind_of(x) == k], key=lambda x: (-x['last'], -x['tot']))[:60]
+           for k, s in KIND_HUB}
+
+
+def kind_page(k, s):
+    w, rows = ('בנות' if s == 0 else 'בנים'), by_kind[(k, s)]
+    if k == 'שם מקראי':
+        return (f'שמות מקראיים ל{w}', f'שמות מקראיים ל{w} – {len(rows)} שמות מהתנ״ך עם פירוש',
+                f'{len(rows)} שמות מקראיים ל{w}, שמות שמופיעים בתנ״ך, לפי מספר התינוקות שנקראו בהם בישראל ב-{Y1} (הלמ״ס), עם הפירוש של כל שם.',
+                f'<p class="dlead">שמות מהתנ״ך הם עדיין מהשמות האהובים בישראל. ברשימה {len(rows)} שמות {w} שמופיעים בתנ״ך, '
+                f'מסודרים לפי מספר התינוקות שנקראו בהם ב-{Y1}, לפי נתוני הלשכה המרכזית לסטטיסטיקה. '
+                'מתחת לכל שם מופיע הפירוש שלו, ובתיק השם יש גם את הפופולריות שלו לאורך השנים. '
+                f'שמות עבריים נוספים, רובם מילים מהעברית, נמצאים ב<a href="/names/{KIND_HUB[("שם עברי", s)]}">רשימת השמות העבריים ל{w}</a>.</p>',
+                f'<h2>שמות מקראיים ל{w} לפי פופולריות ב-{Y1}</h2>' + coll_list(rows, born))
+    return (f'שמות עבריים ל{w}', f'שמות עבריים ל{w} – {len(rows)} שמות ישראליים עם פירוש',
+            f'{len(rows)} שמות עבריים ל{w}, רובם מילים מהעברית, מקומות בישראל, חודשים וחגים, לפי פופולריות ב-{Y1} (הלמ״ס) ועם פירוש לכל שם.',
+            f'<p class="dlead">לצד השמות מהתנ״ך, רבים מהשמות שניתנים היום בישראל הם מילים עבריות: צמחים, תופעות טבע, מקומות בארץ ומושגים. '
+            f'ברשימה {len(rows)} שמות {w} עבריים, רובם מילים מהעברית ולא שמות של דמויות מהתנ״ך, מסודרים לפי מספר התינוקות שנקראו בהם ב-{Y1}, '
+            'לפי נתוני הלשכה המרכזית לסטטיסטיקה, ומתחת לכל שם הפירוש שלו. '
+            f'שמות מהתנ״ך נמצאים ב<a href="/names/{KIND_HUB[("שם מקראי", s)]}">רשימת השמות המקראיים ל{w}</a>.</p>',
+            f'<h2>שמות עבריים ל{w} לפי פופולריות ב-{Y1}</h2>' + coll_list(rows, born))
+
+
 COLL_PAGES = {
     'boys': ('שמות לבנים', f'שמות לבנים – 100 השמות הנפוצים בישראל ב-{Y1}',
              f'רשימת 100 שמות הבנים הנפוצים בישראל ב-{Y1} לפי הלמ״ס, עם מספר התינוקות, משמעות כל שם וקישור לתיק השם המלא.',
@@ -491,13 +521,15 @@ COLL_PAGES = {
                f'<h2>{len(rising[0])} שמות הבנות שהכי צמחו</h2>' + coll_list(rising[0], grew)
                + f'<h2>{len(rising[1])} שמות הבנים שהכי צמחו</h2>' + coll_list(rising[1], grew)),
     'short-boys': short_page(1), 'short-girls': short_page(0), 'rare-boys': rare_page(1), 'rare-girls': rare_page(0),
+    **{KIND_HUB[ks]: kind_page(*ks) for ks in KIND_HUB},
 }
 COLL_ROWS = {'boys': [(f'100 שמות הבנים המובילים ב-{Y1}', boys)], 'girls': [(f'100 שמות הבנות המובילים ב-{Y1}', girls)],
              'unisex': [('שמות לבנים ולבנות', unisex)],
              'popular': [(f'50 השמות המובילים ב-{Y1}', top_now), (f'50 השמות הנפוצים מאז {Y0}', top_ever)],
              'rising': [('שמות הבנות שהכי צמחו', rising[0]), ('שמות הבנים שהכי צמחו', rising[1])],
              'short-boys': [('שמות קצרים לבנים', short[1])], 'short-girls': [('שמות קצרים לבנות', short[0])],
-             'rare-boys': [('שמות נדירים לבנים', rare[1])], 'rare-girls': [('שמות נדירים לבנות', rare[0])]}
+             'rare-boys': [('שמות נדירים לבנים', rare[1])], 'rare-girls': [('שמות נדירים לבנות', rare[0])],
+             **{KIND_HUB[(k, s)]: [(f'{KIND_PL[k]} ל{"בנות" if s == 0 else "בנים"}', by_kind[(k, s)])] for k, s in KIND_HUB}}
 for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
     path = '/names/' + k
     title = h1 + ' | השמות של ישראל'
