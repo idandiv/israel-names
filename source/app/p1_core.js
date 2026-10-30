@@ -1,6 +1,5 @@
 const Y0=DATA.y0, NY=DATA.T[0][0].length, Y1=Y0+NY-1, YEARS=Array.from({length:NY},(_,i)=>Y0+i);
 const NOW=new Date().getFullYear();   /* ages and 'X years ago' follow today's date */
-const LINKEDIN='https://www.linkedin.com/in/idan-diva/';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /* Persistence layer: localStorage with an in-memory fallback (private mode / blocked storage), schema versioning and cleanup. */
@@ -146,7 +145,6 @@ function tabLabel(k){return{home:t('ראשי','Home'),names:t('חקר שמות',
 function renderShell(){
   document.documentElement.lang=LANG==='en'?'en':'he';
   const app=$('#app');app.dir=LANG==='en'?'ltr':'rtl';
-  const madeBy=`${t('נוצר ע״י','Created by')} <a class="credit" href="${LINKEDIN}" target="_blank" rel="noopener">${t('עידן דיוה','Idan Diva')}</a>`;
   app.innerHTML=`
   <div class="bar">
     <div class="toprow">
@@ -159,7 +157,6 @@ function renderShell(){
     <nav class="mainnav" role="tablist">${['home','names','gen','trends','games'].map(k=>`<button role="tab" data-tab="${k}" class="${k==='gen'?'hl':''}" aria-selected="${k===TAB}">${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
   </div>
   ${TABS.map(k=>`<section id="tab-${k}" ${k===TAB?'':'hidden'}></section>`).join('')}
-  <p class="madeby">${madeBy}</p>
   <details class="note"><summary>${t('על הנתונים והמקורות','About the data')}</summary><p>${t('המקור: הלשכה המרכזית לסטטיסטיקה, דרך חבילת babynamesIL. הנתונים כוללים כל שם שניתן לפחות ל-5 תינוקות באותה שנה, באותו מגדר ובאותו מגזר. לכן שמות נדירים חסרים, ו״אחוז מהתינוקות״ מחושב מתוך התינוקות שנרשמו בשמות שבנתונים. ה״גיל הטיפוסי״ מבוסס על שנות הלידה בלבד, בלי תמותה והגירה. פירושי השמות הם הפירושים המקובלים, ולחלק מהשמות יש יותר מפירוש אחד. תגיות ״עדכון 2025״ ו״תשפ״ו״ מבוססות על רשימות 10 השמות המובילים שפרסמה רשות האוכלוסין וההגירה, ואינן חלק מנתוני הלמ״ס.',
     'Source: Israel Central Bureau of Statistics, via the babynamesIL package. The data includes every name given to at least 5 babies in a given year, sex and community, so very rare names are missing and percentages are out of the babies listed. "Typical age" uses birth years only. English spellings are approximate transliterations of the Hebrew. "2025 update" tags come from Population Authority top-10 lists, not CBS data.')}</p>
     <p>${cloudOn()?t('פרטיות: אין הרשמה. השמות ששמרתם, התשובות במחולל וההתקדמות במשחקים נשמרים רק בדפדפן במכשיר הזה. בבחירת שם בזוג, השם שבחרתם להציג בחדר והבחירות שלכם בו נשמרים בשרת מאובטח (Supabase), כדי שבן או בת הזוג יראו אותם בזמן אמת. רק מי שהצטרף לחדר יכול לראות אותם, וחדרים שלא היה בהם שימוש 90 יום נמחקים אוטומטית. הכפתור כאן מוחק את מה שנשמר במכשיר.','Privacy: no sign-up. Saved names, finder answers and game progress stay in this browser. In couple rooms, your display name and swipes are stored on a secure server (Supabase) so your partner sees them live. Only room members can see them, and rooms unused for 90 days are deleted automatically. This button deletes what is stored on this device.'):t('פרטיות: אין הרשמה ואין שרת. השמות ששמרתם, התשובות במחולל, ההתקדמות במשחקים והבחירות הזוגיות נשמרים רק בדפדפן במכשיר הזה. מה שעובר בין אנשים עובר רק בקישורים שאתם בוחרים לשלוח.','Privacy: no sign-up and no server. Saved names, finder answers, game progress and couple picks stay in this browser on this device. Only links you choose to send carry anything to others.')}</p>
@@ -256,7 +253,7 @@ async function makeCard(i,extra){
   g.font=`600 28px ${body}`;g.textAlign=en?'left':'right';g.fillStyle=C.ink;
   g.fillText(en?`${Math.round(f.gp*100)}% girls · ${Math.round(100-f.gp*100)}% boys`:`${Math.round(f.gp*100)}% בנות · ${Math.round(100-f.gp*100)}% בנים`,X0,y+70);
   if(extra){g.fillStyle=C.acc;g.font=`700 40px ${body}`;g.fillText(extra,X0,y+130)}
-  g.fillStyle=C.mut;g.font=`500 26px ${body}`;g.fillText(en?'Made by Idan Diva · linkedin.com/in/idan-diva':'נוצר ע״י עידן דיוה · linkedin.com/in/idan-diva',X0,H-60);
+  g.fillStyle=C.mut;g.font=`500 26px ${body}`;{const host=(SITE.base||'').replace(/^https?:\/\//,'');g.fillText(host&&host.length<=40?host:(en?'Names of Israel':'השמות של ישראל'),X0,H-60)}
   return cv;
 }
 async function shareCard(i,extra){const cv=await makeCard(i,extra);showCard(cv,`${rom(i)}-names-of-israel.png`,NM(i),t('כרטיס השם שלכם','Your name card'))}

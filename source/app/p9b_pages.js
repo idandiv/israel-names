@@ -17,8 +17,7 @@ function openDoc(k,push){const P=PAGES[k];if(!P)return;
   el.innerHTML=`<div class="docin" dir="rtl" lang="he">
     <div class="doctop"><button class="docback" id="docback">${icon('back')}<span>חזרה לדף הבית</span></button><span class="docbrand">השמות של ישראל</span></div>
     <article class="docbody"><h1>${P.title}</h1>${P.html}</article>
-    <nav class="docnav">${DOCS.map(d=>`<a href="${docHref(d)}" data-doc="${d}" ${d===k?'aria-current="page"':''}>${PAGES[d].title}</a>`).join('')}</nav>
-    <p class="docfoot">נוצר ע״י <a href="https://www.linkedin.com/in/idan-diva/" target="_blank" rel="noopener">עידן דיוה</a></p></div>`;
+    <nav class="docnav">${DOCS.map(d=>`<a href="${docHref(d)}" data-doc="${d}" ${d===k?'aria-current="page"':''}>${PAGES[d].title}</a>`).join('')}</nav></div>`;
   el.hidden=false;el.scrollTop=0;document.body.classList.add('docopen');
   document.title=`${P.title} | השמות של ישראל`;metaTag('meta[name="description"]','name','description',P.desc);
   if(SITE.base&&SITE.routing==='path')metaTag('link[rel="canonical"]','rel','canonical',SITE.base+'/'+k);
