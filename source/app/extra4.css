@@ -409,10 +409,3 @@ body.docopen{overflow:hidden}
 .nmhint[hidden]{display:none}
 .nmwelcome .nmmorenote{margin:10px 2px 0;font-size:12px;color:var(--muted);text-align:start}
 .nmstatus .ic{flex:none}
-/* home page card of collection pages (collsHomeHTML in p9b_pages.js) */
-.homecolls{margin-top:14px;display:block}
-.homecolls .sub{color:var(--muted);font-size:13px;margin:2px 0 2px}
-.homecolls .cg{margin-top:10px}
-.homecolls .cgl{display:block;color:var(--muted);font-size:12px;font-weight:600}
-.homecolls .chips{justify-content:flex-start;margin-top:5px}
-@media (min-width:760px){.homecolls .cgs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 24px}}

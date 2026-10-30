@@ -1143,13 +1143,6 @@ body.docopen{overflow:hidden}
 .nmhint[hidden]{display:none}
 .nmwelcome .nmmorenote{margin:10px 2px 0;font-size:12px;color:var(--muted);text-align:start}
 .nmstatus .ic{flex:none}
-/* home page card of collection pages (collsHomeHTML in p9b_pages.js) */
-.homecolls{margin-top:14px;display:block}
-.homecolls .sub{color:var(--muted);font-size:13px;margin:2px 0 2px}
-.homecolls .cg{margin-top:10px}
-.homecolls .cgl{display:block;color:var(--muted);font-size:12px;font-weight:600}
-.homecolls .chips{justify-content:flex-start;margin-top:5px}
-@media (min-width:760px){.homecolls .cgs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 24px}}
 
 /* static fallback content (visible until the app boots, and to crawlers) */
 .seo{max-width:760px;margin:0 auto;padding:24px 16px 48px;color:var(--ink);font-family:'IBM Plex Sans Hebrew',system-ui,sans-serif;line-height:1.7}
@@ -1173,6 +1166,11 @@ body.docopen{overflow:hidden}
 .collcta{margin-top:28px}
 .docbody .azjump{display:flex;flex-wrap:wrap;gap:4px;margin:18px 0 0}
 .docbody .azjump a{border:1px solid var(--line);border-radius:10px;min-width:36px;min-height:36px;display:inline-grid;place-items:center;color:var(--ink)}
-.docbody .seo-az h2{scroll-margin-top:80px}
+.docbody .seo-az h2,.docbody #colls{scroll-margin-top:80px}
 .docbody .seo-az .az a{display:inline-block;margin:2px 6px;border:0;font-weight:400}
 .docfoot p{margin:6px 0}.docfoot p a{color:var(--muted);font-weight:400}
+.docbody .cgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px 24px;margin:6px 0 4px}
+.docbody .cgl{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}
+.docbody .cgc{display:flex;flex-wrap:wrap;gap:6px}
+.docbody .cgc a{display:inline-flex;align-items:center;min-height:36px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink);font-size:14px;font-weight:600;text-decoration:none}
+.docbody .cgc a:hover{border-color:var(--accent);color:var(--accent)}

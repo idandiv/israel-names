@@ -437,12 +437,11 @@ function renderHome(){
   <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
   </div>
   ${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<div class="nmnewwrap"><button class="linkbtn" id="nmnewroom">${t('+ חדר חדש','+ New room')}</button><span aria-hidden="true">·</span><button class="linkbtn" id="nmallrooms">${t(`החדרים שלי (${nmRoomCount()})`,`My rooms (${nmRoomCount()})`)}</button></div>`:''})()}
-  <div class="tiles3 two">
+  <div class="tiles3${SITE.routing==='path'?'':' two'}">
     <button class="tilec" data-go="games"><span class="k">${t('משחק יומי','Daily game')}</span><b>${t('השם הסודי','The secret name')}</b><span>${t('נחשו את השם של היום ב-10 ניסיונות','Guess today’s name in 10 tries')}</span></button>
     <button class="tilec" data-go="me"><span class="k">${t('פרופיל אישי','Personal profile')}</span><b>${t('מה השם שלי אומר עליי','What my name says')}</b><span>${t('כמה הוא נדיר בשנתון שלכם ומה התואר שלכם','How rare it was in your year, and your title')}</span></button>
-
+    ${SITE.routing==='path'?`<a class="tilec" href="/names#colls"><span class="k">${t('אוספי שמות','Name lists')}</span><b>${t('רשימות מוכנות','Ready-made lists')}</b><span>${t('מקראיים, בעלייה, שנות ה-80, נדירים ועוד','Biblical, rising, the 80s, rare and more (in Hebrew)')}</span></a>`:''}
   </div>
-  ${collsHomeHTML()}
 `;
   wireSearch($('#hq'),$('#hsugg'),pick);
   openOn(sec.querySelector('.quick'));
@@ -1926,18 +1925,6 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 {const k0=docFromURL();if(k0)setTimeout(()=>{try{history.replaceState(null,'',docHref(k0))}catch(e){}openDoc(k0,false)},0)}
 /* name collections (/names/boys etc.) are plain static pages, so these are ordinary links; the preview build has no such pages */
 const COLLS=[['boys','שמות לבנים'],['girls','שמות לבנות'],['unisex','שמות יוניסקס'],['popular','השמות הנפוצים בישראל']];
-/* every collection page, grouped for the home page card (COLLS + HUBS in tools/build_site.py, keep them in sync).
-   The pages are Hebrew, so the links stay in Hebrew in the English version too */
-const COLL_GROUPS=[
-  [['הכי נפוצים','Most popular'],[['boys','שמות לבנים'],['girls','שמות לבנות'],['unisex','יוניסקס'],['popular','הנפוצים בישראל'],['','כל השמות א–ת']]],
-  [['מגמות','Trends'],[['rising','שמות בעלייה'],['comeback','שמות ישנים שחוזרים']]],
-  [['לפי מקור','By origin'],[['biblical-boys','מקראיים לבנים'],['biblical-girls','מקראיים לבנות'],['hebrew-boys','עבריים לבנים'],['hebrew-girls','עבריים לבנות']]],
-  [['קצרים ונדירים','Short and rare'],[['short-boys','קצרים לבנים'],['short-girls','קצרים לבנות'],['rare-boys','נדירים לבנים'],['rare-girls','נדירים לבנות']]],
-  [['לפי עשור','By decade'],[['1960s','שנות ה-60'],['1980s','שנות ה-80'],['2000s','שנות ה-2000']]]];
-/* plain links to the static collection pages; the preview build (hash routing) has no such pages, so no card there */
-function collsHomeHTML(){if(SITE.routing!=='path')return'';
-  return `<nav class="card homecolls" aria-label="${t('אוספי שמות','Name collections')}"><h3>${t('אוספי שמות','Name collections')}</h3><p class="sub">${t('רשימות מוכנות לפי נושא, עם פירוש לכל שם','Ready-made lists by topic, in Hebrew')}</p>
-    <div class="cgs">${COLL_GROUPS.map(([[he,en],items])=>`<div class="cg"><span class="cgl">${t(he,en)}</span><div class="chips">${items.map(([k,v])=>`<a class="nlink" href="/names${k?'/'+k:''}">${v}</a>`).join('')}</div></div>`).join('')}</div></nav>`}
 function docLinksHTML(){return `<nav class="doclinks">${DOCS.map(d=>`<a href="${docHref(d)}" data-doc="${d}">${PAGES[d].title}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`
   +(SITE.routing==='path'?`<nav class="doclinks" aria-label="אוספי שמות">${COLLS.map(([k,v])=>`<a href="/names/${k}">${v}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`:'')}
 
