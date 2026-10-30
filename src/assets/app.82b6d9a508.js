@@ -113,8 +113,9 @@ function seoFAQ(i){const x=seoFacts(i),n=x.n,q=x.mean?[[`מה המשמעות ש�
   return q}
 function nameMeta(i){const nm=NAMES[i];
   return LANG==='en'?{title:`The name ${NM(i)} (${nm}) – meaning, origin and statistics | Names of Israel`,desc:peakDesc(i)}:seoMeta(i)}
-const SITE_TITLE=()=>t('השמות של ישראל | מאגר שמות לתינוקות ומשחק בחירת שם ביחד','Names of Israel | Baby names database and a couples name-matching game');
-const SITE_DESC=()=>t('מחפשים שם לתינוק? מאגר השמות המלא בישראל עם משמעויות, פופולריות לאורך השנים, ומשחק זוגי חדשני למציאת מאץ\' על השם המושלם. חינם לגמרי!','Looking for a baby name? Every name given in Israel, with meanings, popularity over the years and a couples game to find your match. Completely free!');
+/* the Hebrew title and description are the static home page's too (SITE_T / SITE_D in tools/build_site.py), keep them in sync */
+const SITE_TITLE=()=>t('שמות לתינוקות – מאגר השמות של ישראל | Shemotil','Names of Israel | Baby names database and a couples name-matching game');
+const SITE_DESC=()=>t('שמות לתינוקות עם משמעות, מקור ופופולריות: מאגר השמות של ישראל (Shemotil) כולל כל שם שניתן בישראל מאז 1949 לפי הלמ״ס, ומשחק זוגי לבחירת שם ביחד. חינם.','Looking for a baby name? Every name given in Israel, with meanings, popularity over the years and a couples game to find your match. Completely free!');
 function setMeta(){const onName=TAB==='names'&&NSUB==='file';const m=onName?nameMeta(CUR):{title:SITE_TITLE(),desc:SITE_DESC()};
   document.title=m.title;metaTag('meta[name="description"]','name','description',m.desc);
   /* one h1 per screen: on a name page the name is the h1 (renderName), so the brand becomes plain text there */
