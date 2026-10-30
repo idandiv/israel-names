@@ -26,7 +26,7 @@ const walk = (from, to) => {
   for (const e of fs.readdirSync(from, { withFileTypes: true })) {
     const a = path.join(from, e.name), b = path.join(to, e.name);
     if (e.isDirectory()) { walk(a, b); continue; }
-    if (e.name.endsWith('.html') || e.name === 'site-config.js') {
+    if (e.name.endsWith('.html') || e.name === 'site-config.js' || e.name === 'llms.txt') {
       const s = fs.readFileSync(a, 'utf8').split('__BASE_URL__').join(base).split('__RUNTIME_BASE_URL__').join(explicit).split('__SUPABASE_URL__').join(JSON.stringify(sbUrl).slice(1,-1)).split('__SUPABASE_KEY__').join(JSON.stringify(sbKey).slice(1,-1));
       fs.writeFileSync(b, s);
     } else fs.copyFileSync(a, b);
@@ -56,33 +56,6 @@ fs.writeFileSync(path.join(out, 'ads.txt'), ads);
 const BOTS = ['Googlebot', 'Google-Extended', 'Mediapartners-Google', 'AdsBot-Google', 'Bingbot', 'GPTBot', 'OAI-SearchBot', 'ChatGPT-User',
   'ClaudeBot', 'Claude-SearchBot', 'Claude-User', 'PerplexityBot', 'Perplexity-User', 'Applebot', 'Applebot-Extended'];
 fs.writeFileSync(path.join(out, 'robots.txt'), ['*', ...BOTS].map(b => `User-agent: ${b}\nAllow: /\n`).join('\n') + (base ? `\nSitemap: ${base}/sitemap.xml\n` : ''));
-// llms.txt: a short plain-text guide to the site for AI assistants (llmstxt.org)
-const at = base || '';
-fs.writeFileSync(path.join(out, 'llms.txt'), `# השמות של ישראל (ShemotIL)
-
-> מאגר שמות התינוקות של ישראל: עמוד לכל שם שניתן בישראל מאז 1949 (כ-5,700 שמות), לפי נתוני הלשכה המרכזית לסטטיסטיקה (הלמ״ס), עם משמעות השם (כשידועה), פופולריות לאורך השנים, שנת שיא, חלוקה בין בנות לבנים, מגזר וגימטריה.
-
-כל המספרים באתר מחושבים מנתוני הלמ״ס, שכוללים כל שם שניתן לפחות ל-5 תינוקות באותה שנה. האתר בעברית ונוצר על ידי עידן דיוה.
-
-## עמודי שמות
-- כתובת של שם: ${at}/names/<השם בעברית>, למשל [נועה](${at}/names/${encodeURIComponent('נועה')}) או [דוד](${at}/names/${encodeURIComponent('דוד')})
-- [כל השמות לפי א״ב](${at}/names)
-
-## אוספים
-- [שמות לבנים: 100 המובילים](${at}/names/boys)
-- [שמות לבנות: 100 המובילים](${at}/names/girls)
-- [שמות יוניסקס](${at}/names/unisex)
-- [השמות הנפוצים בישראל](${at}/names/popular)
-- [שמות בעלייה: השמות שהכי צמחו בעשור](${at}/names/rising)
-- [שמות קצרים לבנים](${at}/names/short-boys) · [לבנות](${at}/names/short-girls)
-- [שמות נדירים לבנים](${at}/names/rare-boys) · [לבנות](${at}/names/rare-girls)
-- [שמות מקראיים לבנים](${at}/names/biblical-boys) · [לבנות](${at}/names/biblical-girls)
-- [שמות עבריים לבנים](${at}/names/hebrew-boys) · [לבנות](${at}/names/hebrew-girls)
-- [שמות ישנים שחוזרים](${at}/names/comeback)
-- [שמות של שנות ה-60](${at}/names/1960s) · [ה-80](${at}/names/1980s) · [ה-2000](${at}/names/2000s)
-
-## מידע
-- [אודות](${at}/about)
-- [Sitemap](${at}/sitemap.xml)
-`);
+// llms.txt (a plain-text guide to the site for AI assistants, llmstxt.org) is written by source/tools/build_site.py
+// with the key numbers and every collection; the walk above fills in the address
 console.log(`finalize: base="${base || '(current origin)'}" pages=${paths.length} realtime=${sbUrl && sbKey ? 'on' : 'off'}`);
