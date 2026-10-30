@@ -27,6 +27,7 @@ function renderHome(){
     <button class="tilec" data-go="me"><span class="k">${t('פרופיל אישי','Personal profile')}</span><b>${t('מה השם שלי אומר עליי','What my name says')}</b><span>${t('כמה הוא נדיר בשנתון שלכם ומה התואר שלכם','How rare it was in your year, and your title')}</span></button>
 
   </div>
+  ${collsHomeHTML()}
 `;
   wireSearch($('#hq'),$('#hsugg'),pick);
   openOn(sec.querySelector('.quick'));
