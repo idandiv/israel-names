@@ -73,6 +73,9 @@ fs.writeFileSync(path.join(out, 'llms.txt'), `# השמות של ישראל (Shem
 - [שמות לבנות: 100 המובילים](${at}/names/girls)
 - [שמות יוניסקס](${at}/names/unisex)
 - [השמות הנפוצים בישראל](${at}/names/popular)
+- [שמות בעלייה: השמות שהכי צמחו בעשור](${at}/names/rising)
+- [שמות קצרים לבנים](${at}/names/short-boys) · [לבנות](${at}/names/short-girls)
+- [שמות נדירים לבנים](${at}/names/rare-boys) · [לבנות](${at}/names/rare-girls)
 
 ## מידע
 - [אודות](${at}/about)

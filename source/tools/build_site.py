@@ -184,11 +184,14 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
 
 
 COLLS = [('boys', 'שמות לבנים'), ('girls', 'שמות לבנות'), ('unisex', 'שמות יוניסקס'), ('popular', 'השמות הנפוצים בישראל')]
+# more collections: linked from the footer (nav_links), not from the tabs (coll_nav), which keep the four main ones
+HUBS = [('rising', 'שמות בעלייה'), ('short-boys', 'שמות קצרים לבנים'), ('short-girls', 'שמות קצרים לבנות'),
+        ('rare-boys', 'שמות נדירים לבנים'), ('rare-girls', 'שמות נדירים לבנות')]
 
 
 def nav_links():
     return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
-            '<p>' + ' · '.join(f'<a href="/names/{k}">{v}</a>' for k, v in COLLS) + '</p>')
+            '<p>' + ' · '.join(f'<a href="/names/{k}">{v}</a>' for k, v in COLLS + HUBS) + '</p>')
 
 
 # ---- name pages ----
@@ -412,6 +415,51 @@ born = lambda x: f'{fmt(x["last"])} תינוקות'
 split = lambda x: f'{x["g"]}% בנות · {100 - x["g"]}% בנים'
 mark = lambda x: f'<span class="sx sx{x["x"]}">{"בן" if x["x"] else "בת"}</span>'
 
+# /names/short-*: names of 2-3 letters; /names/rare-*: 20-100 babies in Y1 and never more than 150 in a year;
+# /names/rising: Y1 against ten years earlier, from the CBS file (sum of all sectors, as in the app)
+import csv
+YC = {}
+for r in csv.DictReader(open(D + 'data/babynamesIL.csv', encoding='utf-8')):
+    if int(r['year']) in (Y1 - 10, Y1):
+        k = (r['name'], 0 if r['sex'] == 'F' else 1, int(r['year']))
+        YC[k] = YC.get(k, 0) + int(r['n'])
+letters_n = lambda n: len(re.sub('[^א-ת]', '', n))
+short = {s: sorted([x for x in NAMES if x['x'] == s and letters_n(x['n']) <= 3 and x['last'] >= 20], key=lambda x: -x['last'])[:60] for s in (0, 1)}
+rare = {s: sorted([x for x in NAMES if x['x'] == s and 20 <= x['last'] <= 100 and x['myc'] <= 150], key=lambda x: -x['last'])[:60] for s in (0, 1)}
+
+
+def growth(x):
+    then, now = YC.get((x['n'], x['x'], Y1 - 10), 0), YC.get((x['n'], x['x'], Y1), 0)
+    return now / max(then, 5), then, now
+
+
+rising = {s: sorted([x for x in NAMES if x['x'] == s and growth(x)[2] >= 60 and growth(x)[0] >= 2], key=lambda x: -growth(x)[0])[:30] for s in (0, 1)}
+
+
+def grew(x):
+    _, then, now = growth(x)
+    return (f'{fmt(then)} ב-{Y1 - 10}' if then else f'כמעט 0 ב-{Y1 - 10}') + f' · {fmt(now)} ב-{Y1}'
+
+
+def short_page(s):
+    w = 'בנות' if s == 0 else 'בנים'
+    return (f'שמות קצרים ל{w}', f'שמות קצרים ל{w} – {len(short[s])} שמות של שתיים או שלוש אותיות',
+            f'{len(short[s])} שמות קצרים ל{w}, של שתיים או שלוש אותיות, לפי מספר התינוקות שנקראו בהם בישראל ב-{Y1} (הלמ״ס), עם משמעות כל שם.',
+            f'<p class="dlead">שם קצר קל לבטא ולאיית. אלה {len(short[s])} שמות ה{w} של שתיים או שלוש אותיות שניתנו הכי הרבה בישראל ב-{Y1}, '
+            'לפי נתוני הלשכה המרכזית לסטטיסטיקה. לכל שם יש תיק מלא עם משמעות ופופולריות לאורך השנים.</p>',
+            f'<h2>שמות קצרים ל{w} לפי פופולריות ב-{Y1}</h2>' + coll_list(short[s], born))
+
+
+def rare_page(s):
+    w = 'בנות' if s == 0 else 'בנים'
+    return (f'שמות נדירים ל{w}', f'שמות נדירים ומיוחדים ל{w} – {len(rare[s])} שמות שלא שומעים בכל גן',
+            f'{len(rare[s])} שמות מיוחדים ל{w}, שניתנו בישראל ב-{Y1} ל-20 עד 100 תינוקות בלבד ואף פעם לא היו נפוצים, לפי נתוני הלמ״ס.',
+            f'<p class="dlead">מחפשים שם מיוחד? ברשימה שמות שניתנו ב-{Y1} ל-20 עד 100 {w} בלבד, '
+            f'ושבאף שנה מאז {Y0} לא ניתנו ליותר מ-150 תינוקות. כלומר שמות מוכרים, שלא היו נפוצים אף פעם. '
+            'הם מסודרים לפי מספר התינוקות, לפי נתוני הלשכה המרכזית לסטטיסטיקה.</p>',
+            f'<h2>שמות נדירים ל{w} ב-{Y1}</h2>' + coll_list(rare[s], born))
+
+
 COLL_PAGES = {
     'boys': ('שמות לבנים', f'שמות לבנים – 100 השמות הנפוצים בישראל ב-{Y1}',
              f'רשימת 100 שמות הבנים הנפוצים בישראל ב-{Y1} לפי הלמ״ס, עם מספר התינוקות, משמעות כל שם וקישור לתיק השם המלא.',
@@ -435,10 +483,21 @@ COLL_PAGES = {
                 f'השמות שניתנו הכי הרבה ב-{Y1}, בבנים ובבנות יחד, והשמות שניתנו הכי הרבה מאז {Y0}.</p>',
                 f'<h2>50 השמות המובילים ב-{Y1}</h2>' + coll_list(top_now, lambda x: mark(x) + born(x))
                 + f'<h2>50 השמות הנפוצים מאז {Y0}</h2>' + coll_list(top_ever, lambda x: mark(x) + f'{fmt(x["tot"])} תינוקות')),
+    'rising': ('שמות בעלייה', 'שמות בעלייה – השמות שהכי צמחו בעשור האחרון',
+               f'השמות לבנים ולבנות שהכי צמחו בישראל בין {Y1 - 10} ל-{Y1} לפי נתוני הלמ״ס: כמה תינוקות נקראו כך אז, וכמה היום.',
+               f'<p class="dlead">אילו שמות עולים עכשיו? השווינו כמה תינוקות קיבלו כל שם ב-{Y1} וכמה ב-{Y1 - 10}. '
+               f'ברשימה שמות שניתנו לפחות ל-60 תינוקות ב-{Y1} ושמספרם לפחות הוכפל, מסודרים לפי קצב הצמיחה. '
+               f'{Y1} היא השנה האחרונה שהלשכה המרכזית לסטטיסטיקה פרסמה.</p>',
+               f'<h2>{len(rising[0])} שמות הבנות שהכי צמחו</h2>' + coll_list(rising[0], grew)
+               + f'<h2>{len(rising[1])} שמות הבנים שהכי צמחו</h2>' + coll_list(rising[1], grew)),
+    'short-boys': short_page(1), 'short-girls': short_page(0), 'rare-boys': rare_page(1), 'rare-girls': rare_page(0),
 }
 COLL_ROWS = {'boys': [(f'100 שמות הבנים המובילים ב-{Y1}', boys)], 'girls': [(f'100 שמות הבנות המובילים ב-{Y1}', girls)],
              'unisex': [('שמות לבנים ולבנות', unisex)],
-             'popular': [(f'50 השמות המובילים ב-{Y1}', top_now), (f'50 השמות הנפוצים מאז {Y0}', top_ever)]}
+             'popular': [(f'50 השמות המובילים ב-{Y1}', top_now), (f'50 השמות הנפוצים מאז {Y0}', top_ever)],
+             'rising': [('שמות הבנות שהכי צמחו', rising[0]), ('שמות הבנים שהכי צמחו', rising[1])],
+             'short-boys': [('שמות קצרים לבנים', short[1])], 'short-girls': [('שמות קצרים לבנות', short[0])],
+             'rare-boys': [('שמות נדירים לבנים', rare[1])], 'rare-girls': [('שמות נדירים לבנות', rare[0])]}
 for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
     path = '/names/' + k
     title = h1 + ' | השמות של ישראל'
@@ -462,7 +521,7 @@ for k, P in PAGES.items():
 open(SRC + '404.html', 'w').write(page('הדף לא נמצא | השמות של ישראל', SITE_D, '/', '<article class="seo"><h1>הדף לא נמצא</h1>' + nav_links() + '</article>', noindex=True))
 
 # list of indexable paths for the sitemap (finalize.mjs adds the base URL)
-paths = ['/', '/names'] + [f'/names/{k}' for k, _ in COLLS] + ['/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
+paths = ['/', '/names'] + [f'/names/{k}' for k, _ in COLLS + HUBS] + ['/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
 json.dump(paths, open(OUT + 'scripts/paths.json', 'w'), ensure_ascii=False)
 # one page per line, so a rebuild's git diff shows exactly which pages changed
 with open(LASTMOD_F, 'w', encoding='utf-8') as f:
