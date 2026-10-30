@@ -61,7 +61,7 @@ async function makeMeCard(me,o){
   // footer
   const host=(SITE.base||'').replace(/^https?:\/\//,'');g.fillStyle=C.acc;g.font=B(700,38);g.fillText(en?'What does your name say about you?':'ומה השם שלכם אומר עליכם?',X0,H-170);
   if(host&&host.length<=40){g.direction='ltr';g.textAlign=en?'left':'right';g.fillStyle=C.ink;g.font=B(600,34);g.fillText(host,X0,H-118);g.direction=en?'ltr':'rtl'}
-  g.textAlign=AL;g.fillStyle=C.mut;g.font=B(500,28);g.fillText(en?'Made by Idan Diva':'נוצר ע״י עידן דיוה',X0,H-70);
+  g.textAlign=AL;g.fillStyle=C.mut;g.font=B(500,28);g.fillText(en?'Names of Israel':'השמות של ישראל',X0,H-70);
   return cv}
 
 /* ---------- name file: character profile (radar, 0–100 on five data-derived axes) ---------- */

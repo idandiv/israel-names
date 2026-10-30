@@ -335,7 +335,7 @@ function drawMe(me){
   const data=sh.map(v=>v*1000);
   mk('meChart',{type:'line',data:{labels:YEARS,datasets:[{...line(NM(i),data,css(x?'--boy':'--girl'),true),pointRadius:YEARS.map(y=>y===me.y?7:0),pointBackgroundColor:css('--stamp'),pointBorderColor:css('--surface'),pointBorderWidth:2}]},options:o});
   $('#mecard').onclick=async()=>{const cv=await makeMeCard(me,{title,desc,n,D,pct,tierLab,sh,peers,sexw:sex});showCard(cv,`${rom(i)}-${me.y}-names-of-israel.png`,`${me.n} ${me.y}`,t('הכרטיס שלך','Your card'))};
-  $('#mecopy').onclick=()=>copy(t(`${me.n} (${me.y}): ${title}. ${n?`אחד מכל ${fmt(D/n)} ${sex} בשנתון.`:'פחות מ-5 בשנתון!'} ${timingTxt} (השמות של ישראל, נוצר ע״י עידן דיוה)`,`${NM(i)} (${me.y}): ${title}. ${n?`1 in ${fmt(D/n)} ${sex} that year.`:'Under 5 that year!'} ${timingTxt} (Names of Israel, made by Idan Diva)`));
+  $('#mecopy').onclick=()=>copy(t(`${me.n} (${me.y}): ${title}. ${n?`אחד מכל ${fmt(D/n)} ${sex} בשנתון.`:'פחות מ-5 בשנתון!'} ${timingTxt} (השמות של ישראל)`,`${NM(i)} (${me.y}): ${title}. ${n?`1 in ${fmt(D/n)} ${sex} that year.`:'Under 5 that year!'} ${timingTxt} (Names of Israel)`));
 }
 function drawFam(){
   const fam=(FAM||FAM_EX).filter(m=>IDX.has(m.n));const box=$('#famrows');

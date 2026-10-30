@@ -41,8 +41,8 @@ function renderName(){
   const age=NOW-med;const gw=(fem,mas,both)=>gp>=80?fem:gp<=20?mas:both;
   const secTot=where.reduce((a,q)=>a+q,0);
   const mxs=Math.max(...sh);
-  const summary=t(`${nm}: ${fmt(tot)} תינוקות בישראל מאז ${Y0}. שיא ב-${Y0+pk} (אחד מכל ${fmt(oneIn)}), ${c[L]?`${fmt(c[L])} תינוקות ב-${Y1}`:`כמעט לא ניתן ב-${Y1}`}. ה${nm} ${gw('הטיפוסית נולדה','הטיפוסי נולד','הטיפוסי/ת נולד/ה')} ב-${med}. גימטריה ${gem(nm)}. (השמות של ישראל, נוצר ע״י עידן דיוה)`,
-    `${NM(i)} (${nm}): ${fmt(tot)} babies in Israel since ${Y0}. Peak in ${Y0+pk} (1 in ${fmt(oneIn)}), ${fmt(c[L])} babies in ${Y1}. Typical birth year ${med}. (Names of Israel, made by Idan Diva)`);
+  const summary=t(`${nm}: ${fmt(tot)} תינוקות בישראל מאז ${Y0}. שיא ב-${Y0+pk} (אחד מכל ${fmt(oneIn)}), ${c[L]?`${fmt(c[L])} תינוקות ב-${Y1}`:`כמעט לא ניתן ב-${Y1}`}. ה${nm} ${gw('הטיפוסית נולדה','הטיפוסי נולד','הטיפוסי/ת נולד/ה')} ב-${med}. גימטריה ${gem(nm)}. (השמות של ישראל)`,
+    `${NM(i)} (${nm}): ${fmt(tot)} babies in Israel since ${Y0}. Peak in ${Y0+pk} (1 in ${fmt(oneIn)}), ${fmt(c[L])} babies in ${Y1}. Typical birth year ${med}. (Names of Israel)`);
   v.innerHTML=`<div class="nametools">${secChips()}</div>
   <div class="hero fade">
     <div class="stamp"><div><small>${t('גימטריה','GEMATRIA')}</small><b class="tn">${gem(nm)}</b><small>${letters(nm)} ${t('אותיות','letters')}</small></div></div>

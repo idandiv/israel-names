@@ -105,14 +105,11 @@ SITE_T = 'שמות לתינוקות – מאגר השמות של ישראל | Sh
 SITE_D = 'שמות לתינוקות עם משמעות, מקור ופופולריות: מאגר השמות של ישראל (Shemotil) כולל כל שם שניתן בישראל מאז 1949 לפי הלמ״ס, ומשחק זוגי לבחירת שם ביחד. חינם.'
 fmt = lambda n: f'{n:,}'
 enc = lambda n: __import__('urllib.parse').parse.quote(n, safe="'")
-LINKEDIN = 'https://www.linkedin.com/in/idan-diva/'
-# shared JSON-LD nodes: the site and its author (referenced by @id from every page)
+# shared JSON-LD nodes: the site and the brand behind it (referenced by @id from every page)
 LD_SITE = {"@type": "WebSite", "@id": PH + "/#website", "name": "השמות של ישראל", "url": PH + "/", "inLanguage": "he",
-           "description": SITE_D, "publisher": {"@id": PH + "/#author"}}
-LD_AUTHOR = {"@type": "Person", "@id": PH + "/#author", "name": "עידן דיוה", "alternateName": "Idan Diva", "url": LINKEDIN, "sameAs": [LINKEDIN]}
-# home page only: the site's name and its other names (Google's site name), and the brand behind it
+           "description": SITE_D, "publisher": {"@id": PH + "/#organization"}}
 LD_ORG = {"@type": "Organization", "@id": PH + "/#organization", "name": "השמות של ישראל", "alternateName": ["Shemotil", "ShemotIL"],
-          "url": PH + "/", "logo": {"@type": "ImageObject", "url": PH + "/icon-512.png", "width": 512, "height": 512}, "founder": {"@id": PH + "/#author"}}
+          "url": PH + "/", "logo": {"@type": "ImageObject", "url": PH + "/icon-512.png", "width": 512, "height": 512}}
 LD_SITE_HOME = {**LD_SITE, "alternateName": ["Shemotil", "ShemotIL", "shemotil.co.il"], "publisher": {"@id": PH + "/#organization"}}
 LD_DATA = {"@type": "CreativeWork", "name": f"שמות התינוקות שנולדו בישראל {Y0}–{Y1}",
            "creator": {"@type": "Organization", "name": "הלשכה המרכזית לסטטיסטיקה", "url": "https://www.cbs.gov.il"}}
@@ -329,7 +326,7 @@ for x in NAMES:
 {f'<p><a href="/names/{KIND_HUB[(k, x["x"])]}">לרשימת השמות ה{KIND_ADJ[k]} ל{sexw}</a></p>' if same and (k, x['x']) in KIND_HUB else ''}
 {f'<h2>שמות בדירוג דומה ב-{Y1}</h2>{chips(near)}' if near else ''}
 {nav_links()}
-<p class="k">מקור: נתוני הלשכה המרכזית לסטטיסטיקה, {Y0}–{Y1}. נוצר ע״י <a href="{LINKEDIN}">עידן דיוה</a>.</p>
+<p class="k">מקור: נתוני הלשכה המרכזית לסטטיסטיקה, {Y0}–{Y1}.</p>
 </article>'''
     term = {"@type": "DefinedTerm", "@id": url + "#name", "name": n, "alternateName": x['en'], "inLanguage": "he",
             "inDefinedTermSet": {"@type": "DefinedTermSet", "name": "שמות פרטיים בישראל", "url": PH + "/names"}}
@@ -338,14 +335,14 @@ for x in NAMES:
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": ["WebPage", "FAQPage"], "@id": url, "url": url, "name": title, "description": desc, "inLanguage": "he",
          "dateModified": "__MODIFIED__", "isPartOf": {"@id": PH + "/#website"}, "about": {"@id": url + "#name"},
-         "author": {"@id": PH + "/#author"}, "isBasedOn": LD_DATA, "breadcrumb": {"@id": url + "#breadcrumb"},
+         "author": {"@id": PH + "/#organization"}, "isBasedOn": LD_DATA, "breadcrumb": {"@id": url + "#breadcrumb"},
          "mainEntity": [{"@type": "Question", "name": a, "acceptedAnswer": {"@type": "Answer", "text": b}} for a, b in faq]},
         term,
         {"@type": "BreadcrumbList", "@id": url + "#breadcrumb", "itemListElement": [
             {"@type": "ListItem", "position": 1, "name": "השמות של ישראל", "item": PH + "/"},
             {"@type": "ListItem", "position": 2, "name": "כל השמות", "item": PH + "/names"},
             {"@type": "ListItem", "position": 3, "name": n}]},
-        LD_SITE, LD_AUTHOR]}
+        LD_SITE, LD_ORG]}
     open(SRC + 'names/' + n + '.html', 'w').write(page(title, desc, '/names/' + enc(n), body, jsonld=ld))
 
 # ---- all-names directory (crawl hub) ----
@@ -385,7 +382,7 @@ def static_shell(cur, inner):
 <article class="docbody">{inner}</article>
 {MATCH_CTA}
 {coll_nav(cur)}
-<div class="docfoot">{nav_links()}<p>מקור: הלשכה המרכזית לסטטיסטיקה. נוצר ע״י <a href="https://www.linkedin.com/in/idan-diva/">עידן דיוה</a>.</p></div>
+<div class="docfoot">{nav_links()}<p>מקור: הלשכה המרכזית לסטטיסטיקה.</p></div>
 </div>'''
 
 
@@ -394,13 +391,13 @@ def coll_ld(path, title, desc, lists, faq=()):
     url = PH + path
     return {"@context": "https://schema.org", "@graph": [
         {"@type": "CollectionPage", "@id": url, "url": url, "name": title, "description": desc, "inLanguage": "he",
-         "dateModified": "__MODIFIED__", "isPartOf": {"@id": PH + "/#website"}, "author": {"@id": PH + "/#author"}, "isBasedOn": LD_DATA,
+         "dateModified": "__MODIFIED__", "isPartOf": {"@id": PH + "/#website"}, "author": {"@id": PH + "/#organization"}, "isBasedOn": LD_DATA,
          **({"mainEntity": [{"@type": "ItemList", "name": ln, "numberOfItems": len(rows), "itemListOrder": "https://schema.org/ItemListOrderDescending",
                              "itemListElement": [{"@type": "ListItem", "position": i, "name": x['n'], "url": f"{PH}/names/{enc(x['n'])}"}
                                                  for i, x in enumerate(rows, 1)]} for ln, rows in lists]} if lists else {})},
         *([{"@type": "FAQPage", "@id": url + "#faq", "isPartOf": {"@id": url}, "inLanguage": "he",
             "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faq]}] if faq else []),
-        LD_SITE, LD_AUTHOR]}
+        LD_SITE, LD_ORG]}
 
 
 # every collection page, grouped, at the top of /names (the home page tile "אוספי שמות" opens /names#colls)
@@ -710,7 +707,7 @@ home_body = f'''<article class="seo"><h1>השמות של ישראל</h1><p>{H.es
 <h2>השמות הפופולריים ב-{Y1}</h2><ul class="rel">{''.join(f'<li><a href="/names/{enc(n)}">{H.escape(n)}</a></li>' for n in top)}</ul>
 <p><a href="/names">לכל {fmt(len(NAMES))} השמות</a></p></article>'''
 open(SRC + 'index.html', 'w').write(page(SITE_T, SITE_D, '/', home_body,
-    jsonld={"@context": "https://schema.org", "@graph": [LD_SITE_HOME, LD_ORG, LD_AUTHOR]}))
+    jsonld={"@context": "https://schema.org", "@graph": [LD_SITE_HOME, LD_ORG]}))
 # ---- info pages (same content the app shows at /about, /privacy, /terms) ----
 PAGES = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'pages.json'), encoding='utf-8'))
 for k, P in PAGES.items():
@@ -728,7 +725,7 @@ llms = f"""# השמות של ישראל (Shemotil)
 
 > מאגר שמות התינוקות של ישראל: עמוד לכל שם שניתן בישראל מאז {Y0} ({fmt(len(NAMES))} שמות), לפי נתוני הלשכה המרכזית לסטטיסטיקה (הלמ״ס), עם משמעות השם (כשידועה), מקור, פופולריות לאורך השנים, שנת שיא, חלוקה בין בנות לבנים, מגזר וגימטריה.
 
-האתר בעברית ונוצר על ידי עידן דיוה. כל המספרים בו מחושבים מנתוני הלמ״ס.
+האתר בעברית. כל המספרים בו מחושבים מנתוני הלמ״ס.
 
 ## על הנתונים
 - מקור: הלשכה המרכזית לסטטיסטיקה, דרך חבילת babynamesIL. שנות לידה {Y0}–{Y1}; {Y1} היא השנה האחרונה שפורסמה.
