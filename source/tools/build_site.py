@@ -7,7 +7,7 @@ Writes: <repo>/src/   (pages with the __BASE_URL__ placeholder, filled at deploy
 Only src/ is replaced; the other repo-root files (vercel.json, finalize.mjs, supabase/...) are kept as they are.
 """
 import gzip, base64, json, hashlib, os, shutil, html as H
-import meanings, guides
+import meanings, guides, pregnancy
 
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 D = S
@@ -89,6 +89,37 @@ css += """
 .docbody .gcards .gdate{color:var(--muted);font-size:13px}
 .docbody .gcards .gcta{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-size:14px;font-weight:700}
 .docbody .gcards .gcta .ic{width:16px;height:16px;transition:transform .18s ease}.docbody .gcards a:hover .gcta .ic{transform:translateX(-3px)}
+/* pregnancy calculator (/pregnancy/calculator): form, result card, weeks list */
+.docbody .pform{display:grid;gap:14px;border:1px solid var(--line);border-radius:16px;padding:16px;margin:18px 0;background:var(--surface)}
+.docbody .pform [hidden],.docbody .pres[hidden],.docbody .perr[hidden]{display:none}
+.docbody .pmethods{display:flex;flex-wrap:wrap;gap:6px;border:0;padding:0;margin:0;min-width:0}
+.docbody .pmethods legend{font-size:13px;color:var(--muted);padding:0;margin-bottom:6px}
+.docbody .pm{position:relative}.docbody .pm input{position:absolute;opacity:0;inset:0;margin:0}
+.docbody .pm span{display:inline-flex;align-items:center;min-height:38px;padding:4px 14px;border:1px solid var(--line);border-radius:999px;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer}
+.docbody .pm input:checked+span{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.docbody .pm input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.docbody .pfield{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+.docbody .pfield input,.docbody .pfield select{width:100%;max-width:320px;min-height:44px;font:600 16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 12px;color-scheme:dark}
+.docbody .pgo{justify-self:start;min-height:44px;border:0;border-radius:999px;background:var(--accent);color:var(--bg);font:700 16px var(--f-body);padding:8px 30px;cursor:pointer}
+.docbody .perr{color:var(--bad);font-size:14px;margin:0}
+.docbody .pres{border:1px solid var(--accent);border-radius:18px;padding:18px;margin:0 0 18px;background:var(--surface);scroll-margin-top:80px}
+.docbody .pr-head{display:grid;gap:2px}.docbody .pr-k{font-size:13px;color:var(--muted)}
+.docbody .pr-w{justify-self:start;font-family:var(--f-display);font-size:68px;line-height:1;color:var(--ink)}
+.docbody .pr-head>span:last-child{color:var(--ink-2);font-size:15px}
+.docbody .pr-bar{height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden;margin:14px 0 4px}
+.docbody .pr-bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.docbody .pr-tri{display:grid;grid-template-columns:14fr 14fr 12fr;font-size:12px;color:var(--muted);text-align:center}
+.docbody .pr-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:14px 0}
+.docbody .pr-facts div{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.docbody .pr-facts dt{font-size:12.5px;color:var(--muted)}.docbody .pr-facts dd{margin:2px 0 0;color:var(--ink);font-weight:700}
+.docbody .pr-facts dd span{display:block;color:var(--ink-2);font-weight:500;font-size:14px}
+.docbody .pr-week,.docbody .pr-names{border-top:1px solid var(--line);margin-top:8px}
+.docbody .pr-num{color:var(--muted);font-size:13.5px;margin:-2px 0 6px}.docbody .pr-more{font-size:14px;margin-top:8px}
+.docbody .pr-save{font-size:13px;color:var(--muted);margin:12px 0 0}
+.docbody .pr-save button{border:0;background:none;padding:0;color:var(--accent);font:600 13px var(--f-body);text-decoration:underline;cursor:pointer}
+.docbody .pdetails summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0}
+.docbody .pweeks{list-style:none;padding:0;margin:4px 0 8px}.docbody .pweeks li{margin:0;padding:8px 0;border-bottom:1px solid var(--line)}
+.docbody .pweeks span{color:var(--muted);font-size:13.5px}.docbody .pweeks p{margin:2px 0 0}
 @media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gcta .ic{transition:none}.docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gcta .ic{transform:none}}
 """
 
@@ -227,7 +258,7 @@ KIND_HUB = {('שם מקראי', 1): 'biblical-boys', ('שם מקראי', 0): 'bi
 
 
 def nav_links():
-    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">' + guides.SECTION + '</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
+    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">' + guides.SECTION + '</a> · <a href="/pregnancy/calculator">מחשבון הריון</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
             '<p>' + ' · '.join(f'<a href="/names/{k}">{v}</a>' for k, v in COLLS + HUBS) + '</p>')
 
 
@@ -731,6 +762,9 @@ for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
 GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 'by_name': by_name, 'ny': ny, 'enc': enc, 'fmt': fmt,
                                     'short_mean': short_mean, 'arrow': ic(IC_ARROW), 'Y0': Y0, 'Y1': Y1, 'SRC': SRC, 'PH': PH,
                                     'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG, 'LD_DATA': LD_DATA})
+# ---- the pregnancy calculator: /pregnancy/calculator (tools/pregnancy.py) ----
+TOOL_PATHS, TOOLS = pregnancy.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'enc': enc,
+                                     'SRC': SRC, 'PH': PH, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
 
 # ---- home + 404 ----
 top = [x['n'] for x in sorted(NAMES, key=lambda x: -x['last'])[:40]]
@@ -784,6 +818,9 @@ llms = f"""# השמות של ישראל (Shemotil)
 ## מדריכים ומאמרים
 """ + '\n'.join(f'- [{t}]({PH}/guides/{s}): {d}' for s, t, d in GUIDES) + f"""
 
+## כלים
+""" + '\n'.join(f'- [{t}]({PH}{p}): {d}' for t, p, d in TOOLS) + f"""
+
 ## איך לצטט
 השמות של ישראל (shemotil.co.il), על בסיס נתוני הלשכה המרכזית לסטטיסטיקה. עדיף לקשר לעמוד השם עצמו.
 
@@ -794,7 +831,7 @@ llms = f"""# השמות של ישראל (Shemotil)
 open(SRC + 'llms.txt', 'w').write(llms)
 
 # list of indexable paths for the sitemap (finalize.mjs adds the base URL)
-paths = ['/', '/names'] + [f'/names/{k}' for k, _ in COLLS + HUBS] + GUIDE_PATHS + ['/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
+paths = ['/', '/names'] + [f'/names/{k}' for k, _ in COLLS + HUBS] + GUIDE_PATHS + TOOL_PATHS + ['/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
 json.dump(paths, open(OUT + 'scripts/paths.json', 'w'), ensure_ascii=False)
 # one page per line, so a rebuild's git diff shows exactly which pages changed
 with open(LASTMOD_F, 'w', encoding='utf-8') as f:
