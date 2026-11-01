@@ -77,6 +77,8 @@ css += """
 .docbody .gtbl td a{border:0;color:var(--ink);font-size:17px;font-weight:700}.docbody .gtbl td a:hover{color:var(--accent)}
 .docbody .gtbl .cn{display:block;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
 .docbody .gtbl .cm{display:block;color:var(--muted);font-size:13px;line-height:1.5}
+.docbody .gnum{table-layout:auto}.docbody .gnum td,.docbody .gnum tbody th{font-variant-numeric:tabular-nums;font-size:15px;padding:7px 8px;border-bottom:1px solid var(--line);text-align:start}
+.docbody .gnum tbody th{font-weight:700}
 .docbody .gcards{list-style:none;padding:0;margin:14px 0;display:grid;gap:10px}
 .docbody .gcards a{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:16px;padding:16px 18px;color:var(--ink);font-weight:400;background:var(--surface);
   transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
@@ -767,8 +769,8 @@ for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
         jsonld=coll_ld(path, title, desc, COLL_ROWS[k], faq), app=False))
 
 # ---- guides: /guides and /guides/<slug> (tools/guides.py) ----
-GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 'by_name': by_name, 'ny': ny, 'enc': enc, 'fmt': fmt,
-                                    'short_mean': short_mean, 'arrow': ic(IC_ARROW), 'Y0': Y0, 'Y1': Y1, 'SRC': SRC, 'PH': PH,
+GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 'by_name': by_name, 'ny': ny, 'YC': YC, 'enc': enc, 'fmt': fmt,
+                                    'short_mean': short_mean, 'coll_list': coll_list, 'arrow': ic(IC_ARROW), 'Y0': Y0, 'Y1': Y1, 'SRC': SRC, 'PH': PH,
                                     'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG, 'LD_DATA': LD_DATA})
 # ---- the pregnancy calculator: /pregnancy/calculator (tools/pregnancy.py) ----
 TOOL_PATHS, TOOLS = pregnancy.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'enc': enc, 'fit': fit,

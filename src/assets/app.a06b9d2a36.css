@@ -1186,6 +1186,8 @@ body.docopen{overflow:hidden}
 .docbody .gtbl td a{border:0;color:var(--ink);font-size:17px;font-weight:700}.docbody .gtbl td a:hover{color:var(--accent)}
 .docbody .gtbl .cn{display:block;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
 .docbody .gtbl .cm{display:block;color:var(--muted);font-size:13px;line-height:1.5}
+.docbody .gnum{table-layout:auto}.docbody .gnum td,.docbody .gnum tbody th{font-variant-numeric:tabular-nums;font-size:15px;padding:7px 8px;border-bottom:1px solid var(--line);text-align:start}
+.docbody .gnum tbody th{font-weight:700}
 .docbody .gcards{list-style:none;padding:0;margin:14px 0;display:grid;gap:10px}
 .docbody .gcards a{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:16px;padding:16px 18px;color:var(--ink);font-weight:400;background:var(--surface);
   transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
