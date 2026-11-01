@@ -6,7 +6,7 @@ Sources:
   content/guides/<slug>.html  the article body, an HTML fragment with these markers:
       <!--toc-->              table of contents of the <h2 id="..."> headings
       <!--pairs:<group>-->    the pair tables of pairs[<group>] (girls, boys, mixed)
-      <!--names:<key>-->      a ranked list of lists[<key>] for one sex; optional checks: ends (endings, with other),
+      <!--names:<key>-->      a ranked list of lists[<key>] for one sex (sex 0 or 1) or both ("both"); optional checks: ends (endings, with other),
                               without (letters no name may have), origins (allowed origins); en: true shows the English spelling
       <!--forms:<key>-->      a table of forms[<key>].rows, [name, its international form], for one sex
       <!--trend-->            the share of babies with each ending of trend.cols, in trend.years and Y1
@@ -14,6 +14,8 @@ Sources:
       {{count:<name>:<s>}}    babies of sex s (0 girls, 1 boys) given the name in Y1
       {{countin:<name>:<s>:<year>}}  the same in another year
       {{first:<name>:<s>}}    the first year the name was given to babies of sex s
+      {{peak:<name>:<s>}} {{peakn:<name>:<s>}}  the year the name was most given to babies of sex s, and how many
+      {{none:<name>:<s>}}     prints nothing; checks the name is not in the Y1 data for sex s (fewer than 5 babies per sector)
       {{share:<end>:<s>:<year>}}  the share of babies of sex s whose name ends with <end> ("11.4%")
       {{top:<end>:<s>:<year>:<name>}}  link to <name>, checked to be the most common name ending with <end> that year
                               for each sex in <s> ("0,1": for girls and for boys)
@@ -77,6 +79,10 @@ def build(c):
     def share(end, s, y):
         return f'{100 * sum(k for k, _ in ending(end, s, y)) / total[(s, y)]:.1f}%'
 
+    def peak(n, s, where):
+        need(n, where)
+        return max(range(Y0, Y1 + 1), key=lambda y: (YC.get((n, s, y), 0), -y))
+
     def first(n, s, where):
         need(n, where)
         ys = [y for y in range(Y0, Y1 + 1) if YC.get((n, s, y))]
@@ -103,6 +109,14 @@ def build(c):
             if kind == 'first':
                 n, sx = arg.split(':')
                 return first(n, int(sx), where)
+            if kind in ('peak', 'peakn'):
+                n, sx = arg.split(':')
+                y = peak(n, int(sx), where)
+                return str(y) if kind == 'peak' else fmt(YC.get((n, int(sx), y), 0))
+            if kind == 'none':
+                n, sx = arg.split(':')
+                assert not ny(need(n, where), int(sx)), f'guides: {where} says {n} is not in the {Y1} data, but it was given to {ny(by_name[n], int(sx))}'
+                return ''
             if kind == 'share':
                 end, sx, y = arg.split(':')
                 return share(end, int(sx), year(y))
@@ -145,6 +159,9 @@ def build(c):
         return ''.join(out), len(seen)
 
     babies = lambda x, s: f'{fmt(ny(x, s))} {"בנות" if s == 0 else "בנים"}'
+    # sex "both": counted and shown for girls and boys together ("98 בנות · 166 בנים")
+    born = lambda x, s: ny(x, 0) + ny(x, 1) if s == 'both' else ny(x, s)
+    show = lambda x, s: ' · '.join(babies(x, t) for t in (0, 1) if ny(x, t)) if s == 'both' else babies(x, s)
     latin = lambda t: f'<span dir="ltr" lang="en">{e(t)}</span>'
 
     def names_list(g, key):
@@ -156,15 +173,15 @@ def build(c):
         for n in listed:
             x = need(n, where)
             assert not ends or any(n.endswith(t) for t in ends), f'guides: {n} in {where} does not end with {"/".join(ends)}'
-            assert ny(x, s) >= MIN_BABIES, f'guides: {n} in {where} was given to {ny(x, s)} babies of that sex in {Y1}'
+            assert born(x, s) >= MIN_BABIES, f'guides: {n} in {where} was given to {born(x, s)} babies of that sex in {Y1}'
             assert not set(n) & set(L.get('without', '')), f'guides: {n} in {where} has one of {L["without"]}'
             assert 'origins' not in L or x['origin'] in L['origins'], f'guides: {n} in {where} is {x["origin"] or "of no origin"}, not {"/".join(L["origins"])}'
         if ends:
-            missing = [x['n'] for x in by_name.values() if any(x['n'].endswith(t) for t in ends) and ny(x, s) >= MIN_BABIES
+            missing = [x['n'] for x in by_name.values() if any(x['n'].endswith(t) for t in ends) and born(x, s) >= MIN_BABIES
                        and x['n'] not in listed and x['n'] not in other]
             assert not missing, f'guides: {where}: sort into names or other: {" ".join(missing)}'
-        rows = sorted((by_name[n] for n in listed), key=lambda x: -ny(x, s))
-        return c['coll_list'](rows, lambda x: (latin(x['en']) + ' · ' if L.get('en') else '') + babies(x, s))
+        rows = sorted((by_name[n] for n in listed), key=lambda x: -born(x, s))
+        return c['coll_list'](rows, lambda x: (latin(x['en']) + ' · ' if L.get('en') else '') + show(x, s))
 
     def forms(g, key):
         """a table of names and their international forms: the name (with its spelling in English), the form, babies in Y1"""
