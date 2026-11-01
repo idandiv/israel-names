@@ -2,11 +2,13 @@
 
 Sources:
   data/guides.json            the guides, in hub order: slug, title (without the site suffix), h1, desc, card (hub text), badge (hub tag),
-                              published (YYYY-MM-DD), optional updated, faq [[q, a]], and per-guide data (pairs, lists, trend)
+                              published (YYYY-MM-DD), optional updated, faq [[q, a]], and per-guide data (pairs, lists, forms, trend)
   content/guides/<slug>.html  the article body, an HTML fragment with these markers:
       <!--toc-->              table of contents of the <h2 id="..."> headings
       <!--pairs:<group>-->    the pair tables of pairs[<group>] (girls, boys, mixed)
-      <!--names:<key>-->      a ranked list of lists[<key>] (names with an ending, for one sex)
+      <!--names:<key>-->      a ranked list of lists[<key>] for one sex; optional checks: ends (endings, with other),
+                              without (letters no name may have), origins (allowed origins); en: true shows the English spelling
+      <!--forms:<key>-->      a table of forms[<key>].rows, [name, its international form], for one sex
       <!--trend-->            the share of babies with each ending of trend.cols, in trend.years and Y1
       {{name:<name>}}         link to the name page (in FAQ answers: the name only)
       {{count:<name>:<s>}}    babies of sex s (0 girls, 1 boys) given the name in Y1
@@ -17,8 +19,9 @@ Sources:
                               for each sex in <s> ("0,1": for girls and for boys)
       {{Y0}} {{Y1}}           first and last year of the data (a <year> argument can also be Y0 or Y1)
 Every name in a guide is checked: it exists, and a pair name was given to at least 20 babies of that sex in Y1,
-most of them of that sex. A names list must sort every name with its ending and at least 20 babies of that sex in Y1
-into names (listed) or other (left out), so a new name in the data stops the build until it is sorted.
+most of them of that sex; a list or forms name to at least 20 babies of that sex in Y1. A names list with ends must sort
+every name with its ending and at least 20 babies of that sex in Y1 into names (listed) or other (left out), so a new
+name in the data stops the build until it is sorted.
 A failed check stops the build, like meanings.py.
 """
 import json, os, re, html as H
@@ -141,21 +144,40 @@ def build(c):
                        f'<tbody>{"".join(rows)}</tbody></table>')
         return ''.join(out), len(seen)
 
+    babies = lambda x, s: f'{fmt(ny(x, s))} {"בנות" if s == 0 else "בנים"}'
+    latin = lambda t: f'<span dir="ltr" lang="en">{e(t)}</span>'
+
     def names_list(g, key):
         L = g['lists'][key]
-        s, ends = L['sex'], L['ends']
+        s, ends = L['sex'], L.get('ends')
         where = f'{g["slug"]} list {key}'
         listed, other = L['names'], L.get('other', [])
         assert not set(listed) & set(other) and len(set(listed)) == len(listed), f'guides: a name twice in {where}'
         for n in listed:
             x = need(n, where)
-            assert any(n.endswith(t) for t in ends), f'guides: {n} in {where} does not end with {"/".join(ends)}'
+            assert not ends or any(n.endswith(t) for t in ends), f'guides: {n} in {where} does not end with {"/".join(ends)}'
             assert ny(x, s) >= MIN_BABIES, f'guides: {n} in {where} was given to {ny(x, s)} babies of that sex in {Y1}'
-        missing = [x['n'] for x in by_name.values() if any(x['n'].endswith(t) for t in ends) and ny(x, s) >= MIN_BABIES
-                   and x['n'] not in listed and x['n'] not in other]
-        assert not missing, f'guides: {where}: sort into names or other: {" ".join(missing)}'
+            assert not set(n) & set(L.get('without', '')), f'guides: {n} in {where} has one of {L["without"]}'
+            assert 'origins' not in L or x['origin'] in L['origins'], f'guides: {n} in {where} is {x["origin"] or "of no origin"}, not {"/".join(L["origins"])}'
+        if ends:
+            missing = [x['n'] for x in by_name.values() if any(x['n'].endswith(t) for t in ends) and ny(x, s) >= MIN_BABIES
+                       and x['n'] not in listed and x['n'] not in other]
+            assert not missing, f'guides: {where}: sort into names or other: {" ".join(missing)}'
         rows = sorted((by_name[n] for n in listed), key=lambda x: -ny(x, s))
-        return c['coll_list'](rows, lambda x: f'{fmt(ny(x, s))} {"בנות" if s == 0 else "בנים"}')
+        return c['coll_list'](rows, lambda x: (latin(x['en']) + ' · ' if L.get('en') else '') + babies(x, s))
+
+    def forms(g, key):
+        """a table of names and their international forms: the name (with its spelling in English), the form, babies in Y1"""
+        F = g['forms'][key]
+        s, where = F['sex'], f'{g["slug"]} forms {key}'
+        assert len({n for n, _ in F['rows']}) == len(F['rows']), f'guides: a name twice in {where}'
+        for n, _ in F['rows']:
+            assert ny(need(n, where), s) >= MIN_BABIES, f'guides: {n} in {where} was given to {ny(by_name[n], s)} babies of that sex in {Y1}'
+        rows = sorted(F['rows'], key=lambda r: -ny(by_name[r[0]], s))
+        body = ''.join(f'<tr><td><a href="/names/{enc(n)}">{e(n)}</a><span class="cn">{latin(by_name[n]["en"])}</span></td>'
+                       f'<td class="gform">{latin(f)}</td><td class="gn">{babies(by_name[n], s)}</td></tr>' for n, f in rows)
+        return (f'<table class="gtbl gforms"><thead><tr><th scope="col">השם</th><th scope="col">בעולם</th><th scope="col">ב-{Y1}</th></tr></thead>'
+                f'<tbody>{body}</tbody></table>')
 
     def trend(g):
         T = g['trend']
@@ -184,6 +206,7 @@ def build(c):
                 body, n_pairs = body.replace(mark, tables), n_pairs + k
         assert '<!--pairs:' not in body, f'guides: {slug} has pairs markers with no data'
         body = re.sub(r'<!--names:([\w-]+)-->', lambda m: names_list(g, m.group(1)), body)
+        body = re.sub(r'<!--forms:([\w-]+)-->', lambda m: forms(g, m.group(1)), body)
         if '<!--trend-->' in body:
             body = body.replace('<!--trend-->', trend(g))
         body = body.replace('<!--toc-->', toc(body))
