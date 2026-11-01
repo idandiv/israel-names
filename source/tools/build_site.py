@@ -120,6 +120,14 @@ css += """
 .docbody .pdetails summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0}
 .docbody .pweeks{list-style:none;padding:0;margin:4px 0 8px}.docbody .pweeks li{margin:0;padding:8px 0;border-bottom:1px solid var(--line)}
 .docbody .pweeks span{color:var(--muted);font-size:13.5px}.docbody .pweeks p{margin:2px 0 0}
+/* pregnancy week pages and the /pregnancy hub */
+.docbody .pcta{display:inline-flex;align-items:center;min-height:44px;border:0;border-radius:999px;background:var(--accent);color:var(--bg);font-weight:700;padding:8px 22px;margin:4px 0 6px}
+.docbody .pcta:hover{color:var(--bg);filter:brightness(1.08)}
+.docbody .pnav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:22px 0 14px;padding-top:14px;border-top:1px solid var(--line)}
+.docbody .pwk{list-style:none;padding:0;margin:10px 0 6px;display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.docbody .pwk li{margin:0}.docbody .pwk a{display:block;border:1px solid var(--line);border-radius:12px;padding:8px 10px;color:var(--ink);font-weight:400;height:100%;transition:border-color .15s ease,background-color .15s ease}
+.docbody .pwk a:hover{border-color:var(--accent);background:var(--surface-2)}
+.docbody .pwk b{display:block;font-size:15px}.docbody .pwk span{display:block;color:var(--muted);font-size:12.5px;line-height:1.4}
 @media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gcta .ic{transition:none}.docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gcta .ic{transform:none}}
 """
 
@@ -763,7 +771,7 @@ GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 
                                     'short_mean': short_mean, 'arrow': ic(IC_ARROW), 'Y0': Y0, 'Y1': Y1, 'SRC': SRC, 'PH': PH,
                                     'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG, 'LD_DATA': LD_DATA})
 # ---- the pregnancy calculator: /pregnancy/calculator (tools/pregnancy.py) ----
-TOOL_PATHS, TOOLS = pregnancy.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'enc': enc,
+TOOL_PATHS, TOOLS = pregnancy.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'enc': enc, 'fit': fit,
                                      'SRC': SRC, 'PH': PH, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
 
 # ---- home + 404 ----

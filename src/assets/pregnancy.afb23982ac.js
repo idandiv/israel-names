@@ -93,7 +93,8 @@ function render(D, st, due) {
   const left = st.left > 0 ? `עוד ${fmtN(st.left)} ימים${st.left >= 14 ? ` (כ-${Math.round(st.left / 7)} שבועות)` : ''}`
     : st.left === 0 ? 'היום!' : `התאריך עבר לפני ${fmtN(-st.left)} ימים`;
   const size = wk ? `<h3>שבוע ${Math.min(42, st.weeks)}: בגודל של ${wk.size}</h3>
-      <p class="pr-num">כ-${wk.cm} ס״מ${wk.g ? ` · כ-${fmtN(wk.g)} גרם` : ''}</p><p>${wk.baby}</p>`
+      <p class="pr-num">כ-${wk.cm} ס״מ${wk.g ? ` · כ-${fmtN(wk.g)} גרם` : ''}</p><p>${wk.baby}</p>
+      <p class="pr-more"><a href="/pregnancy/week-${Math.min(42, st.weeks)}">עוד על שבוע ${Math.min(42, st.weeks)}</a> · <a href="/pregnancy">כל השבועות</a></p>`
     : `<h3>השבועות הראשונים</h3><p>${D.early}</p>`;
   return `<div class="pr-head"><span class="pr-k">שבוע ההריון</span>
       <b class="pr-w" dir="ltr">${st.weeks}+${st.days}</b>
