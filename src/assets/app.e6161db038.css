@@ -765,8 +765,8 @@ html,body{background:#101119}
 .ctapair .gencta>span:nth-child(2),.ctapair .matchcta>span:nth-child(2){flex:1 1 auto}
 .ctapair .go{margin-inline-start:0}
 @media (max-width:640px){.ctapair{grid-template-columns:minmax(0,1fr)}.ctapair .gencta,.ctapair .matchcta{flex-direction:row;flex-wrap:wrap;align-items:center}}
-.tiles3.two{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media (max-width:640px){.tiles3.two{grid-template-columns:minmax(0,1fr)}}
+.tiles3.two,.tiles3.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:640px){.tiles3.two,.tiles3.four{grid-template-columns:minmax(0,1fr)}}
 .tgnav{display:flex;width:100%;overflow-x:auto;margin-top:14px;scrollbar-width:none}
 .tgnav button{flex:1;white-space:nowrap;padding:9px 12px;font-size:13.5px}
 details.note{margin-top:10px}
