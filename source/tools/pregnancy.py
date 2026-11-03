@@ -5,13 +5,16 @@
 
 Sources:
   data/pregnancy.json   weeks 4-42 (size comparison, length in cm, weight in g from week 8, one sentence on the baby),
-                        the three trimesters (weeks and a paragraph), names for each Hebrew month (with the reason), FAQ, sources and the date the content was reviewed
-  app/pregnancy.mjs     the calculator (date math + the result card), served as a hashed asset to this page only
+                        the three trimesters (weeks and a paragraph), names for each Hebrew month (with the reason), FAQ, sources and the date the content was reviewed,
+                        and the checkups (the Ministry of Health's schedule: weeks from-to, what each one is, its own source and review date)
+  app/pregnancy.mjs     the calculator (date math, the result card, the checkups with personal dates) and "your week" on the week pages
+                        and the hub; one hashed module for every pregnancy page
 The page works without JS for reading: how the date is calculated (with an example computed here by the same rules as
 the calculator), the trimesters, every week, and the names by month. The calculator reads the weeks and the month
 names from a JSON data block in the page. Every month name must be in the data, or the build stops.
 """
 import json, os, re, datetime, html as H
+from urllib.parse import urlparse
 
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 PATH = '/pregnancy/calculator'
@@ -24,19 +27,42 @@ TITLE = 'מחשבון הריון – חישוב שבוע הריון ותאריך
 DESC = ('מחשבון הריון: הזינו את היום הראשון של הווסת האחרונה, את תאריך ההפריה או את החזרת העובר ב-IVF, '
         'וקבלו את שבוע ההריון, השליש ותאריך הלידה המשוער, בלועזי ובעברי.')
 MONTHS = ['תשרי', 'חשוון', 'כסלו', 'טבת', 'שבט', 'אדר', 'ניסן', 'אייר', 'סיוון', 'תמוז', 'אב', 'אלול']
+TRUSTED = ('gov.il', 'nhs.uk', 'acog.org')
+dmy = lambda iso: '.'.join(str(int(p)) for p in reversed(iso.split('-')))  # 2026-10-30 -> 30.10.2026
 EARLY = ('בשבועות הראשונים עוד אין מה לראות בבדיקה. ההריון נספר מהיום הראשון של הווסת האחרונה, '
          'וההפריה מתרחשת בדרך כלל כשבועיים אחריו, בשבוע השני או השלישי.')
 
 
 def load():
-    P = json.load(open(S + 'data/pregnancy.json', encoding='utf-8'))
+    return check(json.load(open(S + 'data/pregnancy.json', encoding='utf-8')))
+
+
+def check(P):
+    """stops the build (AssertionError) when pregnancy.json is incomplete or out of order; returns P"""
     assert sorted(map(int, P['weeks'])) == list(range(4, 43)), 'pregnancy.json: weeks must be 4 to 42'
     for w, x in P['weeks'].items():
         assert x.get('size') and x.get('cm') and x.get('baby'), f'pregnancy.json: week {w} misses size, cm or baby'
     assert [m['month'] for m in P['months']] == MONTHS, 'pregnancy.json: the 12 Hebrew months, from תשרי'
     assert [w for t in P['trimesters'] for w in range(t['weeks'][0], t['weeks'][1] + 1)] == list(range(1, 43)), \
         'pregnancy.json: the trimesters must cover weeks 1 to 42 in order'
+    ids = [x['id'] for x in P['checkups']]
+    assert len(set(ids)) == len(ids), 'pregnancy.json: a checkup id twice'
+    for x in P['checkups']:
+        assert all(x.get(k) for k in ('id', 'name', 'when', 'what', 'kind')), f'pregnancy.json: checkup {x.get("id")} misses a field'
+        assert 4 <= x['from'] <= x['to'] <= 42, f'pregnancy.json: checkup {x["id"]} weeks must be 4 to 42, from <= to'
+    assert [x['from'] for x in P['checkups']] == sorted(x['from'] for x in P['checkups']), 'pregnancy.json: checkups in order of their first week'
+    assert urlparse(P['checkups_source'][1]).hostname.endswith(TRUSTED), 'pregnancy.json: the checkups source must be gov.il, nhs.uk or acog.org'
+    assert re.fullmatch(r'\d{4}-\d{2}-\d{2}', P['checkups_reviewed']), 'pregnancy.json: checkups_reviewed is YYYY-MM-DD'
     return P
+
+
+def checks_table(items, src, reviewed):
+    """the checkups as a table (name and coverage, when, what), with the source and the review date under it"""
+    e = H.escape
+    return ('<table class="gtbl pchks"><thead><tr><th>בדיקה</th><th>מתי</th><th>מה זה</th></tr></thead><tbody>'
+            + ''.join(f'<tr><td><b>{e(x["name"])}</b><span class="cn">{e(x["kind"])}</span></td><td>{e(x["when"])}</td><td><span class="cm">{e(x["what"])}</span></td></tr>' for x in items)
+            + f'</tbody></table><p class="k">לוח כללי לפי <a href="{e(src[1])}" target="_blank" rel="noopener">{e(src[0].split(":")[0])}</a>. '
+            f'המועדים והבדיקות נקבעים מול הרופא או הרופאה והקופה. נבדק לאחרונה: {dmy(reviewed)}.</p>')
 
 
 def build(c):
@@ -49,7 +75,7 @@ def build(c):
             assert n in c['by_name'], f'pregnancy.json: {n} ({m["month"]}) is not in the data'
         assert len(set(m['names'])) == len(m['names']), f'pregnancy.json: a name twice in {m["month"]}'
     js = c['hashed']('pregnancy', 'js', open(S + 'app/pregnancy.mjs', encoding='utf-8').read())
-    data = {'weeks': P['weeks'], 'early': EARLY,
+    data = {'weeks': P['weeks'], 'early': EARLY, 'checkups': [{k: x[k] for k in ('id', 'name', 'from', 'to', 'what')} for x in P['checkups']],
             'months': {m['month']: {'note': m['note'], 'names': [[n, f'/names/{enc(n)}'] for n in m['names']]} for m in P['months']}}
     # inside <script type="application/json">: only "</" could end the block early
     data_json = json.dumps(data, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
@@ -81,7 +107,7 @@ def build(c):
         f'<h3>{m["month"]}</h3><p class="k">{e(m["note"])}</p><p class="cgc">'
         + ''.join(f'<a href="/names/{enc(n)}">{e(n)}</a>' for n in m['names']) + '</p>' for m in P['months'])
     faq = P['faq']
-    reviewed = '.'.join(str(int(p)) for p in reversed(P['reviewed'].split('-')))
+    reviewed = dmy(P['reviewed'])
     inner = f'''<p class="k"><a href="{HUB}">{HUB_NAME}</a> · השמות של ישראל</p><h1>מחשבון הריון</h1>
 <p class="dlead">באיזה שבוע אתם, באיזה שליש, ומתי התאריך המשוער? בחרו לפי מה לחשב והזינו תאריך. התאריך נשמר רק במכשיר שלכם.</p>
 {form}
@@ -98,6 +124,9 @@ def build(c):
 <h2 id="months">שמות לפי חודש הלידה</h2>
 <p>המחשבון מראה גם את התאריך העברי, ולצידו שמות שקשורים לחודש: לחג שבו, לעונה או לסיפור שלו. כל השמות כאן ניתנו בישראל, ולכל אחד יש תיק עם הפירוש והפופולריות.</p>
 {months}
+<h2 id="checkups">לוח הבדיקות בהריון</h2>
+<p>הבדיקות שמשרד הבריאות ממליץ עליהן, לפי שבועות. אחרי החישוב המחשבון מראה לכל בדיקה את התאריכים שלכם, ואפשר לסמן מה כבר עשיתם.</p>
+{checks_table(P['checkups'], P['checkups_source'], P['checkups_reviewed'])}
 <h2 id="faq">שאלות נפוצות</h2>
 {''.join(f'<h3>{e(q)}</h3><p>{e(a)}</p>' for q, a in faq)}
 <h2 id="sources">מקורות</h2>
@@ -125,13 +154,13 @@ def build(c):
     text, data_block = inner.split('<script type="application/json"', 1)
     inner = ltr(text) + '<script type="application/json"' + data_block
     open(c['SRC'] + 'pregnancy/calculator.html', 'w').write(c['page'](title, DESC, PATH, c['static_shell']('pregnancy', inner), jsonld=ld, app=False))
-    week_paths = build_weeks(c, P, reviewed)
+    week_paths = build_weeks(c, P, reviewed, js)
     return [HUB, PATH] + week_paths, [
         (HUB_NAME, HUB, 'כל שבועות ההריון, 4 עד 42, לפי שליש: גודל העובר, אורך ומשקל משוערים ומה מתפתח בכל שבוע.'),
         ('מחשבון הריון', PATH, 'שבוע ההריון, השליש ותאריך הלידה המשוער (לועזי ועברי) לפי וסת אחרונה, תאריך הפריה או החזרת עובר ב-IVF, עם שמות שמתאימים לחודש הלידה.')]
 
 
-def build_weeks(c, P, reviewed):
+def build_weeks(c, P, reviewed, js):
     """/pregnancy/week-<n> for every week in the data, and the /pregnancy hub. Returns the week paths."""
     e, PH = H.escape, c['PH']
     W = {int(w): x for w, x in P['weeks'].items()}
@@ -154,10 +183,14 @@ def build_weeks(c, P, reviewed):
         faq = [(f'מה גודל העובר בשבוע {w}?', f'בשבוע {w} העובר בגודל של {x["size"]}, {measure(x)} בממוצע.'),
                (f'באיזה שליש נמצאים בשבוע {w}?', f'בשבוע {w} נמצאים {in_tri(t["name"])}' + (', בשבוע האחרון שלו.' if w == t['weeks'][1] and w < 42 else '.')),
                (f'האם שבוע {w} הוא השבוע ה-{w + 1}?', f'כן. שבוע {w} פירושו {w} שבועות שלמים מהיום הראשון של הווסת האחרונה, מ-{w}+0 עד {w}+6, כלומר השבוע ה-{w + 1} של ההריון.')]
+        now = [x for x in P['checkups'] if x['from'] <= w <= x['to']]
+        checks = (f'<h2 id="checkups">בדיקות בשבוע {w}</h2><p>הבדיקות שמשרד הבריאות ממליץ עליהן בשבועות האלה. <a href="{PATH}#checkups">כל לוח הבדיקות</a>.</p>'
+                  + checks_table(now, P['checkups_source'], P['checkups_reviewed'])) if now else ''
         nav = ('<nav class="pnav" aria-label="שבועות">' + (f'<a href="{week_url(w - 1)}">השבוע הקודם: שבוע {w - 1}</a>' if w - 1 in W else '<span></span>')
                + (f'<a href="{week_url(w + 1)}">השבוע הבא: שבוע {w + 1}</a>' if w + 1 in W else '') + '</nav>')
         inner = f'''<p class="k"><a href="{HUB}">{HUB_NAME}</a> · השמות של ישראל</p><h1>{h1}</h1>
 <p class="gmeta">{t["name"]} · השבוע ה-{w + 1} של ההריון</p>
+<p class="pmine" data-pweek="{w}" hidden></p>
 <p class="dlead">בשבוע {w} העובר בגודל של {e(x["size"])}: {measure(x)}. {e(x["baby"])}</p>
 <dl class="pr-facts"><div><dt>גודל</dt><dd>כמו {e(x["size"])}<span>{measure(x)}</span></dd></div>
 <div><dt>שליש</dt><dd>{t["name"]}<span>{f"שבועות {t['weeks'][0]} עד {t['weeks'][1]}" if t['weeks'][1] < 42 else f"משבוע {t['weeks'][0]} ועד הלידה"}</span></dd></div>
@@ -167,11 +200,12 @@ def build_weeks(c, P, reviewed):
 <p>שבוע {w} להריון הוא {w}+0 עד {w}+6: {w} שבועות שלמים מהיום הראשון של הווסת האחרונה, כלומר השבוע ה-{w + 1} של ההריון. כך כותבים גם במכתבי הבדיקות ובאולטרסאונד. כדי לדעת בדיוק באיזה שבוע ויום אתם, ומתי התאריך המשוער, אפשר להשתמש ב<a href="{PATH}">מחשבון ההריון</a>.</p>
 <h2>{t["name"]}</h2>
 <p>{e(t["text"])}</p>
-<h2>שאלות נפוצות</h2>
+{checks}<h2>שאלות נפוצות</h2>
 {"".join(f"<h3>{e(q)}</h3><p>{e(a)}</p>" for q, a in faq)}
 {nav}
 <p>בינתיים אפשר להתחיל לחשוב על שם: <a href="/guides">מדריכים ומאמרים לבחירת שם</a>, או <a href="/names">כל השמות לפי א״ב</a>.</p>
-{foot}'''
+{foot}
+<script type="module" src="{js}"></script>'''
         ld = {"@context": "https://schema.org", "@graph": [
             {"@type": "WebPage", "@id": url, "url": url, "name": title, "description": desc, "inLanguage": "he",
              "dateModified": "__MODIFIED__", "lastReviewed": P['reviewed'], "isPartOf": {"@id": PH + "/#website"},
@@ -187,20 +221,27 @@ def build_weeks(c, P, reviewed):
     HD = 'הריון שבוע אחרי שבוע: גודל העובר, אורך ומשקל משוערים ומה מתפתח בכל שבוע, משבוע 4 עד 42, ומחשבון הריון לחישוב השבוע ותאריך הלידה המשוער.'
     groups = ''.join(
         f'<h2>{t["name"]}</h2><p>{e(t["text"])}</p><ul class="pwk">' + ''.join(
-            f'<li><a href="{week_url(w)}"><b>שבוע {w}</b><span>{e(W[w]["size"])}</span></a></li>'
+            f'<li><a href="{week_url(w)}" data-w="{w}"><b>שבוע {w}</b><span>{e(W[w]["size"])}</span></a></li>'
             for w in range(t['weeks'][0], t['weeks'][1] + 1) if w in W) + '</ul>' for t in P['trimesters'])
     inner = (f'<p class="k">השמות של ישראל · כלים להורים</p><h1>{HUB_NAME}</h1>'
              '<p class="dlead">מה קורה בכל שבוע של ההריון: בגודל של מה העובר, כמה הוא בערך שוקל, ומה מתפתח. '
              'לכל שבוע יש עמוד משלו, ובמחשבון אפשר לחשב באיזה שבוע אתם ומתי התאריך המשוער.</p>'
-             f'{cta}{groups}{foot}')
+             '<p class="pmine" data-phub hidden></p>'
+             f'{cta}{groups}<h2 id="checkups">לוח הבדיקות בהריון</h2><p>הבדיקות שמשרד הבריאות ממליץ עליהן, לפי שבועות. '
+             f'ב<a href="{PATH}">מחשבון</a> אפשר לראות לכל בדיקה את התאריכים שלכם.</p>'
+             f'{checks_table(P["checkups"], P["checkups_source"], P["checkups_reviewed"])}{foot}'
+             f'<script type="module" src="{js}"></script>')
     url = PH + HUB
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "CollectionPage", "@id": url, "url": url, "name": HT, "description": HD, "inLanguage": "he",
          "dateModified": "__MODIFIED__", "lastReviewed": P['reviewed'], "isPartOf": {"@id": PH + "/#website"},
-         "publisher": {"@id": PH + "/#organization"},
+         "publisher": {"@id": PH + "/#organization"}, "breadcrumb": {"@id": url + "#breadcrumb"},
          "mainEntity": {"@type": "ItemList", "numberOfItems": len(paths) + 1, "itemListElement":
                         [{"@type": "ListItem", "position": 1, "name": "מחשבון הריון", "url": PH + PATH}]
                         + [{"@type": "ListItem", "position": i, "name": f'שבוע {w} להריון', "url": PH + week_url(w)} for i, w in enumerate(sorted(W), 2)]}},
+        {"@type": "BreadcrumbList", "@id": url + "#breadcrumb", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "השמות של ישראל", "item": PH + "/"},
+            {"@type": "ListItem", "position": 2, "name": HUB_NAME}]},
         c['LD_SITE'], c['LD_ORG']]}
     open(c['SRC'] + 'pregnancy/index.html', 'w').write(c['page'](HT, HD, HUB, c['static_shell']('pregnancy', inner), jsonld=ld, app=False))
     return paths

@@ -3,6 +3,12 @@
    ========================================================= */
 let galMode=store.get('gm','sex'), GAL=null;
 function reigns(st,x){const r=[];let prev=-1;for(let y=0;y<NY;y++){const id=st.top[x][y][0];if(id==null)continue;if(id!==prev){r.push({i:id,a:y,b:y});prev=id}else r[r.length-1].b=y}return r}
+/* the pregnancy week from the date saved by the calculator (app/pregnancy.mjs, key bnil_pregnancy: {m, d, c, e}),
+   by the same rules; null when nothing is saved or the week has no page (4 to 42) */
+function pregWeek(){const v=store.get('pregnancy',null),m=v&&/^(\d{4})-(\d{2})-(\d{2})$/.exec(v.d||'');if(!m)return null;
+  const day=Date.UTC(+m[1],+m[2]-1,+m[3])/864e5,n=new Date(),now=Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())/864e5;
+  const due=v.m==='lmp'?day+280+((+v.c||28)-28):v.m==='conception'?day+266:v.m==='ivf'?day+266-(+v.e||5):null;
+  if(due==null||day>now)return null;const w=Math.floor((now-due+280)/7);return w>=4&&w<=42?w:null}
 function renderHome(){
   const st=stats(-1), sec=$('#tab-home');
   let babies=0;for(const v of st.DD)babies+=v;
@@ -26,7 +32,8 @@ function renderHome(){
     <button class="tilec" data-go="games"><span class="k">${t('משחק יומי','Daily game')}</span><b>${t('השם הסודי','The secret name')}</b><span>${t('נחשו את השם של היום ב-10 ניסיונות','Guess today’s name in 10 tries')}</span></button>
     <button class="tilec" data-go="me"><span class="k">${t('פרופיל אישי','Personal profile')}</span><b>${t('מה השם שלי אומר עליי','What my name says')}</b><span>${t('כמה הוא נדיר בשנתון שלכם ומה התואר שלכם','How rare it was in your year, and your title')}</span></button>
     ${SITE.routing==='path'?`<a class="tilec" href="/names#colls"><span class="k">${t('אוספי שמות','Name lists')}</span><b>${t('רשימות מוכנות','Ready-made lists')}</b><span>${t('מקראיים, בעלייה, נדירים, שמות לתאומים ועוד','Biblical, rising, rare, twin names and more (in Hebrew)')}</span></a>
-    <a class="tilec" href="/pregnancy/calculator"><span class="k">${t('להורים בדרך','Expecting?')}</span><b>${t('מחשבון הריון','Pregnancy calculator')}</b><span>${t('באיזה שבוע אתם, מתי התאריך המשוער ושמות לחודש הלידה','Your week, the due date and names for the birth month (in Hebrew)')}</span></a>`:''}
+    ${(()=>{const w=pregWeek();return w?`<a class="tilec" href="/pregnancy/week-${w}"><span class="k">${t('להורים בדרך','Expecting?')}</span><b>${t(`שבוע ${w} להריון`,`Pregnancy week ${w}`)}</b><span>${t('לפי התאריך ששמרתם: מה קורה השבוע והבדיקות שלכם','From your saved date: this week and your checkups (in Hebrew)')}</span></a>`
+      :`<a class="tilec" href="/pregnancy/calculator"><span class="k">${t('להורים בדרך','Expecting?')}</span><b>${t('מחשבון הריון','Pregnancy calculator')}</b><span>${t('באיזה שבוע אתם, מתי התאריך המשוער ושמות לחודש הלידה','Your week, the due date and names for the birth month (in Hebrew)')}</span></a>`})()}`:''}
   </div>
 `;
   wireSearch($('#hq'),$('#hsugg'),pick);
