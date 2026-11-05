@@ -1,0 +1,44 @@
+// Browser tests of the guide pages: every guide reads at phone width (tables included) with no console errors or CSP violations.
+import { test, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { chromium } from 'playwright';
+import { serve } from './server.mjs';
+
+const GUIDES = JSON.parse(readFileSync(new URL('../../data/guides.json', import.meta.url), 'utf-8')).map(g => g.slug);
+const NOISE = /googlesyndication|adsbygoogle|_vercel\/insights/;   // see pregnancy.e2e.mjs
+let server, browser;
+before(async () => {
+  server = await serve();
+  browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
+});
+after(async () => { await browser?.close(); await server?.close(); });
+
+for (const width of [375, 1200]) {
+  test(`guides at ${width}px: no horizontal scroll, no console errors`, async () => {
+    const ctx = await browser.newContext({ viewport: { width, height: 800 } });
+    const page = await ctx.newPage();
+    const problems = [];
+    page.on('console', m => { if (m.type() === 'error' && !NOISE.test(m.text() + (m.location().url || ''))) problems.push(m.text()); });
+    page.on('pageerror', e => problems.push(String(e)));
+    for (const slug of ['', ...GUIDES.map(s => '/' + s)]) {
+      await page.goto(`${server.url}/guides${slug}`);
+      assert.equal(await page.locator('h1').count(), 1, slug);
+      const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+      assert.ok(over <= 1, `/guides${slug} scrolls sideways by ${over}px`);
+    }
+    assert.deepEqual(problems, []);
+    await ctx.close();
+  });
+}
+
+test('the new guides show their tables, with a link for every name', async () => {
+  const page = await browser.newPage();
+  for (const [slug, tables] of [['gender-switch-names', 4], ['vanished-names', 8], ['new-names', 4]]) {
+    await page.goto(`${server.url}/guides/${slug}`);
+    assert.equal(await page.locator('table.gvals').count(), tables, slug);
+    const rows = await page.locator('table.gvals tbody tr').count();
+    assert.equal(await page.locator('table.gvals tbody tr td:first-child a[href^="/names/"]').count(), rows, slug);
+  }
+  await page.close();
+});
