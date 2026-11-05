@@ -116,7 +116,6 @@ const TRI = ['', 'השליש הראשון', 'השליש השני', 'השליש �
 const KEY = 'bnil_pregnancy';  // the bnil_ prefix: the site's "delete all my data" button removes it too
 // {m, d, c, e}: the input; done: the ids of the checkups marked as done; seen: the week shown on the last visit
 const fmtN = n => n.toLocaleString('he-IL');
-const dm = day => new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'numeric', timeZone: 'UTC' }).format(new Date(day * DAY));
 const STATE = { done: 'בוצעה', past: 'המועד עבר', now: 'עכשיו', soon: '' };
 const load = () => { try { return localStorage.getItem(KEY); } catch (e) { return null; } };
 const keep = v => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) { /* private mode: works without saving */ } };
@@ -128,6 +127,64 @@ export function sinceText(seen, weeks) {
   return weeks > seen ? `מאז הביקור הקודם עברתם לשבוע ${weeks}.` : '';
 }
 
+const dm = day => new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'numeric', timeZone: 'UTC' }).format(new Date(day * DAY));
+/* ---- calendar file (.ics, RFC 5545), made on the device ---- */
+const ymd = day => fromDay(day).replace(/-/g, '');
+/* text values: backslash, semicolon, comma and line breaks are escaped */
+export const icsEscape = s => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+/* lines longer than 75 octets (UTF-8 bytes, not letters: a Hebrew letter is 2) go on, after CRLF and a space;
+   a letter is never cut in the middle */
+export function icsFold(line) {
+  const enc = new TextEncoder();
+  const out = [];
+  let cur = '', n = 0;
+  for (const ch of line) {
+    const b = enc.encode(ch).length;
+    if (n + b > 75) { out.push(cur); cur = ' '; n = 1; }
+    cur += ch; n += b;
+  }
+  out.push(cur);
+  return out.join('\r\n');
+}
+/* the calendar: an all-day event on the first day of each coming week (to 41; 40+0 is the due date), the due date,
+   and each checkup that is not done or over, on the day its window opens (today if it is open now).
+   UIDs depend only on the event and the due date, so importing again updates the same events. */
+export function ics({ due, now, info = {}, checkups = [], done = [], weeks = true, checks = true, site = 'https://www.shemotil.co.il', stamp }) {
+  stamp = stamp || new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//shemotil.co.il//pregnancy//HE', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+    `X-WR-CALNAME:${icsEscape('ההריון שלנו · השמות של ישראל')}`];
+  const ev = (uid, day, summary, desc, url) => L.push('BEGIN:VEVENT', `UID:${uid}-${ymd(due)}@shemotil.co.il`, `DTSTAMP:${stamp}`,
+    `DTSTART;VALUE=DATE:${ymd(day)}`, `DTEND;VALUE=DATE:${ymd(day + 1)}`, `SUMMARY:${icsEscape(summary)}`, `DESCRIPTION:${icsEscape(desc)}`,
+    ...(url ? [`URL:${url}`] : []), 'TRANSP:TRANSPARENT',
+    'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsEscape(summary)}`, 'TRIGGER:PT9H', 'END:VALARM', 'END:VEVENT');
+  const start = due - TERM;
+  if (weeks) {
+    for (let w = Math.max(4, Math.floor((now - start) / 7) + 1); w <= 41; w++) {
+      if (w === 40) continue;
+      const wk = info[w], url = `${site}/pregnancy/week-${w}`;
+      ev(`w${w}`, start + w * 7, `שבוע ${w} להריון`, `${wk ? `בגודל של ${wk.size}. ` : ''}מה קורה השבוע: ${url}`, url);
+    }
+  }
+  if (due >= now) ev('due', due, 'תאריך הלידה המשוער', `שבוע 40. בהצלחה! ${site}/pregnancy/week-40`, `${site}/pregnancy/week-40`);
+  if (checks) {
+    for (const x of checkups) {
+      const [a, b] = checkWindow(due, x);
+      if (done.includes(x.id) || b < now) continue;
+      ev(`c-${x.id}`, Math.max(a, now), `בדיקה: ${x.name}`,
+        `${x.what}\nהמועד: ${dm(a)} עד ${dm(b)}. לוח כללי, המועדים נקבעים מול הרופא והקופה.\n${site}/pregnancy/calculator#checkups`);
+    }
+  }
+  L.push('END:VCALENDAR');
+  return L.map(icsFold).join('\r\n') + '\r\n';
+}
+
+/* ---- the share card: what it says (pure), then the drawing ---- */
+export function cardLines(st, info, heb, { month = false } = {}) {
+  const w = Math.min(42, st.weeks), wk = info[w];
+  return { kicker: 'שבוע ההריון', week: String(w), sub: wk ? `בגודל של ${wk.size}` : 'השבועות הראשונים',
+    month: month && heb ? `מגיע/ה ב${heb.month}` : '', pct: st.pct, site: 'shemotil.co.il' };
+}
+
 function checks(D, due, now, done) {
   const next = nextCheck(D.checkups, due, now, done);
   const when = x => { const [a, b] = checkWindow(due, x); return `בין ${dm(a)} ל-${dm(b)}`; };
@@ -136,6 +193,82 @@ function checks(D, due, now, done) {
     <ul class="pchk">${D.checkups.map(x => { const s = checkState(due, x, now, done); return `<li class="is-${s}">
       <label><input type="checkbox" data-check="${x.id}"${s === 'done' ? ' checked' : ''}><span><b>${x.name}</b><span>${when(x)}${STATE[s] ? ` · ${STATE[s]}` : ''}</span></span></label></li>`; }).join('')}</ul>
     <p class="pr-more">סמנו בדיקות שעשיתם, והסימון יישמר במכשיר. <a href="#checkups">מה כל בדיקה</a> · לוח כללי, המועדים נקבעים מול הרופא והקופה.</p></section>`;
+}
+
+const shareHtml = w => `<section class="pr-share"><h3>תזכורת בכל שבוע</h3>
+    <p>קובץ יומן לטלפון או למחשב: אירוע בכל פעם שמתחיל שבוע חדש, עם קישור לעמוד של השבוע, ותזכורת כשמגיע המועד של בדיקה. הקובץ נוצר במכשיר, ושום פרט לא נשלח.</p>
+    <div class="pr-opts"><label><input type="checkbox" id="pics-w" checked>השבועות</label><label><input type="checkbox" id="pics-c" checked>הבדיקות</label></div>
+    <p class="pr-acts"><button type="button" class="pbtn" id="pics">הוספה ליומן</button></p>
+    <h3>לשתף</h3>
+    <p>כרטיס עם השבוע והגודל, לשליחה למשפחה ולחברים. הוא נוצר במכשיר ואין בו תאריכים.</p>
+    <div class="pr-opts"><label><input type="checkbox" id="pcard-m">להוסיף את החודש העברי של הלידה</label></div>
+    <p class="pr-acts"><button type="button" class="pbtn" id="pcard">יצירת כרטיס</button><button type="button" class="pbtn2" id="plink">העתקת קישור לשבוע ${w}</button></p>
+    <figure class="pr-card" id="pcardbox" hidden><img alt="כרטיס שיתוף: שבוע ${w} להריון" width="1080" height="1350">
+      <figcaption class="pr-acts"><button type="button" class="pbtn" id="pshare" hidden>שיתוף</button><a class="pbtn2" download="shemotil-week-${w}.png">הורדה</a></figcaption></figure>
+    <p class="pr-msg" id="pmsg" role="status"></p></section>`;
+
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4e3);
+}
+
+/* 1080x1350 PNG in the site's fonts (already on the page), right to left */
+const FONTS = ['700 100px Karantina', '700 60px "IBM Plex Sans Hebrew"', '600 60px "IBM Plex Sans Hebrew"', '500 60px "IBM Plex Sans Hebrew"'];
+async function drawCard(c) {
+  try { await Promise.all(FONTS.map(f => document.fonts.load(f, 'שבוע 20'))); } catch (e) { /* the fallback font still draws */ }
+  const cv = document.createElement('canvas');
+  cv.width = 1080; cv.height = 1350;
+  const x = cv.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 1080, 1350);
+  g.addColorStop(0, '#272266'); g.addColorStop(1, '#101119');
+  x.fillStyle = g; x.fillRect(0, 0, 1080, 1350);
+  x.fillStyle = 'rgba(164,157,255,.12)'; x.beginPath(); x.arc(540, 520, 330, 0, 2 * Math.PI); x.fill();
+  x.direction = 'rtl'; x.textAlign = 'center';
+  const fit = (text, font, size, max) => { do { x.font = font.replace('$', size); size -= 4; } while (x.measureText(text).width > max && size > 24); };
+  x.fillStyle = '#b9bcd3'; x.font = '600 50px "IBM Plex Sans Hebrew"'; x.fillText(c.kicker, 540, 300);
+  x.fillStyle = '#f0f1f8'; x.font = '700 440px Karantina'; x.fillText(c.week, 540, 700);
+  x.fillStyle = '#a49dff'; fit(c.sub, '700 $px "IBM Plex Sans Hebrew"', 76, 940); x.fillText(c.sub, 540, 950);
+  if (c.month) { x.fillStyle = '#f0f1f8'; fit(c.month, '500 $px "IBM Plex Sans Hebrew"', 54, 940); x.fillText(c.month, 540, 1035); }
+  const bar = (a, w) => { x.beginPath(); if (x.roundRect) x.roundRect(a, 1100, w, 16, 8); else x.rect(a, 1100, w, 16); x.fill(); };
+  x.fillStyle = 'rgba(255,255,255,.12)'; bar(160, 760);
+  const fw = Math.max(16, 760 * c.pct / 100);
+  x.fillStyle = '#a49dff'; bar(920 - fw, fw);   // right to left, like the bar on the page
+  x.font = '700 70px Karantina'; x.fillText('השמות של ישראל', 540, 1235);
+  x.direction = 'ltr'; x.fillStyle = '#8a8ea8'; x.font = '500 36px "IBM Plex Sans Hebrew"'; x.fillText(c.site, 540, 1290);
+  return new Promise(r => cv.toBlob(r, 'image/png'));
+}
+
+/* the buttons of the share section (made again on each render) */
+function share(D, st, due, now, done) {
+  const q = sel => document.querySelector(sel), msg = q('#pmsg'), w = Math.min(42, st.weeks);
+  const box = q('#pcardbox'), img = box.querySelector('img'), dl = box.querySelector('a'), btn = q('#pshare');
+  const opts = () => ({ weeks: q('#pics-w').checked, checks: q('#pics-c').checked });
+  q('#pics-w').onchange = q('#pics-c').onchange = () => { const o = opts(); q('#pics').disabled = !o.weeks && !o.checks; };
+  q('#pics').onclick = () => {
+    const text = ics({ due, now, info: D.weeks, checkups: D.checkups, done, ...opts(), site: location.origin });
+    download(new Blob([text], { type: 'text/calendar;charset=utf-8' }), 'shemotil-pregnancy.ics');
+    msg.textContent = 'הקובץ ירד. פתחו אותו כדי להוסיף את האירועים ליומן.';
+  };
+  let file = null, url = '';
+  const card = async () => {
+    const blob = await drawCard(cardLines(st, D.weeks, hebrewDate(due), { month: q('#pcard-m').checked }));
+    if (!blob) { msg.textContent = 'לא הצלחנו ליצור את הכרטיס בדפדפן הזה.'; return; }
+    if (url) URL.revokeObjectURL(url);
+    url = URL.createObjectURL(blob);
+    file = new File([blob], `shemotil-week-${w}.png`, { type: 'image/png' });
+    img.src = url; dl.href = url; box.hidden = false;
+    btn.hidden = !(navigator.canShare && navigator.canShare({ files: [file] }));
+    msg.textContent = '';
+  };
+  q('#pcard').onclick = card;
+  q('#pcard-m').onchange = () => { if (!box.hidden) card(); };
+  btn.onclick = () => navigator.share({ files: [file], title: `שבוע ${w} להריון` }).catch(() => { /* closed or not allowed */ });
+  q('#plink').onclick = async () => {
+    const link = `${location.origin}/pregnancy/week-${w}`;
+    try { await navigator.clipboard.writeText(link); msg.textContent = `הקישור הועתק: ${link}`; } catch (e) { msg.textContent = link; }
+  };
 }
 
 function render(D, st, due, now, v, since) {
@@ -157,6 +290,7 @@ function render(D, st, due, now, v, since) {
       <div><dt>עד התאריך המשוער</dt><dd>${left}</dd></div></dl>
     <section class="pr-week">${size}</section>
     ${checks(D, due, now, v.done || [])}
+    ${shareHtml(Math.min(42, st.weeks))}
     ${mon ? `<section class="pr-names"><h3>נולדים ב${heb.month}? שמות שמתאימים לחודש</h3><p class="k">${mon.note}</p>
       <p class="cgc">${mon.names.map(([n, href]) => `<a href="${href}">${n}</a>`).join('')}</p>
       <p class="pr-more"><a href="#months">שמות לכל החודשים</a> · <a href="/guides">מדריכים ומאמרים לבחירת שם</a></p></section>` : ''}
@@ -183,6 +317,7 @@ function calculator() {
     state = { ...v, done: save && (state.d !== v.d || state.m !== v.m) ? [] : state.done || [], seen: st.weeks };
     out.innerHTML = render(D, st, due, now, state, since);
     out.hidden = false;
+    share(D, st, due, now, state.done);
     out.querySelectorAll('[data-check]').forEach(box => box.addEventListener('change', () => {
       const id = box.dataset.check;
       state.done = box.checked ? [...new Set([...state.done, id])] : state.done.filter(x => x !== id);
