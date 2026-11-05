@@ -437,24 +437,22 @@ function renderHome(){
   </div>
   <div class="card homesaved" id="homesaved" hidden></div>
   <div class="ctapair">
-  <button class="gencta" id="gencta"><span class="gl1">${icon('gen')}</span><span><b>${t('מחפשים שם לתינוק?','Looking for a baby name?')}</b><span>${t('פתחו את מחולל השמות: לפי משמעות, אופי ומגמה, עם רשימת מועדפים לשיתוף.','Open the name finder: by meaning, vibe and trend, with a shareable shortlist.')}</span></span><span class="go">${t('למחולל','Open')} ${icon('arrow')}</span></button>
   <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
+  <button class="gencta" id="gencta"><span class="gl1">${icon('gen')}</span><span><b>${t('מחפשים שם לתינוק?','Looking for a baby name?')}</b><span>${t('פתחו את מחולל השמות: לפי משמעות, אופי ומגמה, עם רשימת מועדפים לשיתוף.','Open the name finder: by meaning, vibe and trend, with a shareable shortlist.')}</span></span><span class="go">${t('למחולל','Open')} ${icon('arrow')}</span></button>
   </div>
   ${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<div class="nmnewwrap"><button class="linkbtn" id="nmnewroom">${t('+ חדר חדש','+ New room')}</button><span aria-hidden="true">·</span><button class="linkbtn" id="nmallrooms">${t(`החדרים שלי (${nmRoomCount()})`,`My rooms (${nmRoomCount()})`)}</button></div>`:''})()}
-  <div class="tiles3${SITE.routing==='path'?' four':' two'}">
-    <button class="tilec" data-go="games"><span class="k">${t('משחק יומי','Daily game')}</span><b>${t('השם הסודי','The secret name')}</b><span>${t('נחשו את השם של היום ב-10 ניסיונות','Guess today’s name in 10 tries')}</span></button>
-    <button class="tilec" data-go="me"><span class="k">${t('פרופיל אישי','Personal profile')}</span><b>${t('מה השם שלי אומר עליי','What my name says')}</b><span>${t('כמה הוא נדיר בשנתון שלכם ומה התואר שלכם','How rare it was in your year, and your title')}</span></button>
-    ${SITE.routing==='path'?`<a class="tilec" href="/names#colls"><span class="k">${t('אוספי שמות','Name lists')}</span><b>${t('רשימות מוכנות','Ready-made lists')}</b><span>${t('מקראיים, בעלייה, נדירים, שמות לתאומים ועוד','Biblical, rising, rare, twin names and more (in Hebrew)')}</span></a>
+  ${SITE.routing==='path'?`<div class="tiles3">
     ${(()=>{const w=pregWeek();return w?`<a class="tilec" href="/pregnancy/week-${w}"><span class="k">${t('להורים בדרך','Expecting?')}</span><b>${t(`שבוע ${w} להריון`,`Pregnancy week ${w}`)}</b><span>${t('לפי התאריך ששמרתם: מה קורה השבוע והבדיקות שלכם','From your saved date: this week and your checkups (in Hebrew)')}</span></a>`
-      :`<a class="tilec" href="/pregnancy/calculator"><span class="k">${t('להורים בדרך','Expecting?')}</span><b>${t('מחשבון הריון','Pregnancy calculator')}</b><span>${t('באיזה שבוע אתם, מתי התאריך המשוער ושמות לחודש הלידה','Your week, the due date and names for the birth month (in Hebrew)')}</span></a>`})()}`:''}
-  </div>
+      :`<a class="tilec" href="/pregnancy/calculator"><span class="k">${t('להורים בדרך','Expecting?')}</span><b>${t('מחשבון הריון','Pregnancy calculator')}</b><span>${t('באיזה שבוע אתם, מתי התאריך המשוער ושמות לחודש הלידה','Your week, the due date and names for the birth month (in Hebrew)')}</span></a>`})()}
+    <a class="tilec" href="/guides"><span class="k">${t('מדריכים ומאמרים','Guides')}</span><b>${t('לבחור שם בעזרת הנתונים','Choosing with the data')}</b><span>${t('שמות לתאומים, שמות שהחליפו מגדר, השמות שנעלמו ועוד','Twin names, names that switched gender and more (in Hebrew)')}</span></a>
+    <a class="tilec" href="/names#colls"><span class="k">${t('אוספי שמות','Name lists')}</span><b>${t('רשימות מוכנות','Ready-made lists')}</b><span>${t('מקראיים, בעלייה, נדירים, שמות לתאומים ועוד','Biblical, rising, rare, twin names and more (in Hebrew)')}</span></a>
+  </div>`:''}
 `;
   wireSearch($('#hq'),$('#hsugg'),pick);
   openOn(sec.querySelector('.quick'));
   $('#rnd2').onclick=()=>{const pool=[];for(let i=0;i<N;i++)if(T(st,i)>=400&&MEAN.has(NAMES[i]))pool.push(i);pick(rand(pool))};
   drawHomeSaved();
   $('#gencta').onclick=()=>setTab('gen');$('#matchcta').onclick=()=>setTab('match');{const nr=$('#nmnewroom');if(nr)nr.onclick=()=>{NMX.showRooms=true;NMX.newRoom=true;setTab('match')}}{const ar=$('#nmallrooms');if(ar)ar.onclick=()=>{NMX.showRooms=true;setTab('match')}}
-  sec.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='me'?setTab('names','me'):setTab(b.dataset.go));
 
 }
 function wireGalSeg(){const g=$('#gseg');if(g)g.onclick=e=>{const b=e.target.closest('[data-g]');if(!b)return;galMode=b.dataset.g;store.set('gm',galMode);g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.g===galMode));drawGalaxy()}}
