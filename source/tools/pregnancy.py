@@ -45,6 +45,15 @@ def check(P):
         # the drawing of the size (a key of ART in app/pregnancy.mjs; tests/pregnancy-hero.test.mjs checks it exists)
         assert re.fullmatch(r'[a-z]+', x.get('art') or ''), f'pregnancy.json: week {w} needs art (a drawing key)'
     assert [m['month'] for m in P['months']] == MONTHS, 'pregnancy.json: the 12 Hebrew months, from תשרי'
+    # the holidays (also for the names journey): a unique id, a date in the year's order from תשרי, a note and names
+    ids = [x['id'] for x in P['holidays']]
+    assert len(set(ids)) == len(ids), 'pregnancy.json: a holiday id twice'
+    for x in P['holidays']:
+        assert re.fullmatch(r'[a-z]+(-[a-z]+)*', x['id']) and x.get('name') and x.get('note') and x.get('names'), f'pregnancy.json: holiday {x.get("id")} misses a field'
+        assert x['month'] in MONTHS and 1 <= x['day'] <= 30 and 1 <= x['len'] <= 8, f'pregnancy.json: holiday {x["id"]}: month, day or len'
+        assert len(set(x['names'])) == len(x['names']), f'pregnancy.json: a name twice in holiday {x["id"]}'
+    when = [(MONTHS.index(x['month']), x['day']) for x in P['holidays']]
+    assert when == sorted(when), 'pregnancy.json: holidays in the order of the year, from תשרי'
     assert [w for t in P['trimesters'] for w in range(t['weeks'][0], t['weeks'][1] + 1)] == list(range(1, 43)), \
         'pregnancy.json: the trimesters must cover weeks 1 to 42 in order'
     ids = [x['id'] for x in P['checkups']]
@@ -76,6 +85,9 @@ def build(c):
         for n in m['names']:
             assert n in c['by_name'], f'pregnancy.json: {n} ({m["month"]}) is not in the data'
         assert len(set(m['names'])) == len(m['names']), f'pregnancy.json: a name twice in {m["month"]}'
+    for x in P['holidays']:
+        for n in x['names']:
+            assert n in c['by_name'], f'pregnancy.json: {n} ({x["name"]}) is not in the data'
     js = c['hashed']('pregnancy', 'js', open(S + 'app/pregnancy.mjs', encoding='utf-8').read())
     data = {'weeks': P['weeks'], 'early': EARLY, 'checkups': [{k: x[k] for k in ('id', 'name', 'from', 'to', 'what')} for x in P['checkups']],
             'months': {m['month']: {'note': m['note'], 'names': [[n, f'/names/{enc(n)}'] for n in m['names']]} for m in P['months']}}

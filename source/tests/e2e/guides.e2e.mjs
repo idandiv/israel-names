@@ -34,11 +34,21 @@ for (const width of [375, 1200]) {
 
 test('the new guides show their tables, with a link for every name', async () => {
   const page = await browser.newPage();
-  for (const [slug, tables] of [['gender-switch-names', 4], ['vanished-names', 8], ['new-names', 4]]) {
+  for (const [slug, tables] of [['gender-switch-names', 4], ['vanished-names', 8], ['new-names', 4], ['shared-names', 2], ['sibling-names', 4]]) {
     await page.goto(`${server.url}/guides/${slug}`);
     assert.equal(await page.locator('table.gvals').count(), tables, slug);
     const rows = await page.locator('table.gvals tbody tr').count();
     assert.equal(await page.locator('table.gvals tbody tr td:first-child a[href^="/names/"]').count(), rows, slug);
   }
+  await page.close();
+});
+
+test('the Hebrew months guide: a name list for every month and holiday, and the calculator link', async () => {
+  const page = await browser.newPage();
+  await page.goto(`${server.url}/guides/hebrew-month-names`);
+  const P = JSON.parse(readFileSync(new URL('../../data/pregnancy.json', import.meta.url), 'utf-8'));
+  assert.equal(await page.locator('.docbody ol.coll').count(), P.months.length + P.holidays.length);
+  for (const h of P.holidays) assert.equal(await page.locator(`h3#${h.id}`).textContent(), h.name);
+  assert.equal(await page.locator('a.pcta[href="/pregnancy/calculator"]').count(), 1);
   await page.close();
 });
