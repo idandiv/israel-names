@@ -18,6 +18,14 @@ Sources:
                               in Y1 to at most 5% of that; every such name must be in names (listed) or other (left out)
       <!--new:<key>-->        names first seen in NEW_FROM or later (either sex), given to at least 20 babies of new[<key>].sex in Y1,
                               of the Jewish sector or not (arab: true); every such name must be in names or other
+      <!--shared:<key>-->     names of shared[<key>].sex given in Y1 to at least SHARED_MIN babies of the Jewish sector and SHARED_MIN of
+                              the Arab sectors (Muslim, Christian-Arab and Druze together), with Y1 by sector; every such name must be in
+                              names or other
+      <!--era:<key>-->        era[<key>].names of era[<key>].sex in ERA_YEARS and Y1, checked by kind: classic (ERA_MIN babies or more in
+                              each of those years) or rising (fewer than MIN_BABIES in ERA_YEARS, ERA_MIN or more in Y1)
+      <!--month:<month>-->    the names of that Hebrew month (months in data/pregnancy.json), most given first
+      <!--holiday:<id>-->     a holiday of holidays in data/pregnancy.json: its name, date, note and names (each given to at least
+                              20 babies of a sex in Y1); a guide with one month or holiday marker needs all of them
       {{name:<name>}}         link to the name page (in FAQ answers: the name only)
       {{count:<name>:<s>}}    babies of sex s (0 girls, 1 boys) given the name in Y1
       {{countin:<name>:<s>:<year>}}  the same in another year
@@ -26,12 +34,13 @@ Sources:
       {{none:<name>:<s>}}     prints nothing; checks the name is not in the Y1 data for sex s (fewer than 5 babies per sector)
       {{girls:<name>:<from>:<to>}}  the share of girls among the babies given the name in those years ("63%")
       {{mostly:<name>:<s>:<sector>}}  prints nothing; checks that most babies of sex s ever given the name are of that CBS sector
+      {{sector:<name>:<s>:<sector>}}  babies of sex s of that CBS sector given the name in Y1 (at least 5)
       {{share:<end>:<s>:<year>}}  the share of babies of sex s whose name ends with <end> ("11.4%")
       {{top:<end>:<s>:<year>:<name>}}  link to <name>, checked to be the most common name ending with <end> that year
                               for each sex in <s> ("0,1": for girls and for boys)
       {{Y0}} {{Y1}}           first and last year of the data (a <year> argument can also be Y0 or Y1)
 Every name in a guide is checked: it exists, and a pair name was given to at least 20 babies of that sex in Y1,
-most of them of that sex; a list or forms name to at least 20 babies of that sex in Y1. A names list with ends must sort
+most of them of that sex (with "different_start": true, two names that do not start with the same letter); a list or forms name to at least 20 babies of that sex in Y1. A names list with ends must sort
 every name with its ending and at least 20 babies of that sex in Y1 into names (listed) or other (left out), so a new
 name in the data stops the build until it is sorted.
 A failed check stops the build, like meanings.py.
@@ -45,8 +54,11 @@ MIN_BABIES = 20
 SWITCH_PTS, SWITCH_MIN = 25, 150   # gender switch: points moved, and babies needed in each period
 FADED_PEAK = 400                    # faded names: babies in the peak year
 NEW_FROM = 2010                     # new names: the first year in the data
+SHARED_MIN = 20                     # shared names: babies in Y1 in the Jewish sector, and in the Arab sectors
+ERA_YEARS, ERA_MIN = (1984, 2004), 150   # names of an era: the years shown before Y1, and babies needed in each (classic)
+ARAB = ('Muslim', 'Christian-Arab', 'Druze')
 # marker kind -> the guide's data it shows: every key of that data needs its <!--kind:key--> marker in the body
-BLOCKS = {'pairs': 'pairs', 'names': 'lists', 'forms': 'forms', 'switch': 'switch', 'faded': 'faded', 'new': 'new'}
+BLOCKS = {'pairs': 'pairs', 'names': 'lists', 'forms': 'forms', 'switch': 'switch', 'faded': 'faded', 'new': 'new', 'shared': 'shared', 'era': 'era'}
 SECTION = 'מדריכים ומאמרים'  # the section's name: hub h1, footer, /names group, breadcrumbs
 
 
@@ -68,8 +80,17 @@ def one_letter_apart(a, b):
     return any(l[:i] + l[i + 1:] == s for i in range(len(l)))
 
 
+def heb_day(d):
+    """1-30 in Hebrew letters: 1 א׳, 15 ט״ו, 16 ט״ז, 25 כ״ה"""
+    assert 1 <= d <= 30
+    t, o = divmod(d, 10)
+    s = ('', 'י', 'כ', 'ל')[t] + ' אבגדהוזחט'[o].strip()
+    s = {'יה': 'טו', 'יו': 'טז'}.get(s, s)
+    return s + '׳' if len(s) == 1 else s[:-1] + '״' + s[-1]
+
+
 def build(c):
-    """c: what build_site.py shares (page, static_shell, by_name, ny, YC, enc, fmt, short_mean, coll_list, Y0, Y1, SRC, PH, LD_*).
+    """c: what build_site.py shares (page, static_shell, by_name, ny, YC, SN, SC, PREG, enc, fmt, short_mean, coll_list, Y0, Y1, SRC, PH, LD_*).
     Writes src/guides/; returns (paths for the sitemap, [(slug, title, desc)] for llms.txt and the hub)."""
     G = load()
     by_name, ny, enc, fmt, Y0, Y1, PH = c['by_name'], c['ny'], c['enc'], c['fmt'], c['Y0'], c['Y1'], c['PH']
@@ -82,6 +103,8 @@ def build(c):
 
     # babies by (name, sex, year) from the CBS file; the shares count every name in it, also names without a page
     YC, SN = c['YC'], c['SN']   # SN: babies by (name, sex, CBS sector), all years
+    SC = c.get('SC', {})        # babies by (name, sex, CBS sector, year)
+    PREG = c.get('PREG') or {'months': [], 'holidays': []}   # data/pregnancy.json: the Hebrew months and the holidays
     born_all = {}
     for (n, s, _), k in SN.items():
         born_all[(n, s)] = born_all.get((n, s), 0) + k
@@ -144,6 +167,12 @@ def build(c):
                 k = {t: SN[(n, int(sx), t)] for t in ('Jewish', 'Muslim', 'Christian-Arab', 'Druze') if (n, int(sx), t) in SN}
                 assert k and max(k, key=k.get) == sec, f'guides: {where} says most {SEX_HE[int(sx)]} babies named {n} are {sec}: {k}'
                 return ''
+            if kind == 'sector':
+                n, sx, sec = arg.split(':')
+                need(n, where)
+                k = SC.get((n, int(sx), sec, Y1), 0)
+                assert k, f'guides: {where}: {n} was not given to {SEX_HE[int(sx)]} babies of the {sec} sector in {Y1}'
+                return fmt(k)
             if kind == 'share':
                 end, sx, y = arg.split(':')
                 return share(end, int(sx), year(y))
@@ -238,6 +267,57 @@ def build(c):
         return (f'<table class="gtbl gvals"><thead><tr><th scope="col">השם</th><th scope="col">הופיע לראשונה</th>'
                 f'<th scope="col">ב-{Y1}</th></tr></thead><tbody>{body}</tbody></table>')
 
+    def shared(g, key):
+        """names given in Y1 in the Jewish sector and in the Arab sectors, with the babies of each sector"""
+        W = g['shared'][key]
+        s, where = W['sex'], f'{g["slug"]} shared {key}'
+        sec = lambda n, t: SC.get((n, s, t, Y1), 0)
+
+        def fits(n):
+            return sec(n, 'Jewish') >= SHARED_MIN and sum(sec(n, t) for t in ARAB) >= SHARED_MIN
+        complete(where, W['names'], W.get('other', []), fits)
+        rows = sorted(W['names'], key=lambda n: -ny(by_name[n], s))
+        num = lambda k: fmt(k) if k else '–'
+        body = ''.join(f'<tr>{name_td(n)}' + ''.join(f'<td class="gv">{num(sec(n, t))}</td>' for t in ('Jewish', *ARAB)) + '</tr>' for n in rows)
+        return ('<table class="gtbl gvals gsec"><thead><tr><th scope="col">השם</th><th scope="col">יהודים</th><th scope="col">מוסלמים</th>'
+                f'<th scope="col">ערבים נוצרים</th><th scope="col">דרוזים</th></tr></thead><tbody>{body}</tbody></table>')
+
+    def era(g, key):
+        """names that were given as much 40 years ago as today (classic), or that were barely given 20 years ago (rising)"""
+        W = g['era'][key]
+        s, kind, where = W['sex'], W['kind'], f'{g["slug"]} era {key}'
+        years = (*ERA_YEARS, Y1)
+        assert len(set(W['names'])) == len(W['names']), f'guides: a name twice in {where}'
+        for n in W['names']:
+            need(n, where)
+            k = [YC.get((n, s, y), 0) for y in years]
+            ok = {'classic': min(k) >= ERA_MIN, 'rising': max(k[:-1]) < MIN_BABIES and k[-1] >= ERA_MIN}[kind]
+            assert ok, f'guides: {n} in {where} ({kind}): {dict(zip(years, k))}'
+        rows = sorted(W['names'], key=lambda n: -YC.get((n, s, Y1), 0))
+        num = lambda k: fmt(k) if k else 'פחות מ-5'
+        body = ''.join(f'<tr>{name_td(n)}' + ''.join(f'<td class="gv">{num(YC.get((n, s, y), 0))}</td>' for y in years) + '</tr>' for n in rows)
+        kids = 'בנות' if s == 0 else 'בנים'
+        return ('<table class="gtbl gvals"><thead><tr><th scope="col">השם</th>' + ''.join(f'<th scope="col">{kids} ב-{y}</th>' for y in years)
+                + f'</tr></thead><tbody>{body}</tbody></table>')
+
+    def month(m, where):
+        M = next((x for x in PREG['months'] if x['month'] == m), None)
+        assert M, f'guides: {where}: {m} is not a month of pregnancy.json'
+        for n in M['names']:
+            need(n, where)
+        return c['coll_list'](sorted((by_name[n] for n in M['names']), key=lambda x: -born(x, 'both')), lambda x: show(x, 'both') or 'פחות מ-5')
+
+    def holiday(h, where):
+        D = next((x for x in PREG['holidays'] if x['id'] == h), None)
+        assert D, f'guides: {where}: {h} is not a holiday of pregnancy.json'
+        for n in D['names']:
+            x = need(n, where)
+            assert max(ny(x, 0), ny(x, 1)) >= MIN_BABIES, f'guides: {n} ({where}, {D["name"]}) was given to fewer than {MIN_BABIES} babies of each sex in {Y1}'
+        date = f'{heb_day(D["day"])} ב{D["month"]}' + (f' · {D["len"]} ימים' if D['len'] > 1 else '')
+        rows = sorted((by_name[n] for n in D['names']), key=lambda x: -born(x, 'both'))
+        return (f'<h3 id="{e(h)}">{e(D["name"])}</h3><p class="k">{date}</p><p>{e(D["note"])}</p>'
+                + c['coll_list'](rows, lambda x: show(x, 'both')))
+
     def cell(n, s, where):
         x = need(n, where)
         k = ny(x, s)
@@ -254,6 +334,7 @@ def build(c):
             rows = []
             for a, b in t['pairs']:
                 where = f'{g["slug"]} {group} "{t["theme"]}"'
+                assert not g.get('different_start') or a[0] != b[0], f'guides: {a} and {b} start with the same letter ({where})'
                 key = frozenset((a, b))
                 assert a != b and key not in seen, f'guides: pair {a}/{b} twice in {where}'
                 assert not one_letter_apart(a, b), f'guides: {a} and {b} are one letter apart ({where})'
@@ -336,6 +417,15 @@ def build(c):
         body = re.sub(r'<!--switch:([\w-]+)-->', lambda m: switch(g, m.group(1)), body)
         body = re.sub(r'<!--faded:([\w-]+)-->', lambda m: faded(g, m.group(1)), body)
         body = re.sub(r'<!--new:([\w-]+)-->', lambda m: new(g, m.group(1)), body)
+        body = re.sub(r'<!--shared:([\w-]+)-->', lambda m: shared(g, m.group(1)), body)
+        body = re.sub(r'<!--era:([\w-]+)-->', lambda m: era(g, m.group(1)), body)
+        # the calendar: every month and every holiday once, or none
+        ms, hs = re.findall(r'<!--month:([\w-]+)-->', body), re.findall(r'<!--holiday:([\w-]+)-->', body)
+        if ms or hs:
+            assert sorted(ms) == sorted(x['month'] for x in PREG['months']), f'guides: {slug} needs one <!--month:...--> marker for each month'
+            assert sorted(hs) == sorted(x['id'] for x in PREG['holidays']), f'guides: {slug} needs one <!--holiday:...--> marker for each holiday'
+        body = re.sub(r'<!--month:([\w-]+)-->', lambda m: month(m.group(1), slug), body)
+        body = re.sub(r'<!--holiday:([\w-]+)-->', lambda m: holiday(m.group(1), slug), body)
         assert '<!--' not in body.replace('<!--toc-->', '').replace('<!--trend-->', ''), f'guides: {slug} has an unknown block marker'
         if '<!--trend-->' in body:
             body = body.replace('<!--trend-->', trend(g))

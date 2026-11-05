@@ -27,6 +27,15 @@ class PregnancyData(unittest.TestCase):
         self.broken(lambda P: P['weeks']['20'].update({'art': '🍌'}))        # a key, not an emoji
         self.assertEqual(self.P['weeks']['20']['art'], 'banana')
 
+    def test_holidays(self):
+        self.assertEqual(self.P['holidays'][0]['id'], 'rosh-hashana')
+        self.broken(lambda P: P['holidays'].reverse())                                      # out of the year's order
+        self.broken(lambda P: P['holidays'].append(dict(P['holidays'][-1])))               # an id twice
+        self.broken(lambda P: P['holidays'][0].update({'month': 'סיון'}))                 # not one of MONTHS (סיוון)
+        self.broken(lambda P: P['holidays'][0].update({'day': 31}))
+        self.broken(lambda P: P['holidays'][0].update({'note': ''}))
+        self.broken(lambda P: P['holidays'][0].update({'id': 'ראש השנה'}))               # an id for the <!--holiday:...--> marker
+
     def test_months_and_trimesters(self):
         self.broken(lambda P: P['months'].reverse())
         self.broken(lambda P: P['trimesters'][1]['weeks'].__setitem__(0, 15))
@@ -81,13 +90,23 @@ class GuideBlocks(unittest.TestCase):
         YC[('קרן', 0, 1985)] = 500
         add('גלית', 0, [1986], 450)                # another 1980s peak, gone in 2024
         add('אריאה', 0, range(2015, 2025), 30)    # first seen in 2015, Jewish sector
-        SN = {}
+        add('דוד', 1, [1984, 2004, 2024], 200)    # a classic
+        add('אימרי', 1, [2024], 200)               # rising: new in 2024
+        add('יוסף', 1, [2024], 30)                 # Jewish and (below) Muslim babies in 2024: a shared name
+        add('דן', 1, [2024], 50)
+        SN, SC = {}, {}
         for (n, s, y), k in YC.items():
             SN[(n, s, 'Jewish')] = SN.get((n, s, 'Jewish'), 0) + k
+            SC[(n, s, 'Jewish', y)] = k
+        YC[('יוסף', 1, 2024)] += 25
+        SC[('יוסף', 1, 'Muslim', 2024)] = 25
+        SN[('יוסף', 1, 'Muslim')] = 25
         names = {n for n, _, _ in YC}
         by_name = {n: {'n': n, 'g': 50, 'origin': '', 'en': n, 'sec': 'יהודים'} for n in names}
         self.tmp = tempfile.mkdtemp()
-        self.c = {'page': lambda *a, **k: '', 'static_shell': lambda cur, inner: inner, 'by_name': by_name, 'YC': YC, 'SN': SN,
+        self.c = {'page': lambda *a, **k: '', 'static_shell': lambda cur, inner: inner, 'by_name': by_name, 'YC': YC, 'SN': SN, 'SC': SC,
+                  'PREG': {'months': [{'month': 'תשרי', 'note': 'n', 'names': ['שי']}],
+                           'holidays': [{'id': 'sukkot', 'name': 'סוכות', 'month': 'תשרי', 'day': 15, 'len': 7, 'note': 'n', 'names': ['דוד']}]},
                   'ny': lambda x, s: YC.get((x['n'], s, self.Y1), 0), 'enc': lambda n: n, 'fmt': lambda n: f'{n:,}',
                   'short_mean': lambda x: '', 'coll_list': lambda rows, f: '', 'arrow': '', 'Y0': self.Y0, 'Y1': self.Y1,
                   'SRC': self.tmp + '/', 'PH': '', 'LD_SITE': {}, 'LD_ORG': {}, 'LD_DATA': {}}
@@ -96,7 +115,10 @@ class GuideBlocks(unittest.TestCase):
                   'switch': {'up': {'dir': 'girls', 'names': ['שי']}},
                   'faded': {'g80': {'sex': 0, 'decade': 1980, 'names': ['קרן', 'גלית']}},
                   'new': {'girls': {'sex': 0, 'names': ['אריאה']}},
-                  'body': '<p>{{girls:שי:2015:Y1}}</p><!--switch:up--><!--faded:g80--><!--new:girls-->'}
+                  'shared': {'boys': {'sex': 1, 'names': ['יוסף']}},
+                  'era': {'old': {'sex': 1, 'kind': 'classic', 'names': ['דוד']}, 'now': {'sex': 1, 'kind': 'rising', 'names': ['אימרי']}},
+                  'body': '<p>{{girls:שי:2015:Y1}} {{sector:יוסף:1:Muslim}}</p><!--switch:up--><!--faded:g80--><!--new:girls-->'
+                          '<!--shared:boys--><!--era:old--><!--era:now--><!--month:תשרי--><!--holiday:sukkot-->'}
         self.load = guides.load
 
     def tearDown(self):
@@ -136,6 +158,34 @@ class GuideBlocks(unittest.TestCase):
     def test_every_block_has_a_marker(self):
         self.broken(lambda g: g['new'].update({'boys': {'sex': 1, 'names': []}}))
         self.broken(lambda g: g.update({'body': g['body'] + '<!--wrong:x-->'}))
+
+    def test_shared(self):
+        self.broken(lambda g: g['shared']['boys'].update({'names': []}))              # יוסף fits and is not sorted
+        self.build(lambda g: g['shared']['boys'].update({'names': [], 'other': ['יוסף']}))
+        self.broken(lambda g: g['shared']['boys'].update({'names': ['יוסף', 'דוד']}))  # דוד has no Arab-sector babies
+        self.broken(lambda g: g.update({'body': g['body'] + '{{sector:דוד:1:Muslim}}'}))
+
+    def test_era(self):
+        self.broken(lambda g: g['era']['old'].update({'kind': 'rising'}))           # דוד was given in 1984 and 2004
+        self.broken(lambda g: g['era']['now'].update({'kind': 'classic'}))          # אימרי was not
+        self.broken(lambda g: g['era']['old'].update({'names': ['שי']}))            # too few babies
+
+    def test_calendar(self):
+        self.broken(lambda g: g.update({'body': g['body'].replace('<!--month:תשרי-->', '')}))      # every month, or none
+        self.broken(lambda g: g.update({'body': g['body'].replace('<!--holiday:sukkot-->', '')}))
+        self.build(lambda g: g.update({'body': g['body'].replace('<!--month:תשרי-->', '').replace('<!--holiday:sukkot-->', '')}))
+        self.broken(lambda g: g.update({'body': g['body'] + '<!--holiday:purim-->'}))
+        self.c['PREG']['holidays'][0]['names'] = ['שי']                                         # 15 girls in 2024, fewer than 20
+        self.broken(None)
+
+    def test_different_start(self):
+        pairs = {'boys': [{'theme': 't', 'note': 'n', 'pairs': [['דוד', 'אימרי']]}]}
+        self.build(lambda g: g.update({'pairs': pairs, 'different_start': True, 'body': g['body'] + '<!--pairs:boys-->'}))
+        pairs['boys'][0]['pairs'] = [['דוד', 'דן']]   # both start with ד
+        self.broken(lambda g: g.update({'pairs': pairs, 'different_start': True, 'body': g['body'] + '<!--pairs:boys-->'}))
+
+    def test_heb_day(self):
+        self.assertEqual([guides.heb_day(d) for d in (1, 10, 15, 16, 25, 30)], ['א׳', 'י׳', 'ט״ו', 'ט״ז', 'כ״ה', 'ל׳'])
 
     def test_mostly(self):
         self.build(lambda g: g.update({'body': g['body'] + '{{mostly:שי:1:Jewish}}'}))
