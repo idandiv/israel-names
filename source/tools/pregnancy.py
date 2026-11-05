@@ -42,6 +42,8 @@ def check(P):
     assert sorted(map(int, P['weeks'])) == list(range(4, 43)), 'pregnancy.json: weeks must be 4 to 42'
     for w, x in P['weeks'].items():
         assert x.get('size') and x.get('cm') and x.get('baby'), f'pregnancy.json: week {w} misses size, cm or baby'
+        # the drawing of the size (a key of ART in app/pregnancy.mjs; tests/pregnancy-hero.test.mjs checks it exists)
+        assert re.fullmatch(r'[a-z]+', x.get('art') or ''), f'pregnancy.json: week {w} needs art (a drawing key)'
     assert [m['month'] for m in P['months']] == MONTHS, 'pregnancy.json: the 12 Hebrew months, from תשרי'
     assert [w for t in P['trimesters'] for w in range(t['weeks'][0], t['weeks'][1] + 1)] == list(range(1, 43)), \
         'pregnancy.json: the trimesters must cover weeks 1 to 42 in order'
@@ -130,7 +132,7 @@ def build(c):
 <h2 id="faq">שאלות נפוצות</h2>
 {''.join(f'<h3>{e(q)}</h3><p>{e(a)}</p>' for q, a in faq)}
 <h2 id="sources">מקורות</h2>
-<p>המידע כללי ואינו תחליף לייעוץ רפואי. בכל שאלה על ההריון פנו לרופא או לאחות המטפלים. נבדק לאחרונה: {reviewed}.</p>
+<p>המידע כללי ואינו תחליף לייעוץ רפואי. בכל שאלה על ההריון פנו לרופא או לאחות המטפלים, ובמצב חירום למד״א (101). נבדק לאחרונה: {reviewed}. ראו גם <a href="/terms">תנאי השימוש</a>.</p>
 <ul>{''.join(f'<li><a href="{e(u)}" target="_blank" rel="noopener" dir="ltr">{e(t)}</a></li>' for t, u in P['sources'])}</ul>
 <script type="application/json" id="pdata">{data_json}</script>
 <script type="module" src="{js}"></script>'''
@@ -167,7 +169,7 @@ def build_weeks(c, P, reviewed, js):
     tri = lambda w: next(t for t in P['trimesters'] if t['weeks'][0] <= w <= t['weeks'][1])
     measure = lambda x: f'כ-{x["cm"]} ס״מ' + (f' וכ-{x["g"]:,} גרם' if x.get('g') else '')
     cta = f'<p><a class="pcta" href="{PATH}">באיזה שבוע אני? לחישוב במחשבון ההריון</a></p>'
-    foot = (f'<p class="k">המידע כללי ואינו תחליף לייעוץ רפואי. הגודל והמשקל הם ממוצעים משוערים, וכל עובר שונה. נבדק לאחרונה: {reviewed}. '
+    foot = (f'<p class="k">המידע כללי ואינו תחליף לייעוץ רפואי. הגודל והמשקל הם ממוצעים משוערים, וכל עובר שונה. נבדק לאחרונה: {reviewed}. <a href="/terms">תנאי השימוש</a>. '
             'מקורות: ' + ', '.join(f'<a href="{e(u)}" target="_blank" rel="noopener" dir="ltr">{e(t.split(":")[0])}</a>' for t, u in P['sources'][:2]) + '.</p>')
     crumbs = lambda url, last: {"@type": "BreadcrumbList", "@id": url + "#breadcrumb", "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "השמות של ישראל", "item": PH + "/"},

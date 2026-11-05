@@ -178,6 +178,73 @@ export function ics({ due, now, info = {}, checkups = [], done = [], weeks = tru
   return L.map(icsFold).join('\r\n') + '\r\n';
 }
 
+/* the size of the baby, drawn: one flat illustration per fruit or vegetable (64x64), the same on every device */
+const G = '#4f9a55', G2 = '#3d7f44', BR = '#7a5230';
+const hi = (x, y, rx = 4, ry = 3) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" opacity=".45" transform="rotate(-30 ${x} ${y})"/>`;
+const round = (cx, cy, r, dark, main) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${dark}"/><circle cx="${cx - r * .09}" cy="${cy - r * .09}" r="${r * .9}" fill="${main}"/>${hi(cx - r * .42, cy - r * .42, r * .24, r * .16)}`;
+const leaf = (x, y, a = 0, c = G) => `<path d="M${x} ${y}c3-6 10-8 15-6-2 6-9 9-15 6z" fill="${c}" transform="rotate(${a} ${x} ${y})"/>`;
+const stem = (x1, y1, x2, y2, w = 2.5, c = BR) => `<path d="M${x1} ${y1}Q${(x1 + x2) / 2 + 1} ${(y1 + y2) / 2} ${x2} ${y2}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+const ring = r => `<circle cx="32" cy="34" r="${r}" fill="none" stroke="#a49dff" stroke-width="1.5" stroke-dasharray="2 4" opacity=".8"/>`;
+const grid = (pts, r, c, s) => pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"${s ? ` stroke="${s}" stroke-width="1"` : ''}/>`).join('');
+const squash = (a, b, c, st) => `<ellipse cx="32" cy="39" rx="21" ry="15" fill="${a}"/><ellipse cx="32" cy="39" rx="14" ry="15" fill="${b}"/><ellipse cx="32" cy="39" rx="6.5" ry="15" fill="${c}"/>${hi(20, 33, 4, 2.6)}${stem(32, 25, 36, 15, 4.5, st)}`;
+const melonLines = '<path d="M17 30c8 4 22 4 30 0M14 39c10 4 26 4 36 0M17 48c8 3 22 3 30 0M24 19c-4 10-4 30 0 34M40 19c4 10 4 30 0 34M32 17v38" stroke="#f6e6b8" stroke-width="1.3" fill="none" opacity=".8"/>';
+
+export const ART = {
+  poppy: `${ring(13)}<path d="M27 31c2.5-4 10-4 11 1 1 4-1.5 8-6 8-4 0-7.5-5-5-9z" fill="#7a7f9c"/>${hi(30, 32.5, 2, 1.2)}`,
+  sesame: `${ring(16)}<path d="M32 22c5 5 8 10 8 14a8 8 0 0 1-16 0c0-4 3-9 8-14z" fill="#efdcb1"/><path d="M32 22c5 5 8 10 8 14a8 8 0 0 1-4 7c2-6 0-13-4-21z" fill="#d9c08a"/>${hi(29, 33, 2, 1.4)}`,
+  lentil: `${ring(18)}<ellipse cx="32" cy="35" rx="12" ry="9" fill="#c86e28"/><ellipse cx="31" cy="34" rx="10.5" ry="7.5" fill="#e98d3f"/>${hi(26.5, 31.5, 3, 1.8)}`,
+  blueberry: `${round(32, 36, 18, '#2f3c80', '#4f64c4')}<path d="M32 26l1.8 3.2 3.6-.6-1.6 3.2 2.6 2.4-3.6.4L32 38l-1.4-3.4-3.6-.4 2.6-2.4-1.6-3.2 3.6.6z" fill="#27336d"/>`,
+  raspberry: `<path d="M23 21c4-4 14-4 18 0-3 1-6 2-9 2s-6-1-9-2z" fill="${G}"/>${grid([[26, 28], [32, 27], [38, 28], [23, 35], [29, 34], [35, 34], [41, 35], [25, 42], [31, 41], [37, 42], [28, 48], [34, 48], [31, 54]], 5.2, '#e44f74', '#b52f55')}${grid([[24.5, 26.5], [30.5, 25.5], [36.5, 26.5], [21.5, 33.5], [27.5, 32.5], [33.5, 32.5], [23.5, 40.5], [29.5, 39.5]], 1.4, '#ffd0dc')}`,
+  cherry: `${stem(23, 40, 38, 12)}${stem(41, 42, 38, 12)}${leaf(38, 12, -10)}${round(22, 46, 11, '#8e1630', '#d4273f')}${round(42, 48, 11, '#8e1630', '#d4273f')}`,
+  strawberry: `<path d="M32 58C20 50 13 40 14 31c1-6 6-9 12-8 2 0 4 1 6 1s4-1 6-1c6-1 11 2 12 8 1 9-6 19-18 27z" fill="#c9202f"/><path d="M31 56C20 48 15 39 16 31c1-5 5-7 10-6.5 2 .2 4 1 6 1s4-.8 6-1c5-.5 9 1.5 10 6.5 1 8-6 17-17 25z" fill="#e8333f"/>${grid([[24, 32], [32, 31], [40, 32], [28, 39], [36, 39], [22, 38], [42, 38], [32, 46], [27, 47], [37, 46]], 1.1, '#ffe07a')}<path d="M19 25c4-2 8-1 10 1l3-7 3 7c2-2 6-3 10-1-3 4-7 6-13 6s-10-2-13-6z" fill="${G}"/>${hi(22, 34, 2.4, 1.6)}`,
+  fig: `${stem(32, 16, 33, 9, 3)}<path d="M32 14c3 6 4 8 8 12 6 6 9 11 9 17 0 9-8 15-17 15s-17-6-17-15c0-6 3-11 9-17 4-4 5-6 8-12z" fill="#5e2c63"/><path d="M31 16c2.5 5 3.5 7 7 10.5 5.5 5.5 8.5 10 8.5 15.5 0 8-7 13.5-15.5 13.5S15 50 15 42c0-5.5 3-10 8.5-15.5C27 23 28.5 21 31 16z" fill="#8a4790"/>${hi(23, 38, 3.6, 2.4)}`,
+  lime: `${leaf(34, 21, -15, G2)}<ellipse cx="32" cy="37" rx="19" ry="15" fill="#4c8f2e"/><ellipse cx="30.5" cy="35.5" rx="17" ry="13.5" fill="#7cc142"/><circle cx="51" cy="37" r="2.2" fill="#4c8f2e"/>${hi(23, 31, 4.5, 2.6)}`,
+  peach: `${stem(32, 21, 33, 15, 2.5)}${leaf(33, 18, -12)}${round(32, 39, 19, '#e0673f', '#ff9a66')}<path d="M33 22c-5 9-5 24 0 35" stroke="#e8754d" stroke-width="2" fill="none" opacity=".8"/><ellipse cx="42" cy="44" rx="6" ry="8" fill="#ff7d5e" opacity=".45"/>`,
+  lemon: `${leaf(36, 20, -20)}<ellipse cx="32" cy="38" rx="21" ry="15" fill="#d9ab00"/><ellipse cx="30.5" cy="36.5" rx="19" ry="13.5" fill="#ffd83d"/><circle cx="9.5" cy="38" r="2.8" fill="#d9ab00"/><circle cx="54.5" cy="38" r="2.8" fill="#d9ab00"/>${hi(22, 31, 5, 2.6)}`,
+  apple: `${stem(32, 24, 35, 13, 3)}${leaf(35, 17, -15)}<path d="M32 24c-4-3-9-4-13-2-6 3-8 10-6 18 2 9 8 16 14 16 2 0 3-1 5-1s3 1 5 1c6 0 12-7 14-16 2-8 0-15-6-18-4-2-9-1-13 2z" fill="#a8202c"/><path d="M31 25c-3.5-2.5-8-3.3-11.5-1.6-5.2 2.6-7 8.8-5.2 15.8 1.8 7.8 7 14 12.2 14 1.8 0 2.7-.9 4.5-.9s2.7.9 4.5.9c5.2 0 10.4-6.1 12.2-13.9 1.7-7-.1-13.2-5.3-15.8-3.5-1.8-7.9-1-11.4 1.5z" fill="#de3a44"/>${hi(21, 33, 3.4, 2.4)}`,
+  avocado: `<path d="M32 9c7 0 10 8 12 15 2 6 8 11 8 19 0 10-9 16-20 16S12 53 12 43c0-8 6-13 8-19 2-7 5-15 12-15z" fill="#355f2a"/><path d="M32 14c5 0 7.5 7 9.5 13 2 5 6.5 9.5 6.5 16 0 7.5-7 12-16 12s-16-4.5-16-12c0-6.5 4.5-11 6.5-16 2-6 4.5-13 9.5-13z" fill="#d6e8a0"/><path d="M32 18c4 0 6 6 7.5 11 1.5 4 5.5 8 5.5 13.5 0 6-5.8 10-13 10s-13-4-13-10c0-5.5 4-9.5 5.5-13.5C26 24 28 18 32 18z" fill="#e8f2bd"/><circle cx="32" cy="43" r="8.5" fill="#8a5a35"/><circle cx="31" cy="42" r="7.5" fill="#a26a3f"/>${hi(28.5, 39.5, 2.2, 1.5)}`,
+  pomegranate: `<path d="M25 24l2-7 3 4 2-5 2 5 3-4 2 7z" fill="#9c2233"/>${round(32, 40, 19, '#8e1d2c', '#c8303f')}<path d="M44 34c2 4 2 9 0 13" stroke="#e0606c" stroke-width="2" fill="none" opacity=".6"/>`,
+  pepper: `${stem(32, 24, 38, 13, 4, G)}<path d="M17 31c0-6 6-9 10-8 2 .5 3.5 1.5 5 1.5s3-1 5-1.5c4-1 10 2 10 8 0 6 0 14-2 19-2 6-6 8-9 6-1.5-1-2.5-2-4-2s-2.5 1-4 2c-3 2-7 0-9-6-2-5-2-13-2-19z" fill="#b8251f"/><path d="M18.5 31c0-5 5-7.5 8.5-7 2 .3 3.5 1.3 5 1.3s3-1 5-1.3c3.5-.5 8.5 2 8.5 7 0 5.5 0 12.5-1.8 17-1.8 5-5 6.5-7.5 5-1.4-.9-2.6-1.8-4.2-1.8s-2.8.9-4.2 1.8c-2.5 1.5-5.7 0-7.5-5-1.8-4.5-1.8-11.5-1.8-17z" fill="#e0372c"/><path d="M32 27v26" stroke="#b8251f" stroke-width="2" opacity=".55"/>${hi(23, 34, 2.6, 4.5)}`,
+  mango: `${stem(40, 18, 43, 12, 2.5)}${leaf(42, 14, -25)}<path d="M13 39c0-12 10-22 22-22 9 0 14 6 14 13 0 12-12 25-24 25-7 0-12-6-12-16z" fill="#d9621f"/><path d="M15 39c0-10.5 8.8-19.5 19.5-19.5 7.8 0 12 5 12 11 0 10.5-10.5 22-21 22-6 0-10.5-5-10.5-13.5z" fill="#f28a2e"/><path d="M17 38c0-9 7.5-16.5 16.5-16.5 6 0 9.5 3.5 10 8-6 3-14 9-19 18-3.5 3-7.5.5-7.5-9.5z" fill="#f9c23c" opacity=".9"/>${hi(22, 31, 3.4, 2.2)}`,
+  banana: `<path d="M8 17C9 40 28 54 50 52c4-.4 7-2 7-4 0-1.5-1.5-2-3-2-16 0-28-10-33-24-1.5-5-13-9-13-5z" fill="#d9a51c"/><path d="M8.6 16.4C9.6 38.4 27.6 51.4 49 49.6c3.6-.3 5.8-1.4 6.3-2.6-15.6-.2-27.6-10-32.4-23.8-1.4-4.6-14.4-10.8-14.3-6.8z" fill="#ffd84a"/><path d="M14 22c4 14 16 23 32 25" stroke="#fff3b0" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".75"/><path d="M6 17.5l2-5.5 4.5 3.5z" fill="#6b4a2a"/><circle cx="56.6" cy="48" r="2" fill="#6b4a2a"/>`,
+  carrot: `<path d="M43 19c-1-6 1-10 5-13 0 4 0 8-2 12zM45 21c4-3 9-4 13-2-4 2-8 4-11 5zM41 20c-3-4-3-9-1-13 2 4 2 9 2 13z" fill="${G}"/><path d="M43 20c4 4 4 9 1 12L19 55c-2 2-5-1-3-3l20-29c2-3 4-4 7-3z" fill="#e2701f"/><path d="M42 21c3 3 3 7 .5 9.5L20 52.5c-1 1-2.5 0-1.8-1.2L37 23.5c1.6-2.3 3-3.2 5-2.5z" fill="#f78f34"/><path d="M33 30l4 3M28 37l4 3M23 44l3.5 2.5" stroke="#d2600f" stroke-width="1.6" stroke-linecap="round"/>`,
+  zucchini: `<g transform="rotate(-28 32 34)"><rect x="6" y="27" width="50" height="15" rx="7.5" fill="#2f6a29"/><rect x="7" y="27.5" width="48" height="12" rx="6" fill="#4a8a3a"/><path d="M12 31h38M12 36h38" stroke="#6faa55" stroke-width="1.4" opacity=".8"/><rect x="54" y="31" width="6" height="6" rx="2" fill="#6b8f3a"/><circle cx="8.5" cy="34.5" r="3" fill="#c5d98a"/></g>`,
+  grapefruit: `<circle cx="32" cy="36" r="20" fill="#e8743f"/><circle cx="32" cy="36" r="17.5" fill="#fff0e0"/><circle cx="32" cy="36" r="16" fill="#ff7b7b"/><path d="M32 20v32M16 36h32M20.7 24.7l22.6 22.6M43.3 24.7L20.7 47.3" stroke="#ffd2cc" stroke-width="1.6"/><circle cx="32" cy="36" r="2.6" fill="#fff0e0"/>`,
+  corn: `<ellipse cx="32" cy="32" rx="11" ry="22" fill="#e3a72b"/>${grid([0, 1, 2, 3, 4, 5, 6, 7].flatMap(r => (r % 2 ? [27.5, 32.5, 37.5] : [25, 30, 35, 40]).map(x => [x, 14 + r * 5])).filter(([x, y]) => ((x - 32) / 10.5) ** 2 + ((y - 32) / 21) ** 2 < 0.9), 2.3, '#ffd65c')}<path d="M18 56c-4-14-2-27 8-36-2 13 0 25 6 36zM46 56c4-14 2-27-8-36 2 13 0 25-6 36z" fill="#6fb24f"/><path d="M20 55c-3-12-2-23 5-31" stroke="#4d8f36" stroke-width="1.4" fill="none"/>`,
+  cauliflower: `<path d="M8 44c7-3 15-1 19 8-8 3-16 1-19-8zM56 44c-7-3-15-1-19 8 8 3 16 1 19-8zM24 56c2-7 6-10 8-10s6 3 8 10z" fill="${G}"/>${grid([[23, 33], [41, 33], [32, 27], [27, 41], [37, 41], [32, 35]], 9, '#d9d0b2')}${grid([[22, 32], [40, 32], [31, 26], [26, 40], [36, 40], [31, 34]], 8, '#f5f0df')}${grid([[19, 29], [37, 29], [28, 23], [23, 37], [33, 37]], 1.6, '#fff')}`,
+  lettuce: `<path d="M10 42c-2-10 6-22 14-24 4-4 12-4 16 0 8 2 16 14 14 24-2 9-10 14-22 14S12 51 10 42z" fill="#4d9a34"/><path d="M15 42c-1-8 4-17 10-19 3-3 11-3 14 0 6 2 11 11 10 19-1.5 7-8 10.5-17 10.5S16.5 49 15 42z" fill="#7cc142"/><path d="M21 42c0-7 5-13 11-13s11 6 11 13" fill="#a8dc72"/><path d="M32 30v24M32 42l-7-7M32 47l7-7" stroke="#d4f0a8" stroke-width="1.6" fill="none" stroke-linecap="round"/>`,
+  broccoli: `<path d="M26 58l2.5-18h7l2.5 18z" fill="#8fbf5a"/><path d="M28 58l1.8-18h3l-.8 18z" fill="#a9d474"/>${grid([[21, 31], [32, 24], [43, 31], [26, 38], [38, 38], [32, 33]], 9.5, '#2f7334')}${grid([[20, 30], [31, 23], [42, 30], [25, 37], [37, 37], [31, 32]], 8, '#43944a')}${grid([[17, 27], [28, 20], [39, 27], [22, 34], [34, 34]], 2, '#6cbf6c')}`,
+  eggplant: `${stem(33, 18, 39, 9, 3.5, G)}<path d="M23 24c-9 6-12 19-6 28 6 8 19 8 25 1 6-7 3-15-3-21-4-4-6-8-10-10-2.5-1-4.5 0-6 2z" fill="#3e1b4d"/><path d="M24 25.5c-8 5.5-10.5 17-5.2 25 5.3 7 16.8 7 22.2 1 5.3-6.2 2.6-13.3-2.7-18.6-3.5-3.5-5.3-7-8.8-8.8-2.2-.9-4-.1-5.5 1.4z" fill="#6a2f7f"/><path d="M22 22c3-5 8-7 13-5 2 3 1 7-2 9-4-3-7-3-11-4z" fill="${G}"/>${hi(22, 37, 2.8, 5)}`,
+  kabocha: squash('#2f5e32', '#3f7740', '#4f8a4c', '#8a7a3a'),
+  cabbage: `${round(32, 37, 20, '#6fa356', '#9ccc7c')}<path d="M32 20c-9 6-12 22-4 34M32 20c9 6 12 22 4 34M16 30c8 2 14 8 16 18M48 30c-8 2-14 8-16 18" stroke="#d9efc8" stroke-width="1.6" fill="none" opacity=".9"/>`,
+  coconut: `<circle cx="32" cy="36" r="20" fill="#6b3f22"/><circle cx="32" cy="36" r="16" fill="#fbf8f1"/><circle cx="32" cy="36" r="11" fill="#efe7d4"/><path d="M14 30l-3-2M16 46l-3 2M48 46l3 2M50 30l3-2M32 16v-3" stroke="#8a5a35" stroke-width="2" stroke-linecap="round"/>${hi(24, 29, 3, 2)}`,
+  butternut: `${stem(31, 11, 34, 5, 3.5, '#8a7a3a')}<path d="M27 10c4-1 8 1 9 5 1 6-1 11 2 17 4 7 9 11 9 18 0 8-7 12-15 12S17 58 17 50c0-7 5-11 9-18 3-6 1-11 2-17 0-2-.5-4-1-5z" fill="#d9944a"/><path d="M28 11.5c3.5-.8 6.5 1 7.3 4.3.9 5.5-.9 10 1.8 15.5 3.6 6.4 8.4 10 8.4 16.5 0 7-6 10.7-13.5 10.7S18.5 54.8 18.5 47.8c0-6.5 4.7-10.2 8.3-16.5 2.7-5.5.9-10 1.8-15.5.1-1.7-.3-3.3-.6-4.3z" fill="#f3b766"/><circle cx="32" cy="49" r="6" fill="#e9a14d" opacity=".7"/>${hi(24, 44, 2.6, 4)}`,
+  pineapple: `<path d="M32 28c-2-9-1-15 0-20 1 5 2 11 0 20zM30 29c-6-4-9-10-10-16 4 2 8 7 10 16zM34 29c6-4 9-10 10-16-4 2-8 7-10 16zM29 31c-8-1-12-5-14-9 5 0 10 3 14 9zM35 31c8-1 12-5 14-9-5 0-10 3-14 9z" fill="${G}"/><ellipse cx="32" cy="44" rx="14" ry="16" fill="#d9921c"/><ellipse cx="31" cy="43" rx="12.5" ry="14.5" fill="#f2b53a"/><path d="M20 36l18 18M20 46l12 12M24 30l20 20M32 29l13 13M44 36L26 54M44 46L32 58M40 30L20 50M32 29L19 42" stroke="#c98a1e" stroke-width="1.3" fill="none"/>`,
+  melon: `${round(32, 37, 20, '#b98a3e', '#d9b56b')}${melonLines}`,
+  honeydew: `${stem(32, 18, 34, 13, 2.5, '#8a7a3a')}${round(32, 37, 20, '#a9c97e', '#d6ecaa')}<path d="M20 44c4 4 10 6 16 5" stroke="#bcd98f" stroke-width="2" fill="none" opacity=".8"/>`,
+  papaya: `<ellipse cx="32" cy="34" rx="15" ry="23" fill="#7aa23f" transform="rotate(-20 32 34)"/><ellipse cx="32" cy="34" rx="12.5" ry="20.5" fill="#ff8a3d" transform="rotate(-20 32 34)"/><ellipse cx="32" cy="35" rx="5.5" ry="11" fill="#ffb27a" transform="rotate(-20 32 34)"/>${grid([[30, 29], [34, 31], [31, 34], [35, 36], [32, 39], [29, 37], [33, 42], [30, 32]], 1.7, '#2b2b2b')}`,
+  romaine: `<path d="M22 58c-8-12-9-32-1-46 5 14 6 32 1 46z" fill="#4d9a34"/><path d="M42 58c8-12 9-32 1-46-5 14-6 32-1 46z" fill="#4d9a34"/><path d="M32 59c-9-14-10-36 0-52 10 16 9 38 0 52z" fill="#7cc142"/><path d="M32 57V12M32 26l-5-4M32 36l5-4M32 46l-5-4" stroke="#d4f0a8" stroke-width="1.6" fill="none" stroke-linecap="round"/>`,
+  pumpkin: squash('#d2601f', '#ec7a2c', '#f7943e', '#5f7f2f'),
+  watermelon: `<ellipse cx="32" cy="38" rx="23" ry="17" fill="#1f5f2a"/><ellipse cx="31" cy="37" rx="21.5" ry="15.5" fill="#3a8a3f"/><path d="M14 30c3 2 2 6 5 8s2 6 4 9M24 23c2 3 0 7 3 10s1 8 3 11 1 6 2 7M36 22c-1 3 2 7 0 10s2 8 0 11 1 6-1 8M47 27c-2 3 0 6-3 9s0 7-3 10" stroke="#1f5f2a" stroke-width="2.6" fill="none" stroke-linecap="round"/>${hi(19, 30, 4, 2.4)}`,
+};
+
+/* ---- the hero at the top of the result: what it shows (pure) ---- */
+/* n: the week as the rest of the site counts it (whole weeks, like the week pages); views: what a tap on the ring's
+   centre cycles through; tags: length, weight, trimester and days left */
+export function heroModel(st, wk) {
+  const n = Math.min(42, st.weeks), pct = Math.round(st.pct);
+  const tags = [];
+  if (wk) {
+    tags.push({ k: 'len', t: `כ-${wk.cm} ס״מ` });
+    if (wk.g) tags.push({ k: 'wt', t: `כ-${fmtN(wk.g)} גרם` });
+  }
+  tags.push({ k: 'tri', t: TRI[st.trimester] });
+  tags.push({ k: 'left', t: st.left > 0 ? `עוד ${fmtN(st.left)} ימים` : st.left === 0 ? 'התאריך המשוער היום' : `${fmtN(-st.left)} ימים אחרי התאריך` });
+  const views = [{ k: 'שבוע', big: String(n), u: 'להריון' }, { k: 'עברתם', big: `${pct}%`, u: 'מהדרך' }];
+  if (st.left > 0) views.push({ k: 'עוד', big: fmtN(st.left), u: st.left === 1 ? 'יום' : 'ימים' });
+  return { n, ga: `${st.weeks}+${st.days}`, ord: st.week, pct, size: wk ? wk.size : '', art: (wk && wk.art) || '', tags, views };
+}
+
 /* ---- the share card: what it says (pure), then the drawing ---- */
 export function cardLines(st, info, heb, { month = false } = {}) {
   const w = Math.min(42, st.weeks), wk = info[w];
@@ -271,21 +338,101 @@ function share(D, st, due, now, done) {
   };
 }
 
-function render(D, st, due, now, v, since) {
+const ICON = {
+  len: '<path d="M3 17 17 3l4 4L7 21z"/><path d="m7 13 2 2m1-5 2 2m1-5 2 2"/>',
+  wt: '<path d="M6 8h12l2 12H4z"/><circle cx="12" cy="5" r="2"/>',
+  tri: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4m8-4v4"/>',
+  left: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+};
+// the water inside the ring's centre: a wave a little wider than the box, so sliding it by one wavelength loops
+const WAVE = 'M-100 2Q-87.5-2-75 2T-50 2T-25 2T0 2T25 2T50 2T75 2T100 2T125 2T150 2V110H-100Z';
+// bubbles in the water: x, r, seconds, delay
+const BUBBLES = [[30, 1.6, 3.2, 0], [46, 1.1, 2.6, 1.1], [58, 1.9, 3.8, .5], [70, 1.2, 2.9, 1.9], [40, 1, 3.4, 2.6], [64, 1.4, 3.1, 3.3]];
+// the sparkles when the drawing is tapped: direction x, y
+const SPARKS = [[-30, -22], [28, -26], [36, 6], [-34, 10], [-8, -36], [12, 32]];
+
+/* the hero card: a ring (purple to rose) that draws itself to the share of the pregnancy that has passed, with a dot
+   riding to its end; inside it the centre fills with water to the same level, waves moving and bubbles rising; the
+   week counts up (a tap cycles week / % / days left); the size as a drawing that grows in and bobs; tags; the bar.
+   All CSS/SVG; still: no entry animation (a re-render after ticking a checkup) */
+function heroHtml(m, st, since, still) {
+  const ticks = [126, 252].map(a => `<line class="ph-tick" x1="110" y1="11" x2="110" y2="25" transform="rotate(${a} 110 110)"/>`).join('');
+  const bubbles = m.pct >= 12 ? BUBBLES.map(([x, r, d, w]) => `<circle class="ph-b" cx="${x}" cy="${m.pct + 3}" r="${r}" style="--d:${d}s;--w:${w}s"/>`).join('') : '';
+  const v = m.views[0], art = ART[m.art];
+  return `<section class="phero${still ? ' ph-still' : ''}">
+    <div class="ph-stage">
+      <svg class="ph-ring" viewBox="0 0 220 220" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="ph-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="ph-s1"/><stop offset="1" class="ph-s2"/></linearGradient></defs>
+        <circle class="ph-track" cx="110" cy="110" r="92"/>${ticks}
+        <circle class="ph-arc" cx="110" cy="110" r="92" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${100 - m.pct}" stroke="url(#ph-grad)" transform="rotate(-90 110 110)"/>
+        <g class="ph-dot" style="--a:${(m.pct * 3.6).toFixed(1)}deg"><circle class="ph-glow" cx="110" cy="18" r="12"/><circle cx="110" cy="18" r="7"/></g>
+      </svg>
+      <button type="button" class="ph-core" title="הקשה מחליפה תצוגה">
+        <svg class="ph-water" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <g class="ph-lvl" style="--y:${100 - m.pct}px;--h:${m.pct}"><path class="ph-w1" d="${WAVE}"/><path class="ph-w2" d="${WAVE}"/>${bubbles}</g></svg>
+        <span class="ph-val" aria-live="polite"><span class="ph-k">${v.k}</span><b class="ph-n">${v.big}</b><span class="ph-u">${v.u}</span></span>
+        <span class="ph-dots" aria-hidden="true">${m.views.map((x, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</span></button>
+    </div>
+    <div class="ph-info">
+      <p class="ph-ga"><b class="pr-w" dir="ltr">${m.ga}</b><span>${st.weeks} שבועות ו-${st.days} ימים · השבוע ה-${m.ord}</span></p>
+      ${since ? `<p class="pr-since">${since}</p>` : ''}
+      ${m.size ? `<p class="ph-size">${art ? `<span class="ph-fruit" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false">${art}</svg>${SPARKS.map(([x, y]) => `<i style="--x:${x}px;--y:${y}px"></i>`).join('')}</span>` : ''}<span>התינוק שלכם בגודל של <b>${m.size}</b></span></p>` : ''}
+      <ul class="ph-tags">${m.tags.map((t, i) => `<li style="--i:${i}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICON[t.k]}</svg>${t.t}</li>`).join('')}</ul>
+    </div>
+    <div class="pr-bar" role="progressbar" aria-label="התקדמות ההריון" aria-valuemin="0" aria-valuemax="40" aria-valuenow="${Math.min(40, st.weeks)}"><i style="width:${st.pct.toFixed(1)}%"></i></div>
+    <div class="pr-tri"><span>שליש 1</span><span>שליש 2</span><span>שליש 3</span></div>
+  </section>`;
+}
+
+/* the hero's moving parts: the count-up, the tap on the centre, the fruit's wiggle, and pausing the endless
+   animations while the card is off screen */
+let heroSeen = null;
+function heroLive(m, intro) {
+  const el = document.querySelector('.phero');
+  if (!el) return;
+  const core = el.querySelector('.ph-core'), k = core.querySelector('.ph-k'), n = core.querySelector('.ph-n'), u = core.querySelector('.ph-u');
+  const dots = [...core.querySelectorAll('.ph-dots i')];
+  let i = 0, run = 0, counted = true;
+  // the entry animations wait (paused) until the card is on screen; the count-up starts with them
+  const count = () => {
+    if (counted) return;
+    counted = true;
+    const t0 = performance.now(), me = ++run, T = 1100;
+    const step = t => {
+      if (me !== run) return;
+      const p = Math.min(1, (t - t0) / T);
+      n.textContent = String(Math.round(m.n * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  if (intro && !matchMedia('(prefers-reduced-motion: reduce)').matches) { counted = false; n.textContent = '0'; }
+  core.onclick = () => {
+    run++;   // a tap stops the count-up
+    i = (i + 1) % m.views.length;
+    const v = m.views[i];
+    k.textContent = v.k; n.textContent = v.big; u.textContent = v.u;
+    dots.forEach((d, j) => d.classList.toggle('on', j === i));
+    core.classList.remove('is-pop'); void core.offsetWidth; core.classList.add('is-pop');
+  };
+  const fruit = el.querySelector('.ph-fruit');
+  if (fruit) fruit.onclick = () => { fruit.classList.remove('is-wiggle'); void fruit.offsetWidth; fruit.classList.add('is-wiggle'); };
+  if (heroSeen) heroSeen.disconnect();
+  if ('IntersectionObserver' in window) {
+    heroSeen = new IntersectionObserver(([e]) => { el.classList.toggle('ph-off', !e.isIntersecting); if (e.isIntersecting) count(); });
+    heroSeen.observe(el);
+  } else count();
+}
+
+function render(D, st, due, now, v, since, still) {
   const wk = D.weeks[Math.min(42, st.weeks)];
   const heb = hebrewDate(due), mon = D.months[heb.month];
   const left = st.left > 0 ? `עוד ${fmtN(st.left)} ימים${st.left >= 14 ? ` (כ-${Math.round(st.left / 7)} שבועות)` : ''}`
     : st.left === 0 ? 'היום!' : `התאריך עבר לפני ${fmtN(-st.left)} ימים`;
-  const size = wk ? `<h3>שבוע ${Math.min(42, st.weeks)}: בגודל של ${wk.size}</h3>
-      <p class="pr-num">כ-${wk.cm} ס״מ${wk.g ? ` · כ-${fmtN(wk.g)} גרם` : ''}</p><p>${wk.baby}</p>
+  const size = wk ? `<h3>מה קורה בשבוע ${Math.min(42, st.weeks)}</h3><p>${wk.baby}</p>
       <p class="pr-more"><a href="/pregnancy/week-${Math.min(42, st.weeks)}">עוד על שבוע ${Math.min(42, st.weeks)}</a> · <a href="/pregnancy">כל השבועות</a></p>`
     : `<h3>השבועות הראשונים</h3><p>${D.early}</p>`;
-  return `<div class="pr-head"><span class="pr-k">שבוע ההריון</span>
-      <b class="pr-w" dir="ltr">${st.weeks}+${st.days}</b>
-      <span>${st.weeks} שבועות ו-${st.days} ימים · השבוע ה-${st.week} · ${TRI[st.trimester]}</span>
-      ${since ? `<p class="pr-since">${since}</p>` : ''}</div>
-    <div class="pr-bar" role="progressbar" aria-label="התקדמות ההריון" aria-valuemin="0" aria-valuemax="40" aria-valuenow="${Math.min(40, st.weeks)}"><i style="width:${st.pct.toFixed(1)}%"></i></div>
-    <div class="pr-tri"><span>שליש 1</span><span>שליש 2</span><span>שליש 3</span></div>
+  return `${heroHtml(heroModel(st, wk), st, since, still)}
     <dl class="pr-facts"><div><dt>תאריך לידה משוער</dt><dd>${gregorianText(due)}<span>${heb.text}</span></dd></div>
       <div><dt>עד התאריך המשוער</dt><dd>${left}</dd></div></dl>
     <section class="pr-week">${size}</section>
@@ -305,7 +452,7 @@ function calculator() {
   date.max = fromDay(todayDay());
   const sync = () => form.querySelectorAll('[data-for]').forEach(el => { el.hidden = el.dataset.for !== method(); });
   const read = () => ({ m: method(), d: date.value, c: +cycle.value, e: +embryo.value });
-  let state = {};
+  let state = {}, played = false;
   function show(v, save, since = '') {
     const now = todayDay(), day = toDay(v.d), opts = { cycle: v.c, embryo: v.e };
     const why = problem(v.m, day, now, opts);
@@ -315,8 +462,11 @@ function calculator() {
     const due = dueDate(v.m, day, opts), st = status(due, now);
     // a new date starts with no checkups marked; the same date keeps them
     state = { ...v, done: save && (state.d !== v.d || state.m !== v.m) ? [] : state.done || [], seen: st.weeks };
-    out.innerHTML = render(D, st, due, now, state, since);
+    const intro = save || !played;
+    played = true;
+    out.innerHTML = render(D, st, due, now, state, since, !intro);
     out.hidden = false;
+    heroLive(heroModel(st, D.weeks[Math.min(42, st.weeks)]), intro);
     share(D, st, due, now, state.done);
     out.querySelectorAll('[data-check]').forEach(box => box.addEventListener('change', () => {
       const id = box.dataset.check;
