@@ -103,6 +103,49 @@ export function hebrewDate(day) {
   return { text: `${num(get('day'))} ב${month} ${num(get('year'))}`, month: key };
 }
 
+/* the Hebrew day and month of a day as Intl writes the month: {d: 14, m: 'אדר ב׳'} */
+export function hebDM(day) {
+  const p = new Intl.DateTimeFormat('he-u-ca-hebrew', { day: 'numeric', month: 'long', timeZone: 'UTC' }).formatToParts(new Date(day * DAY));
+  const get = t => (p.find(x => x.type === t) || {}).value || '';
+  return { d: +get('day'), m: get('month') };
+}
+/* a month of pregnancy.json (MONTHS in tools/pregnancy.py) on an Intl month: in a leap year Purim is in אדר ב׳, not in אדר א׳ */
+const isMonth = (key, m) => (key === 'אדר' ? m === 'אדר' || m === 'אדר ב׳' : (MONTH_KEY[m] || m) === key);
+
+/* the holidays (pregnancy.json holidays) that fall, all or partly, between days a and b: [{...holiday, from, to}] by date */
+export function holidaysBetween(holidays, a, b) {
+  const out = [], longest = Math.max(1, ...holidays.map(h => h.len));
+  for (let d = a - longest + 1; d <= b; d++) {
+    const x = hebDM(d);
+    for (const h of holidays) if (h.day === x.d && isMonth(h.month, x.m) && d + h.len - 1 >= a) out.push({ ...h, from: d, to: d + h.len - 1 });
+  }
+  return out;
+}
+/* the weeks around the due date when most babies are born, 37+0 to 41+6, as days */
+export const birthWindow = due => [due - TERM + 37 * 7, due - TERM + 41 * 7 + 6];
+/* where the names search usually is at this week: dream (to 13), sex (14-22, the anatomy scans), narrow (23-33), decide (34 on) */
+export const journeyStage = weeks => (weeks < 14 ? 'dream' : weeks < 23 ? 'sex' : weeks < 34 ? 'narrow' : 'decide');
+
+/* ---- brit mila and pidyon haben (Shulchan Aruch, Yoreh De'ah 262, 266, 305) ---- */
+export const isShabbat = day => new Date(day * DAY).getUTCDay() === 6;
+/* the holidays of the Israeli calendar on which work is forbidden (one day each, as in Israel); '' on any other day */
+const YOMTOV = { 'תשרי': { 1: 'ראש השנה', 2: 'ראש השנה', 10: 'יום כיפור', 15: 'סוכות', 22: 'שמיני עצרת' },
+  'ניסן': { 15: 'פסח', 21: 'שביעי של פסח' }, 'סיוון': { 6: 'שבועות' } };
+export function yomTov(day) {
+  const x = hebDM(day);
+  return (YOMTOV[MONTH_KEY[x.m] || x.m] || {})[x.d] || '';
+}
+/* birth: the civil date of the birth; evening: born after sunset, when the Hebrew day has already turned.
+   heb: the civil day whose daytime is the Hebrew birth day (day 1); brit: day 8; pidyon: day 31, or the next day
+   that is not Shabbat or a holiday */
+export function britDates(birth, evening) {
+  const heb = birth + (evening ? 1 : 0), brit = heb + 7, first = heb + 30;
+  let pidyon = first;
+  while (isShabbat(pidyon) || yomTov(pidyon)) pidyon++;
+  return { heb, brit, britRest: isShabbat(brit) ? 'שבת' : yomTov(brit), pidyon, moved: pidyon !== first,
+    movedFrom: isShabbat(first) ? 'שבת' : yomTov(first) };
+}
+
 export const gregorianText = day => new Intl.DateTimeFormat('he-IL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
   .format(new Date(day * DAY));
 
@@ -424,6 +467,38 @@ function heroLive(m, intro) {
   } else count();
 }
 
+/* ---- the names journey: what to do about the name at this week, holidays around the due date, the saved names ---- */
+const STAGE = {
+  dream: ['זמן לחלום', 'עוד מוקדם, וזה בדיוק הזמן לאסוף שמות שאוהבים, בלי לחץ ובלי להחליט.',
+    [['/guides', 'מדריכים ומאמרים'], ['/names', 'כל השמות ואוספי השמות'], ['/guides/hebrew-month-names', 'שמות לפי חודש עברי וחגים']]],
+  sex: ['כבר יודעים בן או בת?', 'רבים יודעים בשלב הזה אם זה בן או בת, וזה זמן טוב להתחיל רשימה משותפת.',
+    [['/names/girls', 'שמות לבנות'], ['/names/boys', 'שמות לבנים'], ['/#match', 'בוחרים שם ביחד']]],
+  narrow: ['זמן לצמצם את הרשימה', 'כדאי להגיד כל שם בקול עם שם המשפחה, ולבדוק כמה תינוקות קיבלו אותו בשנים האחרונות.',
+    [['/#match', 'בוחרים שם ביחד'], ['/names/popular', 'השמות הנפוצים'], ['/guides/sibling-names', 'שמות לאחים ואחיות']]],
+  decide: ['זמן להחליט', 'הלידה מתקרבת. ואם עוד לא החלטתם, זה בסדר: יש הורים שמחכים לפגוש את התינוק לפני שהם בוחרים.',
+    [['/pregnancy/brit-mila', 'מחשבון ברית מילה ופדיון הבן'], ['/#match', 'בוחרים שם ביחד'], ['/guides/hebrew-month-names', 'שמות לפי חודש עברי וחגים']]],
+};
+const nameLinks = list => list.map(([n, href]) => `<a href="${href}">${n}</a>`).join('');
+/* the names saved on this device (the site's favorites, bnil_fav) */
+function savedNames() {
+  try {
+    const v = JSON.parse(localStorage.getItem('bnil_fav') || '[]');
+    return Array.isArray(v) ? v.filter(n => typeof n === 'string' && n && n.length < 40) : [];
+  } catch (e) { return []; }
+}
+function journey(D, st, due, fav) {
+  const [title, text, links] = STAGE[journeyStage(st.weeks)];
+  const [a, b] = birthWindow(due), near = holidaysBetween(D.holidays || [], a, b);
+  const span = h => `<bdi dir="ltr">${h.len > 1 ? `${dm(h.from)}–${dm(h.to)}` : dm(h.from)}</bdi>`;
+  const hol = near.length ? `<div class="pj-hol"><h4>חגים סביב התאריך המשוער</h4>
+      <p class="k">התאריך המשוער הוא הערכה, והלידה יכולה להיות גם כמה שבועות לפניו או אחריו. בין שבוע 37 לסוף שבוע 41, אצלכם <bdi dir="ltr">${dm(a)}–${dm(b)}</bdi>, ${near.length > 1 ? 'חלים' : 'חל'}:</p>
+      ${near.map(h => `<p><b>${h.name}</b> <span class="k">(${span(h)})</span></p><p class="cgc">${nameLinks(h.names)}</p>`).join('')}</div>` : '';
+  const favs = fav.length ? `<p class="pj-fav">שמרתם באתר ${fav.length === 1 ? 'שם אחד' : `${fmtN(fav.length)} שמות`}: ${fav.slice(0, 6).map(n => `<a href="/names/${encodeURIComponent(n)}">${esc(n)}</a>`).join(', ')}${fav.length > 6 ? ' ועוד' : ''}. <a href="/">לרשימה המלאה</a></p>` : '';
+  return `<section class="pr-journey"><h3>השמות שלכם: ${title}</h3><p>${text}</p>
+    <p class="pj-links">${links.map(([href, t]) => `<a href="${href}">${t}</a>`).join('')}</p>${favs}${hol}</section>`;
+}
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
 function render(D, st, due, now, v, since, still) {
   const wk = D.weeks[Math.min(42, st.weeks)];
   const heb = hebrewDate(due), mon = D.months[heb.month];
@@ -437,6 +512,7 @@ function render(D, st, due, now, v, since, still) {
       <div><dt>עד התאריך המשוער</dt><dd>${left}</dd></div></dl>
     <section class="pr-week">${size}</section>
     ${checks(D, due, now, v.done || [])}
+    ${journey(D, st, due, savedNames())}
     ${shareHtml(Math.min(42, st.weeks))}
     ${mon ? `<section class="pr-names"><h3>נולדים ב${heb.month}? שמות שמתאימים לחודש</h3><p class="k">${mon.note}</p>
       <p class="cgc">${mon.names.map(([n, href]) => `<a href="${href}">${n}</a>`).join('')}</p>
@@ -501,6 +577,28 @@ function calculator() {
   } else sync();
 }
 
+/* the brit mila and pidyon haben calculator (/pregnancy/brit-mila) */
+function britCalc() {
+  const form = document.getElementById('bform'), out = document.getElementById('bres'), err = document.getElementById('berr');
+  const day = (d, label, extra = '') => `<div><dt>${label}</dt><dd>${gregorianText(d)}<span>${hebrewDate(d).text}</span>${extra}</dd></div>`;
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const birth = toDay(form.elements.date.value), evening = form.elements.evening.checked;
+    err.hidden = birth != null;
+    err.textContent = birth == null ? 'בחרו את תאריך הלידה.' : '';
+    if (birth == null) { out.hidden = true; return; }
+    const b = britDates(birth, evening);
+    const rest = b.britRest ? `<p class="pr-note"><b>הברית חלה ב${b.britRest === 'שבת' ? 'שבת' : `חג (${b.britRest})`}.</b> ברית בזמנה, ביום השמיני, נערכת גם בשבת ובחג. בלידה בניתוח קיסרי היא לא נערכת בשבת ובחג, ונדחית ליום שאחריהם. בררו עם המוהל.</p>` : '';
+    const moved = b.moved ? `<p class="pr-note">היום ה-31 חל ב${b.movedFrom === 'שבת' ? 'שבת' : `חג (${b.movedFrom})`}, ובשבת ובחג לא עורכים פדיון הבן, ולכן הוא נדחה ל${gregorianText(b.pidyon).split(',')[0]}.</p>` : '';
+    out.innerHTML = `<dl class="pr-facts"><div><dt>יום הלידה</dt><dd>${gregorianText(birth)}${evening ? ', אחרי השקיעה' : ''}<span>${hebrewDate(b.heb).text}</span></dd></div></dl>
+      <h3>ברית מילה: היום השמיני</h3><dl class="pr-facts">${day(b.brit, 'ברית מילה')}</dl>${rest}
+      <p class="k">המוהל קובע את המועד הסופי. כשהתינוק לא בריא, למשל בצהבת, הברית נדחית עד שהוא מבריא.</p>
+      <h3>פדיון הבן: היום ה-31</h3><dl class="pr-facts">${day(b.pidyon, 'פדיון הבן')}</dl>${moved}
+      <p class="k">פדיון הבן נערך לבן בכור לאמו שנולד בלידה רגילה, לא בניתוח קיסרי, כשהאב אינו כהן או לוי והאם אינה בת כהן או לוי. אחרי הפלה קודמת ובמקרים אחרים צריך לברר. בררו עם רב.</p>`;
+    out.hidden = false;
+  });
+}
+
 /* "your week" on a week page (data-pweek) and on the hub (data-phub), when a date is saved on this device */
 function yourWeek(el) {
   const s = saved(load(), todayDay());
@@ -523,5 +621,6 @@ function yourWeek(el) {
 
 if (typeof document !== 'undefined') {
   if (document.getElementById('pform')) calculator();
+  if (document.getElementById('bform')) britCalc();
   document.querySelectorAll('.pmine').forEach(yourWeek);
 }

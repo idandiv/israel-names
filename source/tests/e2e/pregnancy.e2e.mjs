@@ -287,3 +287,53 @@ test('hero: ticking a checkup does not replay the entry animation; a new calcula
   await page.waitForSelector('.phero:not(.ph-still)');
   await page.done();
 });
+
+test('week page: a growth chart with this week marked, and a name for a girl and a boy', async () => {
+  for (const [w, dot] of [[20, 1], [6, 0]]) {
+    const page = await open(`/pregnancy/week-${w}`, { js: false });
+    assert.equal(await page.locator('figure.pgrow svg').count(), 1);
+    assert.equal(await page.locator('figure.pgrow .pg-dot').count(), dot, `week ${w}`);
+    assert.match(await page.textContent('figure.pgrow figcaption'), new RegExp(`שבוע ${w}`));
+    assert.equal(await page.locator('table.pnames td a[href^="/names/"]').count(), 2);
+    await noSideScroll(page);
+    await page.done();
+  }
+  const hub = await open('/pregnancy', { js: false });
+  assert.equal(await hub.locator('figure.pgrow .pg-dot').count(), 0);
+  assert.equal(await hub.locator('a[href="/pregnancy/brit-mila"]').count(), 1);
+  await hub.done();
+});
+
+test('calculator: the names journey by stage, the saved names, and the holidays around the due date', async () => {
+  // due date around Hanukkah: 280 days from the last period, so pick the last period from a due date ~3 weeks ahead
+  const page = await open('/pregnancy/calculator', { saved: { m: 'lmp', d: ago(36 * 7), c: 28, e: 5 } });
+  await page.evaluate(() => { localStorage.setItem('bnil_fav', JSON.stringify(['נועה', 'תמר', '<b>x</b>'])); location.reload(); });
+  await page.waitForSelector('.pr-journey');
+  assert.match(await page.textContent('.pr-journey h3'), /זמן להחליט/);
+  assert.equal(await page.locator('.pr-journey a[href="/pregnancy/brit-mila"]').count(), 1);
+  assert.match(await page.textContent('.pj-fav'), /3 שמות/);
+  assert.equal(await page.locator('.pj-fav b').count(), 0, 'a saved name is text, not HTML');
+  await noSideScroll(page);
+  await page.done();
+  const early = await open('/pregnancy/calculator', { saved: { m: 'lmp', d: ago(10 * 7), c: 28, e: 5 } });
+  assert.match(await early.textContent('.pr-journey h3'), /זמן לחלום/);
+  assert.equal(await early.locator('.pj-fav').count(), 0);
+  await early.done();
+});
+
+test('brit mila: day 8 and day 31, after sunset one day later, a pidyon on Shabbat moves to Sunday', async () => {
+  const page = await open('/pregnancy/brit-mila');
+  await page.fill('input[name=date]', '2026-11-05');   // a Thursday: day 31 is Shabbat 5.12.2026
+  await page.click('.pgo');
+  const text = await page.textContent('#bres');
+  assert.match(text, /יום חמישי, 12 בנובמבר 2026/);
+  assert.match(text, /יום ראשון, 6 בדצמבר 2026/);
+  assert.match(text, /חל בשבת/);
+  await page.check('input[name=evening]');
+  await page.click('.pgo');
+  const late = await page.textContent('#bres');
+  assert.match(late, /יום חמישי, 5 בנובמבר 2026, אחרי השקיעה/);
+  assert.match(late, /יום שישי, 13 בנובמבר 2026/);
+  await noSideScroll(page);
+  await page.done();
+});

@@ -27,6 +27,19 @@ class PregnancyData(unittest.TestCase):
         self.broken(lambda P: P['weeks']['20'].update({'art': '🍌'}))        # a key, not an emoji
         self.assertEqual(self.P['weeks']['20']['art'], 'banana')
 
+    def test_week_names_and_weights(self):
+        self.broken(lambda P: P['weeks']['20'].pop('names'))
+        self.broken(lambda P: P['weeks']['21'].update({'names': P['weeks']['20']['names']}))   # a name in two weeks
+        self.broken(lambda P: P['weeks']['30'].update({'g': 10}))                             # the weight goes down
+        self.broken(lambda P: P['weeks']['6'].update({'g': 1}))                               # a weight before week 8
+
+    def test_growth_chart(self):
+        W = {int(w): x for w, x in self.P['weeks'].items()}
+        self.assertIn('pg-dot', pregnancy.growth_svg(W, 20))
+        self.assertNotIn('pg-dot', pregnancy.growth_svg(W, 6))
+        self.assertNotIn('pg-dot', pregnancy.growth_svg(W))
+        self.assertIn('פחות מגרם', pregnancy.growth(W, 6))
+
     def test_holidays(self):
         self.assertEqual(self.P['holidays'][0]['id'], 'rosh-hashana')
         self.broken(lambda P: P['holidays'].reverse())                                      # out of the year's order
