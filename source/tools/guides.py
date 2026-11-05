@@ -10,12 +10,22 @@ Sources:
                               without (letters no name may have), origins (allowed origins); en: true shows the English spelling
       <!--forms:<key>-->      a table of forms[<key>].rows, [name, its international form], for one sex
       <!--trend-->            the share of babies with each ending of trend.cols, in trend.years and Y1
+      <!--switch:<key>-->     the girls' share of switch[<key>].names in the two periods of the guide's "periods" ([[1980, 1999], [2015, 2024]]),
+                              checked by dir: girls (up by SWITCH_PTS points or more), boys (down by as much), stable (35-65% in both, moved
+                              less than 15), spelling (one spelling, two names: moved SWITCH_PTS or more either way); every name needs
+                              SWITCH_MIN babies in each period
+      <!--faded:<key>-->      names of faded[<key>].sex that peaked in faded[<key>].decade with FADED_PEAK babies or more and were given
+                              in Y1 to at most 5% of that; every such name must be in names (listed) or other (left out)
+      <!--new:<key>-->        names first seen in NEW_FROM or later (either sex), given to at least 20 babies of new[<key>].sex in Y1,
+                              of the Jewish sector or not (arab: true); every such name must be in names or other
       {{name:<name>}}         link to the name page (in FAQ answers: the name only)
       {{count:<name>:<s>}}    babies of sex s (0 girls, 1 boys) given the name in Y1
       {{countin:<name>:<s>:<year>}}  the same in another year
       {{first:<name>:<s>}}    the first year the name was given to babies of sex s
       {{peak:<name>:<s>}} {{peakn:<name>:<s>}}  the year the name was most given to babies of sex s, and how many
       {{none:<name>:<s>}}     prints nothing; checks the name is not in the Y1 data for sex s (fewer than 5 babies per sector)
+      {{girls:<name>:<from>:<to>}}  the share of girls among the babies given the name in those years ("63%")
+      {{mostly:<name>:<s>:<sector>}}  prints nothing; checks that most babies of sex s ever given the name are of that CBS sector
       {{share:<end>:<s>:<year>}}  the share of babies of sex s whose name ends with <end> ("11.4%")
       {{top:<end>:<s>:<year>:<name>}}  link to <name>, checked to be the most common name ending with <end> that year
                               for each sex in <s> ("0,1": for girls and for boys)
@@ -32,6 +42,11 @@ S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 GROUPS = {'girls': (0, 0), 'boys': (1, 1), 'mixed': (0, 1)}  # sexes of the first and second name
 SEX_HE = {0: 'בת', 1: 'בן'}
 MIN_BABIES = 20
+SWITCH_PTS, SWITCH_MIN = 25, 150   # gender switch: points moved, and babies needed in each period
+FADED_PEAK = 400                    # faded names: babies in the peak year
+NEW_FROM = 2010                     # new names: the first year in the data
+# marker kind -> the guide's data it shows: every key of that data needs its <!--kind:key--> marker in the body
+BLOCKS = {'pairs': 'pairs', 'names': 'lists', 'forms': 'forms', 'switch': 'switch', 'faded': 'faded', 'new': 'new'}
 SECTION = 'מדריכים ומאמרים'  # the section's name: hub h1, footer, /names group, breadcrumbs
 
 
@@ -66,7 +81,10 @@ def build(c):
         return by_name[n]
 
     # babies by (name, sex, year) from the CBS file; the shares count every name in it, also names without a page
-    YC = c['YC']
+    YC, SN = c['YC'], c['SN']   # SN: babies by (name, sex, CBS sector), all years
+    born_all = {}
+    for (n, s, _), k in SN.items():
+        born_all[(n, s)] = born_all.get((n, s), 0) + k
     year = lambda y: Y0 if y == 'Y0' else Y1 if y == 'Y1' else int(y)
     total = {}
     for (n, s, y), k in YC.items():
@@ -117,6 +135,15 @@ def build(c):
                 n, sx = arg.split(':')
                 assert not ny(need(n, where), int(sx)), f'guides: {where} says {n} is not in the {Y1} data, but it was given to {ny(by_name[n], int(sx))}'
                 return ''
+            if kind == 'girls':
+                n, a, b = arg.split(':')
+                return f'{round(girls(n, year(a), year(b), where))}%'
+            if kind == 'mostly':
+                n, sx, sec = arg.split(':')
+                need(n, where)
+                k = {t: SN[(n, int(sx), t)] for t in ('Jewish', 'Muslim', 'Christian-Arab', 'Druze') if (n, int(sx), t) in SN}
+                assert k and max(k, key=k.get) == sec, f'guides: {where} says most {SEX_HE[int(sx)]} babies named {n} are {sec}: {k}'
+                return ''
             if kind == 'share':
                 end, sx, y = arg.split(':')
                 return share(end, int(sx), year(y))
@@ -131,6 +158,85 @@ def build(c):
         out = re.sub(r'\{\{(\w+)(?::([^}]+))?\}\}', one, s)
         assert '{{' not in out, f'guides: unfilled marker in {where}'
         return out
+
+    def girls(n, a, b, where):
+        """the share of girls among the babies given the name in years a to b (at least SWITCH_MIN babies)"""
+        need(n, where)
+        k = [sum(YC.get((n, s, y), 0) for y in range(a, b + 1)) for s in (0, 1)]
+        assert sum(k) >= SWITCH_MIN, f'guides: {n} ({where}) was given to {sum(k)} babies in {a}-{b}, fewer than {SWITCH_MIN}'
+        return 100 * k[0] / sum(k)
+
+    def peak_year(n, s):
+        return max(range(Y0, Y1 + 1), key=lambda y: (YC.get((n, s, y), 0), -y))
+
+    def first_any(n):
+        return min(y for s in (0, 1) for y in range(Y0, Y1 + 1) if YC.get((n, s, y)))
+
+    def complete(where, listed, other, fits):
+        """every name of the data that fits a list is either listed or left out on purpose (other), and no other name is there"""
+        assert not set(listed) & set(other) and len(set(listed)) == len(listed), f'guides: a name twice in {where}'
+        for n in listed:
+            need(n, where)
+            assert fits(n), f'guides: {n} does not fit {where}'
+        missing = [n for n in by_name if fits(n) and n not in listed and n not in other]
+        assert not missing, f'guides: {where}: sort into names or other: {" ".join(missing)}'
+
+    def mean_span(x):
+        m = c['short_mean'](x)
+        return f'<span class="cm">{e(m)}</span>' if m else ''
+
+    def name_td(n):
+        return f'<td><a href="/names/{enc(n)}">{e(n)}</a>{mean_span(by_name[n])}</td>'
+
+    # girls and boys on two lines, so a narrow column does not break a number from its word
+    both = lambda x: ''.join(f'<span class="gl">{babies(x, t)}</span>' for t in (0, 1) if ny(x, t)) or 'פחות מ-5'
+
+    def switch(g, key):
+        W = g['switch'][key]
+        (a1, b1), (a2, b2) = g['periods']
+        where = f'{g["slug"]} switch {key}'
+        assert len(set(W['names'])) == len(W['names']), f'guides: a name twice in {where}'
+        rows = []
+        for n in W['names']:
+            p1, p2 = girls(n, a1, b1, where), girls(n, a2, b2, where)
+            ok = {'girls': p2 - p1 >= SWITCH_PTS, 'boys': p1 - p2 >= SWITCH_PTS, 'spelling': abs(p2 - p1) >= SWITCH_PTS,
+                  'stable': 35 <= p1 <= 65 and 35 <= p2 <= 65 and abs(p2 - p1) < 15}[W['dir']]
+            assert ok, f'guides: {n} in {where} ({W["dir"]}): {p1:.0f}% girls in {a1}-{b1}, {p2:.0f}% in {a2}-{b2}'
+            rows.append((abs(p2 - p1) if W['dir'] != 'stable' else -abs(p2 - p1), n, p1, p2))
+        body = ''.join(f'<tr>{name_td(n)}<td class="gv">{round(p1)}%</td><td class="gv">{round(p2)}%</td><td class="gv">{both(by_name[n])}</td></tr>'
+                       for _, n, p1, p2 in sorted(rows, reverse=True))
+        return (f'<table class="gtbl gvals"><thead><tr><th scope="col">השם</th><th scope="col">בנות ב-{a1}–{b1}</th>'
+                f'<th scope="col">בנות ב-{a2}–{b2}</th><th scope="col">ב-{Y1}</th></tr></thead><tbody>{body}</tbody></table>')
+
+    def faded(g, key):
+        F = g['faded'][key]
+        s, dec, where = F['sex'], F['decade'], f'{g["slug"]} faded {key}'
+
+        def fits(n):
+            y = peak_year(n, s)
+            return dec <= y < dec + 10 and YC.get((n, s, y), 0) >= FADED_PEAK and YC.get((n, s, Y1), 0) <= 0.05 * YC.get((n, s, y), 0)
+        complete(where, F['names'], F.get('other', []), fits)
+        rows = sorted(F['names'], key=lambda n: -YC.get((n, s, peak_year(n, s)), 0))
+        body = ''.join(f'<tr>{name_td(n)}<td class="gv">{peak_year(n, s)}</td><td class="gv">{fmt(YC[(n, s, peak_year(n, s))])}</td>'
+                       f'<td class="gv">{fmt(ny(by_name[n], s)) if ny(by_name[n], s) else "פחות מ-5"}</td></tr>' for n in rows)
+        kids = 'בנות' if s == 0 else 'בנים'
+        return (f'<table class="gtbl gvals"><thead><tr><th scope="col">השם</th><th scope="col">שנת השיא</th>'
+                f'<th scope="col">{kids} בשיא</th><th scope="col">{kids} ב-{Y1}</th></tr></thead><tbody>{body}</tbody></table>')
+
+    def new(g, key):
+        # the Jewish sector or not: where most babies of that sex given the name were born, all years
+        N = g['new'][key]
+        s, arab, where = N['sex'], N.get('arab', False), f'{g["slug"]} new {key}'
+
+        def fits(n):
+            x = by_name[n]
+            return (first_any(n) >= NEW_FROM and ny(x, s) >= MIN_BABIES and ny(x, s) >= ny(x, 1 - s)
+                    and (2 * SN.get((n, s, 'Jewish'), 0) <= born_all.get((n, s), 0)) == arab)
+        complete(where, N['names'], N.get('other', []), fits)
+        rows = sorted(N['names'], key=lambda n: -ny(by_name[n], s))
+        body = ''.join(f'<tr>{name_td(n)}<td class="gv">{first_any(n)}</td><td class="gv">{babies(by_name[n], s)}</td></tr>' for n in rows)
+        return (f'<table class="gtbl gvals"><thead><tr><th scope="col">השם</th><th scope="col">הופיע לראשונה</th>'
+                f'<th scope="col">ב-{Y1}</th></tr></thead><tbody>{body}</tbody></table>')
 
     def cell(n, s, where):
         x = need(n, where)
@@ -215,6 +321,9 @@ def build(c):
         slug, path = g['slug'], '/guides/' + g['slug']
         url, title = PH + path, g['title'] + ' | השמות של ישראל'
         body = fill(g['body'], slug)
+        for kind, data in BLOCKS.items():
+            unused = set(g.get(data, {})) - set(re.findall(rf'<!--{kind}:([\w-]+)-->', body))
+            assert not unused, f'guides: {slug} has {data} data with no <!--{kind}:...--> marker: {" ".join(sorted(unused))}'
         n_pairs = 0
         for group in GROUPS:
             mark = f'<!--pairs:{group}-->'
@@ -224,6 +333,10 @@ def build(c):
         assert '<!--pairs:' not in body, f'guides: {slug} has pairs markers with no data'
         body = re.sub(r'<!--names:([\w-]+)-->', lambda m: names_list(g, m.group(1)), body)
         body = re.sub(r'<!--forms:([\w-]+)-->', lambda m: forms(g, m.group(1)), body)
+        body = re.sub(r'<!--switch:([\w-]+)-->', lambda m: switch(g, m.group(1)), body)
+        body = re.sub(r'<!--faded:([\w-]+)-->', lambda m: faded(g, m.group(1)), body)
+        body = re.sub(r'<!--new:([\w-]+)-->', lambda m: new(g, m.group(1)), body)
+        assert '<!--' not in body.replace('<!--toc-->', '').replace('<!--trend-->', ''), f'guides: {slug} has an unknown block marker'
         if '<!--trend-->' in body:
             body = body.replace('<!--trend-->', trend(g))
         body = body.replace('<!--toc-->', toc(body))
