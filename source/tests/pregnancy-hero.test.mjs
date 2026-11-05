@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { toDay, dueDate, status, heroModel } from '../app/pregnancy.mjs';
+import { toDay, dueDate, status, heroModel, ART } from '../app/pregnancy.mjs';
 
 const P = JSON.parse(readFileSync(new URL('../data/pregnancy.json', import.meta.url), 'utf-8'));
 const LMP = toDay('2026-01-01'), DUE = dueDate('lmp', LMP);
@@ -16,7 +16,7 @@ test('heroModel: the week as the site counts it, the ordinal week, and the share
   assert.equal(m.ord, 21);
   assert.equal(m.pct, Math.round((144 / 280) * 100));
   assert.equal(m.size, P.weeks['20'].size);
-  assert.equal(m.emoji, '🍌');
+  assert.equal(m.art, 'banana');
 });
 
 test('heroModel: tags for length, weight, trimester and days left', () => {
@@ -43,14 +43,23 @@ test('heroModel: the views a tap cycles through', () => {
 test('heroModel: before week 4 there is no size, and after 42 the week stays 42', () => {
   const early = heroModel(at(2, 3), undefined);
   assert.equal(early.size, '');
-  assert.equal(early.emoji, '');
+  assert.equal(early.art, '');
   assert.deepEqual(early.tags.map(t => t.k), ['tri', 'left']);
   const late = model(at(43, 2));
   assert.equal(late.n, 42);
   assert.equal(late.pct, 100);
 });
 
-test('heroModel: no emoji where the data has none (never a wrong fruit)', () => {
-  assert.equal(model(at(4)).emoji, '');
-  assert.equal(model(at(4)).size, P.weeks['4'].size);
+test('every week has a drawing, and every drawing is used and is plain SVG', () => {
+  const used = new Set();
+  for (const [w, x] of Object.entries(P.weeks)) {
+    assert.ok(ART[x.art], `week ${w}: no drawing "${x.art}"`);
+    assert.equal(model(at(+w)).art, x.art);
+    used.add(x.art);
+  }
+  assert.deepEqual([...used].sort(), Object.keys(ART).sort(), 'a drawing no week uses');
+  for (const [k, svg] of Object.entries(ART)) {
+    assert.doesNotMatch(svg, /<script|on\w+=|href|url\(|undefined|NaN/i, k);
+    assert.match(svg, /^<(path|circle|ellipse|g|rect)/, k);
+  }
 });

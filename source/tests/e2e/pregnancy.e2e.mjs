@@ -246,6 +246,12 @@ test('hero: the ring draws to the share of the way, the week counts up, and a ta
     assert.equal(await page.textContent('.pr-w'), '20+4');
     assert.match(await page.textContent('.ph-size'), /התינוק שלכם בגודל של בננה/);
     assert.equal(await page.$$eval('.ph-tags li', li => li.length), 4);
+    // the size is drawn (SVG, no emoji), and a tap on it makes it wiggle
+    assert.equal(await page.$$eval('.ph-fruit svg path, .ph-fruit svg circle', e => e.length) > 3, true);
+    await page.click('.ph-fruit');
+    assert.equal(await page.$eval('.ph-fruit', el => el.classList.contains('is-wiggle')), true);
+    // the water stands at the same level as the ring
+    assert.equal(await page.$eval('.ph-lvl', el => getComputedStyle(el).transform), `matrix(1, 0, 0, 1, 0, ${100 - pct})`);
     assert.ok(await page.$eval('.phero', el => document.getAnimations().some(a => a.effect.target && el.contains(a.effect.target)
       && a.effect.getTiming().iterations === Infinity)), 'the pulse keeps going');
     await page.click('.ph-core');
