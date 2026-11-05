@@ -9,7 +9,7 @@
 - `data/seo.json` – עובדות לכל שם עבור העמודים הסטטיים (נוצר מהקוד של האתר עצמו, כך שהמספרים זהים).
 - `data/meanings.json` – הפירושים והסיפורים של השמות, שורה לכל שם. המקור היחיד לתוכן הזה: האתר מקבל אותו כנכס נפרד (`assets/meanings.<hash>.js`), והעמודים הסטטיים קוראים אותו ישירות. השדות והכללים מתועדים ב-`tools/meanings.py`. נכנסים לקובץ רק פירושים שנבדקו ואושרו.
 - `data/guides.json` + `content/guides/<slug>.html` – המדריכים והמאמרים (`/guides`). הפורמט והסימונים בתוך הטקסט מתועדים ב-`tools/guides.py`, שגם בודק בבנייה שכל שם קיים ומתאים.
-- `data/pregnancy.json` + `app/pregnancy.mjs` – מחשבון ההריון (`/pregnancy/calculator`): תוכן השבועות, שמות לפי חודש עברי, שאלות ומקורות, והקוד של המחשבון (נטען רק בעמוד הזה). אותו תוכן בונה גם עמוד לכל שבוע (`/pregnancy/week-<n>`) ואת `/pregnancy`. הבנייה ב-`tools/pregnancy.py`, והבדיקות ב-`tests/pregnancy.test.mjs`.
+- `data/pregnancy.json` + `app/pregnancy.mjs` – מחשבון ההריון (`/pregnancy/calculator`): תוכן השבועות, שמות לפי חודש עברי, לוח הבדיקות של משרד הבריאות (`checkups`, עם מקור ותאריך בדיקה), שאלות ומקורות, והקוד של המחשבון. אותו תוכן בונה גם עמוד לכל שבוע (`/pregnancy/week-<n>`) ואת `/pregnancy`, ושם אותו קוד מראה "השבוע שלכם" לפי התאריך שנשמר במכשיר. ה-CSS של המדריכים ועמודי ההריון נמצא ב-`doc_css` ב-`tools/build_site.py`, נכס נפרד (`doc.<hash>.css`) שנטען רק בעמודים בלי האפליקציה, כך ששינוי בו לא נוגע בעמודי השמות. הבנייה ב-`tools/pregnancy.py`, והבדיקות ב-`tests/pregnancy*.test.mjs`, `tests/test_build.py` ו-`tests/e2e/`.
 - `data/pa.json` – רשימות 10 המובילים של רשות האוכלוסין (מקור לקובץ `app/p0d_pa.js`).
 - `assets/` – תמונת השיתוף `og.png` והפונטים.
 - `tools/` – סקריפטי הבנייה.
@@ -32,7 +32,9 @@ npm run build                    # bundle -> seo.json -> src/
 - `npm run bundle` – מחבר את הקוד ל-`dist/` (כולל `dist/names.html`, גרסת התצוגה בקובץ אחד).
 - `npm run seo` – מחשב מחדש את `data/seo.json`.
 - `npm run site` – בודק את `data/meanings.json` (`tools/meanings.py`; שגיאה עוצרת את הבנייה) ובונה את `src/` (כל עמודי השמות, האינדקס, 404 והנכסים עם hash). בסוף הוא מריץ את `tools/check_site.py`, שבודק את `src/` שנבנה: קישורים פנימיים שבורים, title ו-description, H1 אחד, canonical, JSON-LD תקין, התאמה בין העמודים ל-sitemap, ושהאפליקציה לא נטענת בעמוד שהיא תשתלט עליו. בעיה עוצרת את הבנייה.
-- `npm test` – בדיקות Node ב-`tests/` (שלב ה-build של Vercel, `scripts/finalize.mjs`) ו-`check_site.py`. אותן בדיקות רצות ב-GitHub Actions על כל PR (`.github/workflows/checks.yml`).
+- `npm test` – בדיקות Node ב-`tests/` (שלב ה-build של Vercel, `scripts/finalize.mjs`), בדיקות הבנייה ב-Python (`tests/test_build.py`) ו-`check_site.py`.
+- `npm run e2e` – בדיקות דפדפן (Playwright) לעמודי ההריון, מול `src/` עם ה-headers וה-CSP של `vercel.json`. מקומית אפשר להגדיר `CHROMIUM_PATH` ל-Chromium קיים.
+- כל הבדיקות האלה רצות ב-GitHub Actions על כל PR (`.github/workflows/checks.yml`).
 
 ## הוספת פירושים
 עורכים את `data/meanings.json` ומריצים `npm run bundle && npm run site`. אין צורך להריץ מחדש את `npm run seo`: העמודים הסטטיים קוראים את הפירושים ישירות מהקובץ.

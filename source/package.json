@@ -8,8 +8,9 @@
     "bundle": "python3 tools/build_bundle.py",
     "seo": "node tools/export_seo.mjs",
     "site": "python3 tools/meanings.py && python3 tools/build_site.py && python3 tools/check_site.py",
-    "test": "node --test tests/*.test.mjs && python3 tools/check_site.py",
-    "build": "npm run bundle && npm run seo && npm run site"
+    "test": "node --test tests/*.test.mjs && python3 -m unittest discover -s tests -p 'test_*.py' && python3 tools/check_site.py",
+    "build": "npm run bundle && npm run seo && npm run site",
+    "e2e": "node --test --test-concurrency=1 tests/e2e/*.e2e.mjs"
   },
   "dependencies": {
     "chart.js": "4.4.1",

@@ -65,12 +65,16 @@ css += """
 .docbody .cgc{display:flex;flex-wrap:wrap;gap:6px}
 .docbody .cgc a{display:inline-flex;align-items:center;min-height:36px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink);font-size:14px;font-weight:600;text-decoration:none}
 .docbody .cgc a:hover{border-color:var(--accent);color:var(--accent)}
+.docbody h2[id]{scroll-margin-top:80px}
+.docbody h3{font-size:16.5px;color:var(--ink);margin:20px 0 4px}
+"""
+# guides and pregnancy pages only: a separate stylesheet, linked from the app-less pages (page(app=False)),
+# so a style change there does not rename app.css and rewrite every name page
+doc_css = """
 /* guides (/guides): table of contents, pair tables, hub cards */
 .docbody .gmeta{color:var(--muted);font-size:13px;margin:-4px 0 14px}
 .docbody .toc{border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:18px 0 8px}
 .docbody .toc b{font-size:14px}.docbody .toc ol{margin:6px 0 0;padding-inline-start:20px}.docbody .toc li{margin-bottom:2px}
-.docbody h2[id]{scroll-margin-top:80px}
-.docbody h3{font-size:16.5px;color:var(--ink);margin:20px 0 4px}
 .docbody .gtbl{width:100%;border-collapse:collapse;table-layout:fixed;margin:6px 0 14px}
 .docbody .gtbl th{text-align:start;font-size:12.5px;font-weight:500;color:var(--muted);padding:4px 8px;border-bottom:1px solid var(--line)}
 .docbody .gtbl td{vertical-align:top;padding:9px 8px;border-bottom:1px solid var(--line);min-width:0}
@@ -131,6 +135,25 @@ css += """
 .docbody .pwk li{margin:0}.docbody .pwk a{display:block;border:1px solid var(--line);border-radius:12px;padding:8px 10px;color:var(--ink);font-weight:400;height:100%;transition:border-color .15s ease,background-color .15s ease}
 .docbody .pwk a:hover{border-color:var(--accent);background:var(--surface-2)}
 .docbody .pwk b{display:block;font-size:15px}.docbody .pwk span{display:block;color:var(--muted);font-size:12.5px;line-height:1.4}
+/* "your week" (a date saved on this device) and the checkups */
+.docbody .pmine{border:1px solid var(--accent);background:var(--accent-soft);border-radius:12px;padding:10px 14px;margin:0 0 14px;color:var(--ink);font-size:15px}
+.docbody .pmine[hidden]{display:none}
+.docbody .pmine a{white-space:nowrap}
+.docbody .pwk a.pcur{border-color:var(--accent);background:var(--accent-soft)}.docbody .pwk a.pcur span{color:var(--ink-2)}
+.docbody .pr-since{margin:6px 0 0;color:var(--accent);font-size:14px;font-weight:600}
+.docbody .pr-checks{border-top:1px solid var(--line);margin-top:8px}
+.docbody .pr-next{display:grid;gap:2px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0 10px}
+.docbody .pr-next span{color:var(--ink-2);font-size:14px}
+.docbody .pchk{list-style:none;padding:0;margin:0}
+.docbody .pchk li{margin:0;border-bottom:1px solid var(--line)}
+.docbody .pchk label{display:flex;align-items:flex-start;gap:10px;padding:8px 2px;cursor:pointer;min-height:44px}
+.docbody .pchk input{width:20px;height:20px;margin:2px 0 0;flex:none;accent-color:var(--accent)}
+.docbody .pchk label>span{display:grid;gap:1px}.docbody .pchk b{font-size:15px}
+.docbody .pchk label>span>span{color:var(--muted);font-size:13px}
+.docbody .pchk .is-now b{color:var(--accent)}
+.docbody .pchk .is-done b{color:var(--muted);text-decoration:line-through}
+.docbody .pchks td{font-size:14.5px}.docbody .pchks td b{font-size:15px}
+.docbody .pchks th:first-child{width:34%}.docbody .pchks th:nth-child(2){width:24%}
 @media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gcta .ic{transition:none}.docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gcta .ic{transform:none}}
 """
 
@@ -152,6 +175,7 @@ for fn in sorted(os.listdir(D + 'assets/fonts')):
     FF += f"@font-face{{font-family:'{fam}';font-style:normal;font-weight:{w};font-display:swap;src:url(/assets/fonts/{fn}) format('woff2');unicode-range:{rng}}}\n"
 css = FF + css
 A_CSS = hashed('app', 'css', css)
+A_DOC = hashed('doc', 'css', doc_css)
 shutil.copy(D + 'assets/og.png', SRC + 'og.png')
 A_CHART = hashed('chart', 'js', chart)
 A_DATA = hashed('data', 'js', 'const DATA=' + data + ';')
@@ -238,6 +262,7 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/assets/fonts/ibm-plex-sans-hebrew-hebrew-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{A_CSS}">
+{'' if app else f'<link rel="stylesheet" href="{A_DOC}">'}
 <meta name="google-adsense-account" content="ca-pub-8412399730348585">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8412399730348585" crossorigin="anonymous"></script>
 {f'<script type="application/ld+json">{ld}</script>' if ld else ''}

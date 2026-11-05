@@ -1,5 +1,6 @@
 # On every pull request: check the committed site in src/ (links, titles, canonical, JSON-LD, sitemap)
-# and run the Node tests. Standard library only, so nothing to install.
+# and run the Node and Python tests (standard library only, so nothing to install); then the browser tests
+# of the pregnancy pages (Playwright, against src/ with the production headers from vercel.json).
 name: checks
 on:
   pull_request:
@@ -23,3 +24,20 @@ jobs:
       - name: Node tests
         working-directory: source
         run: node --test tests/*.test.mjs
+      - name: Build checks (Python)
+        working-directory: source
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - working-directory: source
+        run: npm ci --no-audit --no-fund
+      - working-directory: source
+        run: npx playwright install --with-deps chromium-headless-shell
+      - name: Browser tests
+        working-directory: source
+        run: npm run e2e
