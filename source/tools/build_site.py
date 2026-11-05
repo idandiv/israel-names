@@ -125,6 +125,16 @@ doc_css = """
 .docbody .pr-week,.docbody .pr-names{border-top:1px solid var(--line);margin-top:8px}
 .docbody .pr-num{color:var(--muted);font-size:13.5px;margin:-2px 0 6px}.docbody .pr-more{font-size:14px;margin-top:8px}
 .docbody .pr-save{font-size:13px;color:var(--muted);margin:12px 0 0}
+.docbody .pr-share{border-top:1px solid var(--line);margin-top:8px}
+.docbody .pr-opts{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;color:var(--ink-2);margin:4px 0}
+.docbody .pr-opts label{display:inline-flex;align-items:center;gap:8px;min-height:36px;cursor:pointer}
+.docbody .pr-opts input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
+.docbody .pr-acts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.docbody .pbtn,.docbody .pbtn2{display:inline-flex;align-items:center;min-height:44px;border:1px solid var(--accent);border-radius:999px;font:700 15px var(--f-body);padding:8px 20px;cursor:pointer}
+.docbody .pbtn{background:var(--accent);color:var(--bg)}.docbody .pbtn2,.docbody a.pbtn2:hover{background:none;color:var(--accent)}
+.docbody .pbtn:disabled{opacity:.45;cursor:default}.docbody .pbtn[hidden],.docbody .pr-card[hidden]{display:none}
+.docbody .pr-card{margin:10px 0}.docbody .pr-card img{display:block;width:100%;max-width:300px;height:auto;border-radius:14px;border:1px solid var(--line)}
+.docbody .pr-msg{font-size:13.5px;color:var(--ink-2);margin:4px 0 0;overflow-wrap:anywhere}.docbody .pr-msg:empty{display:none}
 .docbody .pr-save button{border:0;background:none;padding:0;color:var(--accent);font:600 13px var(--f-body);text-decoration:underline;cursor:pointer}
 .docbody .pdetails summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0}
 .docbody .pweeks{list-style:none;padding:0;margin:4px 0 8px}.docbody .pweeks li{margin:0;padding:8px 0;border-bottom:1px solid var(--line)}

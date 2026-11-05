@@ -174,3 +174,58 @@ test('home: NameMatch comes first, then pregnancy, guides and collections tiles'
     await page.done();
   }
 });
+
+test('calculator: the calendar file has the coming weeks and the checkups, and the options work', async () => {
+  const { readFileSync } = await import('node:fs');
+  const page = await open('/pregnancy/calculator', { saved: { m: 'lmp', d: ago(20 * 7 + 2), c: 28, e: 5 }, width: 1200 });
+  await page.waitForSelector('#pics');
+  const get = async () => {
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#pics')]);
+    assert.equal(dl.suggestedFilename(), 'shemotil-pregnancy.ics');
+    return readFileSync(await dl.path(), 'utf-8');
+  };
+  let text = await get();
+  assert.ok(text.startsWith('BEGIN:VCALENDAR\r\n') && text.endsWith('END:VCALENDAR\r\n'));
+  const flat = text.replace(/\r\n /g, '');
+  assert.match(flat, /SUMMARY:שבוע 21 להריון\r\n/);
+  assert.match(flat, /SUMMARY:בדיקה: /);
+  assert.match(flat, /SUMMARY:תאריך הלידה המשוער\r\n/);
+  assert.match(await page.textContent('#pmsg'), /הקובץ ירד/);
+  await page.uncheck('#pics-c');
+  text = (await get()).replace(/\r\n /g, '');
+  assert.doesNotMatch(text, /SUMMARY:בדיקה: /);
+  assert.match(text, /SUMMARY:שבוע 21 להריון/);
+  await page.uncheck('#pics-w');
+  assert.equal(await page.isDisabled('#pics'), true);
+  await page.done();
+});
+
+test('calculator: the share card is a PNG made on the device, with the month only when asked', async () => {
+  const page = await open('/pregnancy/calculator', { saved: { m: 'lmp', d: ago(20 * 7 + 2), c: 28, e: 5 } });
+  await page.waitForSelector('#pcard');
+  assert.equal(await page.isHidden('#pcardbox'), true);
+  await page.click('#pcard');
+  await page.waitForSelector('#pcardbox:not([hidden]) img[src^="blob:"]');
+  // the PNG through the download link (the page itself may not fetch blob: URLs: connect-src is 'self')
+  const info = async () => {
+    const { readFileSync } = await import('node:fs');
+    const dims = await page.$eval('#pcardbox img', async img => { await img.decode(); return [img.naturalWidth, img.naturalHeight, img.src]; });
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#pcardbox a')]);
+    const buf = readFileSync(await dl.path());
+    return { png: buf.subarray(1, 4).toString() === 'PNG', size: buf.length, w: dims[0], h: dims[1], src: dims[2] };
+  };
+  const a = await info();
+  assert.equal(a.png, true);
+  assert.deepEqual([a.w, a.h], [1080, 1350]);
+  assert.ok(a.size > 20000, `card is ${a.size} bytes`);
+  assert.equal(await page.getAttribute('#pcardbox a', 'download'), 'shemotil-week-20.png');
+  await page.check('#pcard-m');
+  await page.waitForFunction(src => document.querySelector('#pcardbox img').src !== src, a.src);
+  const b = await info();
+  assert.notEqual(b.size, a.size, 'the month line changes the card');
+  // a general link to the week page, no personal data
+  await page.click('#plink');
+  await page.waitForFunction(() => /\/pregnancy\/week-20$/.test(document.querySelector('#pmsg').textContent));
+  await noSideScroll(page);
+  await page.done();
+});
