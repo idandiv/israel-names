@@ -159,3 +159,18 @@ test('home: the pregnancy tile opens the saved week', async () => {
   assert.equal(await page.getAttribute('.tiles3 a[href^="/pregnancy"]', 'href'), '/pregnancy/calculator');
   await page.done();
 });
+
+test('home: NameMatch comes first, then pregnancy, guides and collections tiles', async () => {
+  for (const width of [375, 1200]) {
+    const page = await open('/', { width });
+    await page.waitForSelector('.tiles3 a');
+    const order = await page.$$eval('.ctapair > button', (els) => els.map((e) => e.id));
+    assert.deepEqual(order, ['matchcta', 'gencta']);
+    const hrefs = await page.$$eval('.tiles3 > *', (els) => els.map((e) => e.getAttribute('href')));
+    assert.deepEqual(hrefs, ['/pregnancy/calculator', '/guides', '/names#colls']);
+    assert.equal(await page.$('.tiles3 [data-go]'), null);
+    const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    assert.ok(over <= 0, `side scroll ${over}px at ${width}`);
+    await page.done();
+  }
+});
