@@ -23,6 +23,11 @@ class PregnancyData(unittest.TestCase):
     def test_weeks(self):
         self.broken(lambda P: P['weeks'].pop('20'))
         self.broken(lambda P: P['weeks']['20'].pop('size'))
+        self.broken(lambda P: P['weeks']['20'].update({'emoji': ':)'}))      # not an emoji
+        self.broken(lambda P: P['weeks']['20'].update({'emoji': '🍌🍌🍌'}))   # more than one
+        self.broken(lambda P: P['weeks']['20'].update({'emoji': ''}))
+        self.assertEqual(self.P['weeks']['20']['emoji'], '🍌')
+        self.assertNotIn('emoji', self.P['weeks']['4'])                    # no emoji for a poppy seed: none at all
 
     def test_months_and_trimesters(self):
         self.broken(lambda P: P['months'].reverse())

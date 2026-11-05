@@ -42,6 +42,9 @@ def check(P):
     assert sorted(map(int, P['weeks'])) == list(range(4, 43)), 'pregnancy.json: weeks must be 4 to 42'
     for w, x in P['weeks'].items():
         assert x.get('size') and x.get('cm') and x.get('baby'), f'pregnancy.json: week {w} misses size, cm or baby'
+        # optional: only where an emoji really is that fruit or vegetable (one symbol, maybe with VS16)
+        assert 'emoji' not in x or (isinstance(x['emoji'], str) and 1 <= len(x['emoji']) <= 2 and not x['emoji'].isascii()), \
+            f'pregnancy.json: week {w} emoji must be one emoji'
     assert [m['month'] for m in P['months']] == MONTHS, 'pregnancy.json: the 12 Hebrew months, from תשרי'
     assert [w for t in P['trimesters'] for w in range(t['weeks'][0], t['weeks'][1] + 1)] == list(range(1, 43)), \
         'pregnancy.json: the trimesters must cover weeks 1 to 42 in order'

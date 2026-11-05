@@ -20,8 +20,8 @@ const NOISE = /googlesyndication|adsbygoogle|_vercel\/insights/;
 
 /* a new page (phone width by default) with the saved value set before any script runs; problems collects console
    errors, page errors and CSP violations */
-async function open(path, { saved, width = 375, js = true } = {}) {
-  const ctx = await browser.newContext({ viewport: { width, height: 800 }, javaScriptEnabled: js, locale: 'he-IL' });
+async function open(path, { saved, width = 375, js = true, motion = 'no-preference' } = {}) {
+  const ctx = await browser.newContext({ viewport: { width, height: 800 }, javaScriptEnabled: js, locale: 'he-IL', reducedMotion: motion });
   // init scripts run again on every reload: seed the storage once per tab, so a reload sees what the page saved
   if (saved !== undefined) await ctx.addInitScript(([k, v]) => {
     if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, v); sessionStorage.setItem('seeded', '1'); }
@@ -227,5 +227,57 @@ test('calculator: the share card is a PNG made on the device, with the month onl
   await page.click('#plink');
   await page.waitForFunction(() => /\/pregnancy\/week-20$/.test(document.querySelector('#pmsg').textContent));
   await noSideScroll(page);
+  await page.done();
+});
+
+// the entry animations are over (the endless ones keep going)
+const settled = page => page.waitForFunction(() => document.getAnimations()
+  .filter(a => a.effect.getTiming().iterations !== Infinity).every(a => a.playState === 'finished'));
+
+test('hero: the ring draws to the share of the way, the week counts up, and a tap cycles the views', async () => {
+  for (const width of [375, 1200]) {
+    const page = await open('/pregnancy/calculator', { saved: { m: 'lmp', d: ago(20 * 7 + 4), c: 28, e: 5 }, width });
+    await page.waitForSelector('.phero');
+    await page.locator('.phero').scrollIntoViewIfNeeded();
+    await settled(page);
+    await page.waitForFunction(() => document.querySelector('.ph-n').textContent === '20');
+    const pct = Math.round(((20 * 7 + 4) / 280) * 100);
+    assert.equal(await page.$eval('.ph-arc', el => getComputedStyle(el).strokeDashoffset), `${100 - pct}px`);
+    assert.equal(await page.textContent('.pr-w'), '20+4');
+    assert.match(await page.textContent('.ph-size'), /התינוק שלכם בגודל של בננה/);
+    assert.equal(await page.$$eval('.ph-tags li', li => li.length), 4);
+    assert.ok(await page.$eval('.phero', el => document.getAnimations().some(a => a.effect.target && el.contains(a.effect.target)
+      && a.effect.getTiming().iterations === Infinity)), 'the pulse keeps going');
+    await page.click('.ph-core');
+    assert.equal(await page.textContent('.ph-n'), `${pct}%`);
+    await page.click('.ph-core');
+    assert.match(await page.textContent('.ph-val'), /עוד\s*136\s*ימים/);
+    assert.equal(await page.$$eval('.ph-dots i.on', d => d.length), 1);
+    await page.click('.ph-core');
+    assert.equal(await page.textContent('.ph-n'), '20');
+    await noSideScroll(page);
+    await page.done();
+  }
+});
+
+test('hero: with reduced motion nothing moves and the numbers are final at once', async () => {
+  const page = await open('/pregnancy/calculator', { saved: { m: 'lmp', d: ago(20 * 7 + 4), c: 28, e: 5 }, motion: 'reduce' });
+  await page.waitForSelector('.phero');
+  assert.equal(await page.textContent('.ph-n'), '20');
+  assert.equal(await page.evaluate(() => document.getAnimations().filter(a => document.querySelector('.phero').contains(a.effect.target)).length), 0);
+  await page.click('.ph-core');
+  assert.match(await page.textContent('.ph-n'), /%$/);
+  await page.done();
+});
+
+test('hero: ticking a checkup does not replay the entry animation; a new calculation does', async () => {
+  const page = await open('/pregnancy/calculator', { saved: { m: 'lmp', d: ago(20 * 7 + 4), c: 28, e: 5 } });
+  await page.waitForSelector('.phero');
+  assert.equal(await page.$eval('.phero', el => el.classList.contains('ph-still')), false);
+  await page.check('.pchk input >> nth=0');
+  await page.waitForSelector('.phero.ph-still');
+  assert.equal(await page.textContent('.ph-n'), '20');
+  await page.click('.pgo');
+  await page.waitForSelector('.phero:not(.ph-still)');
   await page.done();
 });

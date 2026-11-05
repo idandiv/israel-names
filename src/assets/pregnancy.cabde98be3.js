@@ -178,6 +178,23 @@ export function ics({ due, now, info = {}, checkups = [], done = [], weeks = tru
   return L.map(icsFold).join('\r\n') + '\r\n';
 }
 
+/* ---- the hero at the top of the result: what it shows (pure) ---- */
+/* n: the week as the rest of the site counts it (whole weeks, like the week pages); views: what a tap on the ring's
+   centre cycles through; tags: length, weight, trimester and days left */
+export function heroModel(st, wk) {
+  const n = Math.min(42, st.weeks), pct = Math.round(st.pct);
+  const tags = [];
+  if (wk) {
+    tags.push({ k: 'len', t: `כ-${wk.cm} ס״מ` });
+    if (wk.g) tags.push({ k: 'wt', t: `כ-${fmtN(wk.g)} גרם` });
+  }
+  tags.push({ k: 'tri', t: TRI[st.trimester] });
+  tags.push({ k: 'left', t: st.left > 0 ? `עוד ${fmtN(st.left)} ימים` : st.left === 0 ? 'התאריך המשוער היום' : `${fmtN(-st.left)} ימים אחרי התאריך` });
+  const views = [{ k: 'שבוע', big: String(n), u: 'להריון' }, { k: 'עברתם', big: `${pct}%`, u: 'מהדרך' }];
+  if (st.left > 0) views.push({ k: 'עוד', big: fmtN(st.left), u: st.left === 1 ? 'יום' : 'ימים' });
+  return { n, ga: `${st.weeks}+${st.days}`, ord: st.week, pct, size: wk ? wk.size : '', emoji: (wk && wk.emoji) || '', tags, views };
+}
+
 /* ---- the share card: what it says (pure), then the drawing ---- */
 export function cardLines(st, info, heb, { month = false } = {}) {
   const w = Math.min(42, st.weeks), wk = info[w];
@@ -271,21 +288,95 @@ function share(D, st, due, now, done) {
   };
 }
 
-function render(D, st, due, now, v, since) {
+const ICON = {
+  len: '<path d="M3 17 17 3l4 4L7 21z"/><path d="m7 13 2 2m1-5 2 2m1-5 2 2"/>',
+  wt: '<path d="M6 8h12l2 12H4z"/><circle cx="12" cy="5" r="2"/>',
+  tri: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4m8-4v4"/>',
+  left: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+};
+// the bubbles that rise behind the ring: x, y, r, seconds, delay
+const BUBBLES = [[58, 182, 4, 7, 0], [150, 192, 3, 9, 1.4], [96, 204, 5, 11, 3.1], [176, 170, 3.5, 8, 4.2],
+  [36, 150, 2.5, 10, 5.6], [128, 206, 3, 6.5, 2.3], [198, 146, 4.5, 12, 6.7]];
+
+/* the hero card: a ring that draws itself to the share of the pregnancy that has passed, a soft double pulse behind it,
+   bubbles drifting up, the week counting up in the middle (a tap cycles week / % / days left), the size, tags, and
+   the bar. All CSS/SVG; still: no entry animation (a re-render after ticking a checkup) */
+function heroHtml(m, st, since, still) {
+  const ticks = [126, 252].map(a => `<line class="ph-tick" x1="110" y1="11" x2="110" y2="25" transform="rotate(${a} 110 110)"/>`).join('');
+  const bubbles = BUBBLES.map(([x, y, r, d, w]) => `<circle class="ph-b" cx="${x}" cy="${y}" r="${r}" style="--d:${d}s;--w:${w}s"/>`).join('');
+  const v = m.views[0];
+  return `<section class="phero${still ? ' ph-still' : ''}">
+    <div class="ph-stage">
+      <svg class="ph-ring" viewBox="0 0 220 220" aria-hidden="true" focusable="false">
+        <circle class="ph-halo" cx="110" cy="110" r="80"/><circle class="ph-halo ph-halo2" cx="110" cy="110" r="80"/>
+        <g class="ph-bubbles">${bubbles}</g>
+        <circle class="ph-track" cx="110" cy="110" r="92"/>${ticks}
+        <circle class="ph-arc" cx="110" cy="110" r="92" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${100 - m.pct}" transform="rotate(-90 110 110)"/>
+        <g class="ph-dot" style="--a:${(m.pct * 3.6).toFixed(1)}deg"><circle class="ph-glow" cx="110" cy="18" r="13"/><circle cx="110" cy="18" r="7"/></g>
+      </svg>
+      <button type="button" class="ph-core" title="הקשה מחליפה תצוגה"><span class="ph-val" aria-live="polite"><span class="ph-k">${v.k}</span><b class="ph-n">${v.big}</b><span class="ph-u">${v.u}</span></span>
+        <span class="ph-dots" aria-hidden="true">${m.views.map((x, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</span></button>
+    </div>
+    <div class="ph-info">
+      <p class="ph-ga"><b class="pr-w" dir="ltr">${m.ga}</b><span>${st.weeks} שבועות ו-${st.days} ימים · השבוע ה-${m.ord}</span></p>
+      ${since ? `<p class="pr-since">${since}</p>` : ''}
+      ${m.size ? `<p class="ph-size">${m.emoji ? `<span class="ph-fruit" aria-hidden="true">${m.emoji}</span>` : '<span class="ph-fruit ph-seed" aria-hidden="true"><i></i></span>'}<span>התינוק שלכם בגודל של <b>${m.size}</b></span></p>` : ''}
+      <ul class="ph-tags">${m.tags.map((t, i) => `<li style="--i:${i}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICON[t.k]}</svg>${t.t}</li>`).join('')}</ul>
+    </div>
+    <div class="pr-bar" role="progressbar" aria-label="התקדמות ההריון" aria-valuemin="0" aria-valuemax="40" aria-valuenow="${Math.min(40, st.weeks)}"><i style="width:${st.pct.toFixed(1)}%"></i></div>
+    <div class="pr-tri"><span>שליש 1</span><span>שליש 2</span><span>שליש 3</span></div>
+  </section>`;
+}
+
+/* the hero's moving parts: the count-up, the tap on the centre, the fruit's wiggle, and pausing the endless
+   animations while the card is off screen */
+let heroSeen = null;
+function heroLive(m, intro) {
+  const el = document.querySelector('.phero');
+  if (!el) return;
+  const core = el.querySelector('.ph-core'), k = core.querySelector('.ph-k'), n = core.querySelector('.ph-n'), u = core.querySelector('.ph-u');
+  const dots = [...core.querySelectorAll('.ph-dots i')];
+  let i = 0, run = 0, counted = true;
+  // the entry animations wait (paused) until the card is on screen; the count-up starts with them
+  const count = () => {
+    if (counted) return;
+    counted = true;
+    const t0 = performance.now(), me = ++run, T = 1100;
+    const step = t => {
+      if (me !== run) return;
+      const p = Math.min(1, (t - t0) / T);
+      n.textContent = String(Math.round(m.n * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  if (intro && !matchMedia('(prefers-reduced-motion: reduce)').matches) { counted = false; n.textContent = '0'; }
+  core.onclick = () => {
+    run++;   // a tap stops the count-up
+    i = (i + 1) % m.views.length;
+    const v = m.views[i];
+    k.textContent = v.k; n.textContent = v.big; u.textContent = v.u;
+    dots.forEach((d, j) => d.classList.toggle('on', j === i));
+    core.classList.remove('is-pop'); void core.offsetWidth; core.classList.add('is-pop');
+  };
+  const fruit = el.querySelector('.ph-fruit');
+  if (fruit) fruit.onclick = () => { fruit.classList.remove('is-wiggle'); void fruit.offsetWidth; fruit.classList.add('is-wiggle'); };
+  if (heroSeen) heroSeen.disconnect();
+  if ('IntersectionObserver' in window) {
+    heroSeen = new IntersectionObserver(([e]) => { el.classList.toggle('ph-off', !e.isIntersecting); if (e.isIntersecting) count(); });
+    heroSeen.observe(el);
+  } else count();
+}
+
+function render(D, st, due, now, v, since, still) {
   const wk = D.weeks[Math.min(42, st.weeks)];
   const heb = hebrewDate(due), mon = D.months[heb.month];
   const left = st.left > 0 ? `עוד ${fmtN(st.left)} ימים${st.left >= 14 ? ` (כ-${Math.round(st.left / 7)} שבועות)` : ''}`
     : st.left === 0 ? 'היום!' : `התאריך עבר לפני ${fmtN(-st.left)} ימים`;
-  const size = wk ? `<h3>שבוע ${Math.min(42, st.weeks)}: בגודל של ${wk.size}</h3>
-      <p class="pr-num">כ-${wk.cm} ס״מ${wk.g ? ` · כ-${fmtN(wk.g)} גרם` : ''}</p><p>${wk.baby}</p>
+  const size = wk ? `<h3>מה קורה בשבוע ${Math.min(42, st.weeks)}</h3><p>${wk.baby}</p>
       <p class="pr-more"><a href="/pregnancy/week-${Math.min(42, st.weeks)}">עוד על שבוע ${Math.min(42, st.weeks)}</a> · <a href="/pregnancy">כל השבועות</a></p>`
     : `<h3>השבועות הראשונים</h3><p>${D.early}</p>`;
-  return `<div class="pr-head"><span class="pr-k">שבוע ההריון</span>
-      <b class="pr-w" dir="ltr">${st.weeks}+${st.days}</b>
-      <span>${st.weeks} שבועות ו-${st.days} ימים · השבוע ה-${st.week} · ${TRI[st.trimester]}</span>
-      ${since ? `<p class="pr-since">${since}</p>` : ''}</div>
-    <div class="pr-bar" role="progressbar" aria-label="התקדמות ההריון" aria-valuemin="0" aria-valuemax="40" aria-valuenow="${Math.min(40, st.weeks)}"><i style="width:${st.pct.toFixed(1)}%"></i></div>
-    <div class="pr-tri"><span>שליש 1</span><span>שליש 2</span><span>שליש 3</span></div>
+  return `${heroHtml(heroModel(st, wk), st, since, still)}
     <dl class="pr-facts"><div><dt>תאריך לידה משוער</dt><dd>${gregorianText(due)}<span>${heb.text}</span></dd></div>
       <div><dt>עד התאריך המשוער</dt><dd>${left}</dd></div></dl>
     <section class="pr-week">${size}</section>
@@ -305,7 +396,7 @@ function calculator() {
   date.max = fromDay(todayDay());
   const sync = () => form.querySelectorAll('[data-for]').forEach(el => { el.hidden = el.dataset.for !== method(); });
   const read = () => ({ m: method(), d: date.value, c: +cycle.value, e: +embryo.value });
-  let state = {};
+  let state = {}, played = false;
   function show(v, save, since = '') {
     const now = todayDay(), day = toDay(v.d), opts = { cycle: v.c, embryo: v.e };
     const why = problem(v.m, day, now, opts);
@@ -315,8 +406,11 @@ function calculator() {
     const due = dueDate(v.m, day, opts), st = status(due, now);
     // a new date starts with no checkups marked; the same date keeps them
     state = { ...v, done: save && (state.d !== v.d || state.m !== v.m) ? [] : state.done || [], seen: st.weeks };
-    out.innerHTML = render(D, st, due, now, state, since);
+    const intro = save || !played;
+    played = true;
+    out.innerHTML = render(D, st, due, now, state, since, !intro);
     out.hidden = false;
+    heroLive(heroModel(st, D.weeks[Math.min(42, st.weeks)]), intro);
     share(D, st, due, now, state.done);
     out.querySelectorAll('[data-check]').forEach(box => box.addEventListener('change', () => {
       const id = box.dataset.check;
