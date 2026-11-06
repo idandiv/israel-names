@@ -117,20 +117,21 @@ class GuideBlocks(unittest.TestCase):
         names = {n for n, _, _ in YC}
         by_name = {n: {'n': n, 'g': 50, 'origin': '', 'en': n, 'sec': 'יהודים'} for n in names}
         self.tmp = tempfile.mkdtemp()
-        self.c = {'page': lambda *a, **k: '', 'static_shell': lambda cur, inner: inner, 'by_name': by_name, 'YC': YC, 'SN': SN, 'SC': SC,
+        self.c = {'page': lambda *a, **k: '', 'static_shell': lambda cur, inner, **k: inner, 'hashed': lambda *a: '/assets/x.js', 'by_name': by_name, 'YC': YC, 'SN': SN, 'SC': SC,
                   'PREG': {'months': [{'month': 'תשרי', 'note': 'n', 'names': ['שי']}],
                            'holidays': [{'id': 'sukkot', 'name': 'סוכות', 'month': 'תשרי', 'day': 15, 'len': 7, 'note': 'n', 'names': ['דוד']}]},
                   'ny': lambda x, s: YC.get((x['n'], s, self.Y1), 0), 'enc': lambda n: n, 'fmt': lambda n: f'{n:,}',
                   'short_mean': lambda x: '', 'coll_list': lambda rows, f: '', 'arrow': '', 'Y0': self.Y0, 'Y1': self.Y1,
                   'SRC': self.tmp + '/', 'PH': '', 'LD_SITE': {}, 'LD_ORG': {}, 'LD_DATA': {}}
         self.g = {'slug': 'test', 'title': 't', 'h1': 'h', 'desc': 'd', 'badge': 'b', 'card': 'c', 'published': '2026-11-05',
+                  'cover': {'motif': 'mirror', 'tone': 'accent', 'names': ['שי', 'קרן', 'גלית', 'אריאה', 'יוסף', 'דוד']},
                   'periods': [[1980, 1999], [2015, 2024]],
                   'switch': {'up': {'dir': 'girls', 'names': ['שי']}},
                   'faded': {'g80': {'sex': 0, 'decade': 1980, 'names': ['קרן', 'גלית']}},
                   'new': {'girls': {'sex': 0, 'names': ['אריאה']}},
                   'shared': {'boys': {'sex': 1, 'names': ['יוסף']}},
                   'era': {'old': {'sex': 1, 'kind': 'classic', 'names': ['דוד']}, 'now': {'sex': 1, 'kind': 'rising', 'names': ['אימרי']}},
-                  'body': '<p>{{girls:שי:2015:Y1}} {{sector:יוסף:1:Muslim}}</p><!--switch:up--><!--faded:g80--><!--new:girls-->'
+                  'body': '<p>{{girls:שי:2015:Y1}} {{sector:יוסף:1:Muslim}} {{name:שי}} {{name:קרן}} {{name:גלית}} {{name:אריאה}} {{name:יוסף}} {{name:דוד}}</p><!--switch:up--><!--faded:g80--><!--new:girls-->'
                           '<!--shared:boys--><!--era:old--><!--era:now--><!--month:תשרי--><!--holiday:sukkot-->'}
         self.load = guides.load
 
@@ -196,6 +197,41 @@ class GuideBlocks(unittest.TestCase):
         self.build(lambda g: g.update({'pairs': pairs, 'different_start': True, 'body': g['body'] + '<!--pairs:boys-->'}))
         pairs['boys'][0]['pairs'] = [['דוד', 'דן']]   # both start with ד
         self.broken(lambda g: g.update({'pairs': pairs, 'different_start': True, 'body': g['body'] + '<!--pairs:boys-->'}))
+
+    def test_cover(self):
+        pages = {}
+        self.c['page'] = lambda title, desc, path, body, **k: pages.update({path: body}) or ''
+        self.build()
+        self.assertIn('<svg class="cover"', pages['/guides'])
+        self.assertIn('<svg class="cover"', pages['/guides/test'])
+        self.broken(lambda g: g.pop('cover'))
+        self.broken(lambda g: g['cover'].update({'motif': 'nope'}))
+        self.broken(lambda g: g['cover'].update({'tone': 'red'}))
+        self.broken(lambda g: g['cover'].update({'names': ['שי', 'קרן', 'גלית']}))                             # too few for a mirror
+        self.broken(lambda g: g['cover'].update({'names': ['שי', 'קרן', 'גלית', 'אריאה', 'יוסף', 'אין-כזה']}))  # not in the data
+        self.broken(lambda g: g['cover'].update({'names': ['שי', 'קרן', 'גלית', 'אריאה', 'יוסף', 'דן']}))       # the guide does not link to דן
+
+    def test_no_name_on_two_covers(self):
+        need = lambda n, where: n
+        a = copy.deepcopy(self.g)
+        b = {**copy.deepcopy(self.g), 'slug': 'other'}
+        with self.assertRaises(AssertionError):
+            guides.check_covers([a, b], need)
+        b['cover']['names'] = ['א', 'ב', 'ג', 'ד', 'ה', 'ו']
+        guides.check_covers([a, b], need)
+
+    def test_every_drawing(self):
+        D = {'holiday': lambda h: {'month': 'תשרי', 'day': 15, 'name': 'סוכות', 'id': h, 'names': []}, 'switch': lambda g, n: (10, 60),
+             'peak': lambda n, s: 1970, 'first': lambda n: 2010 + names.index(n), 'form': lambda g, n: 'Name'}
+        names = ['אבאל', 'גדאל', 'הואל', 'זחיה', 'טייה', 'כליה', 'מן']
+        extra = {'calendar': {'holidays': ['a', 'b', 'c', 'd']}, 'script': {'arabic': ['ا', 'ب', 'ت', 'ث']}, 'fade': {'sex': 0}}
+        self.assertEqual(set(guides.MOTIFS), set(guides.COVER_NAMES))
+        for m, (lo, _) in guides.COVER_NAMES.items():
+            g = {'slug': m, 'cover': {'motif': m, 'tone': 'accent', 'names': names[:lo], **extra.get(m, {})}}
+            guides.check_covers([g], lambda n, where: n)
+            svg = guides.cover_svg(g, D)
+            for n in names[:lo]:
+                self.assertIn(n[:-2] if m == 'endings' else n, svg, m)
 
     def test_heb_day(self):
         self.assertEqual([guides.heb_day(d) for d in (1, 10, 15, 16, 25, 30)], ['א׳', 'י׳', 'ט״ו', 'ט״ז', 'כ״ה', 'ל׳'])
