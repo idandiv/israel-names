@@ -673,7 +673,7 @@ def build(c):
             {"@type": "WebPage", "@id": url, "url": url, "name": title, "description": g['desc'], "inLanguage": "he",
              "isPartOf": {"@id": PH + "/#website"}, "breadcrumb": {"@id": url + "#breadcrumb"}, "mainEntity": {"@id": url + "#article"}},
             {"@type": "Article", "@id": url + "#article", "headline": g['title'], "description": g['desc'], "inLanguage": "he",
-             "datePublished": g['published'], "dateModified": "__MODIFIED__", "image": PH + "/og.png",
+             "datePublished": g['published'], "dateModified": "__MODIFIED__", "image": PH + f'/og/guides/{slug}.png',
              "author": {"@id": PH + "/#organization"}, "publisher": {"@id": PH + "/#organization"},
              "mainEntityOfPage": {"@id": url}, "isBasedOn": c['LD_DATA']},
             *([{"@type": "FAQPage", "@id": url + "#faq", "isPartOf": {"@id": url}, "inLanguage": "he",
@@ -683,7 +683,8 @@ def build(c):
                 {"@type": "ListItem", "position": 2, "name": SECTION, "item": PH + "/guides"},
                 {"@type": "ListItem", "position": 3, "name": g['h1']}]},
             c['LD_SITE'], c['LD_ORG']]}
-        open(c['SRC'] + f'guides/{slug}.html', 'w').write(c['page'](title, g['desc'], path, c['static_shell']('guides', inner), jsonld=ld, app=False))
+        open(c['SRC'] + f'guides/{slug}.html', 'w').write(c['page'](title, g['desc'], path, c['static_shell']('guides', inner), jsonld=ld, app=False,
+                                                                   og=(f'/og/guides/{slug}.png', f'הכריכה של המדריך {g["h1"]}')))
         paths.append(path)
 
     # the hub: the newest guide first and wide, then a grid; a cover, badge, title, summary, reading time and names for each,
