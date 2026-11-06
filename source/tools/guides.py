@@ -2,7 +2,7 @@
 
 Sources:
   data/guides.json            the guides, in hub order: slug, title (without the site suffix), h1, desc, card (hub text), badge (hub tag),
-                              published (YYYY-MM-DD), optional updated, faq [[q, a]], and per-guide data (pairs, lists, forms, trend)
+                              published (YYYY-MM-DD), optional updated, cover (see the covers below), faq [[q, a]], and per-guide data (pairs, lists, forms, trend)
   content/guides/<slug>.html  the article body, an HTML fragment with these markers:
       <!--toc-->              table of contents of the <h2 id="..."> headings
       <!--pairs:<group>-->    the pair tables of pairs[<group>] (girls, boys, mixed)
@@ -89,91 +89,184 @@ def heb_day(d):
     return s + '׳' if len(s) == 1 else s[:-1] + '״' + s[-1]
 
 
-# ---- covers: a drawing for every guide (hub card, top of the article), inline SVG built from the guide's own names ----
-# cover: {"motif": a key of MOTIFS, "tone": a colour token of base.css, "names": 4-7 names of the guide, all in the data}
+# ---- covers: a drawing for every guide (hub card, top of the article), inline SVG built from the guide's own names and data ----
+# cover: {"motif": a key of MOTIFS, "tone": a colour token of base.css, "names": names the guide links to, on no other cover},
+# and by motif: calendar "holidays" (ids in data/pregnancy.json, one per name), script "arabic" (the spelling of each name),
+# fade "sex" (for the peak year). Numbers on a cover come from the data, like the numbers in the articles.
 TONES = ('accent', 'stamp', 'c3', 'c4', 'girl', 'boy')
-COVER_NAMES = (4, 7)
 CW, CH = 640, 360   # the cover's viewBox, 16:9
+# In the drawing's right-to-left text, anchor "start" is the right edge of the text and "end" the left edge.
 
 
-def _txt(x, y, size, n, cls='cv-n', extra=''):
-    return f'<text x="{x}" y="{y}" font-size="{size}" text-anchor="middle" class="{cls}"{extra}>{H.escape(n)}</text>'
+def _t(x, y, size, s, cls='cv-n', anchor='middle', extra=''):
+    return f'<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor}" class="{cls}"{extra}>{H.escape(str(s))}</text>'
 
 
-def _calendar(N):
-    """the Hebrew year as a ring of 12 months, the first name inside it, the rest beside it"""
-    import math
-    cx, cy, r = 190, 180, 120
-    dots = ''
-    for i in range(12):
-        a = -math.pi / 2 + i * math.pi / 6
-        x, y = cx + r * math.cos(a), cy + r * math.sin(a)
-        dots += (f'<circle cx="{x:.1f}" cy="{y:.1f}" r="11" class="cv-t"/>' if i in (0, 3, 6, 8)
-                 else f'<circle cx="{x:.1f}" cy="{y:.1f}" r="6" class="cv-t" opacity=".4"/>')
-    ring = f'<circle cx="{cx}" cy="{cy}" r="{r}" class="cv-s" stroke-width="1.5" opacity=".35"/>' \
-           f'<circle cx="{cx}" cy="{cy}" r="{r - 34}" class="cv-s" stroke-width="1" stroke-dasharray="2 7" opacity=".45"/>'
-    side = ''.join(_txt(470, y, s, n, 'cv-n' if i % 2 == 0 else 'cv-n cv-tn')
-                   for i, (n, y, s) in enumerate(zip(N[1:5], (98, 168, 238, 308), (66, 54, 60, 50))))
-    return ring + dots + _txt(cx, cy + 26, 78, N[0]) + side
+def _calendar(g, D):
+    """tear-off calendar pages: the real date of each holiday, and a name of that holiday"""
+    out = ''
+    for i, (n, h, rot) in enumerate(zip(g['cover']['names'], g['cover']['holidays'], (2.5, -2, 1.5, -3))):
+        day = D['holiday'](h)
+        x, y = 468 - i * 148, 58 + (8 if i % 2 else 0)
+        out += (f'<g transform="rotate({rot} {x + 66} {y + 118})"><rect x="{x}" y="{y}" width="132" height="236" rx="12" class="cv-leaf"/>'
+                f'<path d="M{x} {y + 46}V{y + 12}a12 12 0 0 1 12-12h108a12 12 0 0 1 12 12v34z" class="cv-t"/>'
+                + _t(x + 66, y + 31, 22, day['month'], 'cv-l cv-on') + _t(x + 66, y + 96, 42, heb_day(day['day']), 'cv-n cv-dim')
+                + _t(x + 66, y + 168, 62, n) + _t(x + 66, y + 212, 19, day['name'], 'cv-l cv-lt') + '</g>')
+    return out
 
 
-def _mirror(N):
-    """twins: two names side by side, reflected as in water, and two more pairs under them"""
-    a, b = N[0], N[1]
-    top = _txt(462, 172, 104, a) + _txt(178, 172, 104, b, 'cv-n cv-tn')
-    refl = f'<g transform="translate(0 362) scale(1 -1)" opacity=".13">{top}</g>'
-    axis = f'<line x1="320" y1="44" x2="320" y2="300" class="cv-s" stroke-width="1.5" stroke-dasharray="3 8" opacity=".5"/>' \
-           f'<circle cx="320" cy="34" r="5" class="cv-t"/><line x1="40" y1="190" x2="600" y2="190" class="cv-s" stroke-width="1" opacity=".22"/>'
-    pairs = ''.join(_txt(x, 330, 32, f'{p} · {q}', 'cv-m') for x, (p, q) in zip((462, 178), zip(N[2::2], N[3::2])))
-    return axis + refl + top + pairs
+def _script(g, D):
+    """shared names: each name in Hebrew and in Arabic, face to face"""
+    out = '<line x1="320" y1="30" x2="320" y2="332" class="cv-s" stroke-width="1" stroke-dasharray="3 7" opacity=".5"/>'
+    for i, (n, a) in enumerate(zip(g['cover']['names'], g['cover']['arabic'])):
+        y = 86 + i * 76
+        out += _t(450, y, 68, n) + _t(190, y - 3, 44, a, 'cv-ar') + f'<circle cx="320" cy="{y - 20}" r="6" class="cv-t"/>'
+    return out
 
 
-def _fade(N):
-    """names that faded: a line that peaks and falls behind them, the names dimmer and dimmer"""
-    pts = [(0, 330), (80, 316), (160, 270), (230, 150), (280, 90), (330, 120), (400, 220), (480, 290), (560, 318), (640, 326)]
-    line = ' '.join(f'{x},{y}' for x, y in reversed([(CW - x, y) for x, y in pts]))
-    chart = (f'<polygon points="{CW},{CH} {line} 0,{CH}" class="cv-t" opacity=".07"/>'
-             f'<polyline points="{line}" class="cv-s" stroke-width="2.5" stroke-linejoin="round" opacity=".55"/>')
-    spots = ((520, 128), (320, 128), (120, 128), (520, 262), (320, 262), (120, 262))
-    names = ''.join(_txt(x, y, 70, n, extra=f' opacity="{o}"') for (x, y), n, o in zip(spots, N, (1, .78, .58, .42, .28, .17)))
-    return chart + names
+def _height(g, D):
+    """siblings: heights marked on a door frame, each mark a name"""
+    out = '<rect x="566" y="22" width="30" height="316" rx="4" class="cv-cell"/>'
+    for k in range(13):
+        w = 18 if k % 3 == 0 else 9
+        out += f'<rect x="{596 - w}" y="{34 + k * 24}" width="{w}" height="2" class="cv-tick"/>'
+    for n, (y, s, x2) in zip(g['cover']['names'], ((92, 78, 120), (166, 68, 170), (232, 58, 240), (306, 50, 300))):
+        out += f'<line x1="566" y1="{y}" x2="{x2}" y2="{y}" class="cv-s" stroke-width="2" opacity=".7"/>' + _t((566 + x2) // 2, y - 10, s, n)
+    return out
 
 
-def _names(N):
-    """the default: the guide's names set like a poster, a few dots of the tone"""
-    spots = ((468, 122, 82, 'cv-n'), (190, 112, 58, 'cv-n cv-tn'), (330, 210, 66, 'cv-n'), (528, 282, 52, 'cv-n cv-tn'),
-             (150, 262, 70, 'cv-n cv-dim'), (360, 322, 44, 'cv-m'), (80, 320, 0, ''))
-    out = ''.join(_txt(x, y, s, n, cls) for (x, y, s, cls), n in zip(spots, N) if s)
-    dots = ''.join(f'<circle cx="{x}" cy="{y}" r="{r}" class="cv-t" opacity="{o}"/>'
-                   for x, y, r, o in ((96, 64, 6, .9), (590, 56, 4, .6), (612, 196, 8, .35), (40, 180, 3, .7), (250, 300, 5, .5)))
-    return dots + out
+def _switch(g, D):
+    """the share of girls in each name, in the guide's two periods: an empty dot for the first, a full one for the second"""
+    X = lambda p: round(60 + p * 4.3, 1)
+    out = f'<line x1="{X(50)}" y1="22" x2="{X(50)}" y2="302" class="cv-s" stroke-width="1" stroke-dasharray="3 6" opacity=".5"/>'
+    for i, n in enumerate(g['cover']['names']):
+        a, b = D['switch'](g, n)
+        y, col = 50 + i * 54, 'girl' if b > a else 'boy'
+        out += (f'<line x1="{X(a)}" y1="{y}" x2="{X(b)}" y2="{y}" style="stroke:var(--{col})" stroke-width="5" stroke-linecap="round"/>'
+                f'<circle cx="{X(a)}" cy="{y}" r="7" class="cv-hollow" style="stroke:var(--{col})"/><circle cx="{X(b)}" cy="{y}" r="9" style="fill:var(--{col})"/>'
+                + _t(574, y + 16, 48, n))
+    return (out + f'<line x1="{X(0)}" y1="312" x2="{X(100)}" y2="312" class="cv-s" stroke-width="1" opacity=".5"/>'
+            + _t(X(0), 340, 17, 'בנים', 'cv-l cv-m') + _t(X(50), 340, 17, '50%', 'cv-l cv-m') + _t(X(100), 340, 17, 'בנות', 'cv-l cv-m'))
 
 
-MOTIFS = {'calendar': _calendar, 'mirror': _mirror, 'fade': _fade, 'names': _names}
-
-
-def check_cover(g, need):
-    C = g.get('cover')
-    assert C, f'guides: {g["slug"]} has no cover (cover: motif, tone, names)'
-    assert C.get('motif') in MOTIFS, f'guides: {g["slug"]}: cover motif {C.get("motif")} is not one of {" ".join(MOTIFS)}'
-    assert C.get('tone') in TONES, f'guides: {g["slug"]}: cover tone {C.get("tone")} is not one of {" ".join(TONES)}'
-    N = C.get('names') or []
-    assert COVER_NAMES[0] <= len(N) <= COVER_NAMES[1] and len(set(N)) == len(N), \
-        f'guides: {g["slug"]}: a cover needs {COVER_NAMES[0]}-{COVER_NAMES[1]} different names'
-    for n in N:
-        need(n, f'{g["slug"]} cover')
-
-
-def cover_svg(g, uid=''):
-    """the cover of guide g; uid tells two drawings of the same guide on one page apart (the gradient's id)"""
+def _fade(g, D):
+    """names that faded: the older the peak year, the fainter the name"""
     C = g['cover']
-    gid = f'cg-{g["slug"]}{uid}'
+    rows = sorted(((D['peak'](n, C['sex']), n) for n in C['names']), reverse=True)
+    out = ''
+    for i, ((y, n), o) in enumerate(zip(rows, (1, .74, .54, .38, .26, .16))):
+        x, yy = (520, 320, 120)[i % 3], 118 if i < 3 else 276
+        out += f'<g opacity="{o}">' + _t(x, yy, 78, n) + _t(x, yy + 34, 20, f'שיא ב-{y}', 'cv-l') + '</g>'
+    return out
+
+
+def _timeline(g, D):
+    """new names on an axis of the year each first appeared; a name too close to the one before it stands higher, on a stem"""
+    years = {}
+    for n in g['cover']['names']:
+        years.setdefault(D['first'](n), []).append(n)
+    lo, hi = min(years), max(years)
+    X = lambda y: 566 - (y - lo) * 460 // max(1, hi - lo)
+    out, prev = '<line x1="60" y1="306" x2="600" y2="306" class="cv-s" stroke-width="2" opacity=".7"/>', None
+    for y in sorted(years):
+        x, names = X(y), years[y]
+        assert len(names) <= 3, f'guides: {g["slug"]}: cover: more than 3 names first seen in {y}'
+        raised = prev is not None and prev - x < 110 and len(names) == 1
+        base, size = (150, 84) if raised else (280, 62 if len(names) == 1 else 58)
+        if raised:
+            out += f'<line x1="{x}" y1="{base + 12}" x2="{x}" y2="306" class="cv-s" stroke-width="2" stroke-dasharray="2 6" opacity=".7"/>'
+        out += f'<circle cx="{x}" cy="306" r="7" class="cv-t"/>' + _t(x, 342, 20, y, 'cv-l')
+        out += ''.join(_t(x, base - k * 76, size, n, 'cv-n cv-tn' if k == 0 else 'cv-n') for k, n in enumerate(names))
+        prev = x
+    return out
+
+
+def _scene(g, D):
+    """nature names as a landscape; names in order: the moon, the cliff, the tree, the sea, the bird"""
+    moon, cliff, tree, sea, bird = g['cover']['names']
+    edge = 'l-34-16-30 26-26-8-40 56-46 18-50 62-32 50'
+    wave = 'M0 298q40-22 80 0t80 0 80 0 80 0 80 0 80 0 80 0 80 0'
+    return ('<path d="M120 46a44 44 0 1 0 34 72a36 36 0 1 1-34-72z" class="cv-t"/>' + _t(216, 96, 52, moon)
+            + f'<path d="M640 300V112{edge}z" class="cv-soft"/><path d="M640 112{edge}" class="cv-s" stroke-width="2.5" stroke-linejoin="round"/>' + _t(566, 232, 70, cliff)
+            + '<path d="M318 300V218" class="cv-s" stroke-width="5"/><circle cx="318" cy="186" r="42" class="cv-t" opacity=".85"/>'
+              '<circle cx="288" cy="210" r="26" class="cv-t" opacity=".85"/><circle cx="348" cy="210" r="26" class="cv-t" opacity=".85"/>' + _t(216, 270, 58, tree)
+            + f'<path d="{wave}V360H0z" class="cv-t" opacity=".3"/><path d="{wave}" class="cv-s" stroke-width="2.5"/>' + _t(320, 346, 42, sea)
+            + '<path d="M410 60q14-16 28 0q14-16 28 0" class="cv-s" stroke-width="3" stroke-linecap="round"/>' + _t(438, 44, 34, bird))
+
+
+def _ticket(g, D):
+    """a boarding pass: each name beside its form in the world, from the guide's forms table"""
+    ltr = ' direction="ltr"'
+    out = ('<path d="M46 62a14 14 0 0 1 14-14h520a14 14 0 0 1 14 14v84a14 14 0 0 0 0 28v124a14 14 0 0 1-14 14H60a14 14 0 0 1-14-14V174a14 14 0 0 0 0-28z" class="cv-leaf"/>'
+           '<path d="M46 62a14 14 0 0 1 14-14h520a14 14 0 0 1 14 14v18H46z" class="cv-t"/>'
+           '<line x1="196" y1="96" x2="196" y2="300" class="cv-s" stroke-width="2" stroke-dasharray="4 7" opacity=".6"/>'
+           + _t(320, 72, 18, 'BOARDING PASS', 'cv-l cv-on', extra=ltr)
+           + _t(120, 150, 46, 'TLV', extra=ltr) + '<path d="M120 170v52m-8-10 8 12 8-12" class="cv-s" stroke-width="2.5"/>' + _t(120, 268, 46, 'NYC', 'cv-n cv-tn', extra=ltr))
+    for n, y in zip(g['cover']['names'], (118, 218)):
+        out += (_t(574, y, 17, 'שם', 'cv-l cv-m', 'start') + _t(574, y + 66, 74, n, 'cv-n', 'start')
+                + _t(392, y, 17, 'בעולם', 'cv-l cv-m', 'start') + _t(392, y + 58, 34, D['form'](g, n), 'cv-l cv-lt', 'end', ltr))
+    return out
+
+
+def _endings(g, D):
+    """names lined up by their ending, so the endings stand in two coloured columns"""
+    out = ''
+    for x, end in ((392, 'אל'), (84, 'יה')):
+        out += f'<rect x="{x - 8}" y="20" width="76" height="320" rx="12" class="cv-t" opacity=".16"/>' + _t(x + 30, 54, 24, '‑' + end, 'cv-l cv-lt')
+        for i, n in enumerate(m for m in g['cover']['names'] if m.endswith(end)):
+            out += (f'<text x="{x}" y="{134 + i * 92}" font-size="84" text-anchor="end" class="cv-n">{H.escape(n[:-2])}'
+                    f'<tspan class="cv-tn">{end}</tspan></text>')
+    return out
+
+
+def _mirror(g, D):
+    """twins: two names side by side, reflected as in water, and two more pairs under them"""
+    a, b, *more = g['cover']['names']
+    top = _t(462, 172, 104, a) + _t(178, 172, 104, b, 'cv-n cv-tn')
+    return ('<line x1="320" y1="44" x2="320" y2="300" class="cv-s" stroke-width="1.5" stroke-dasharray="3 8" opacity=".5"/>'
+            '<line x1="40" y1="190" x2="600" y2="190" class="cv-s" stroke-width="1" opacity=".22"/>'
+            f'<g transform="translate(0 362) scale(1 -1)" opacity=".15">{top}</g>{top}'
+            + ''.join(_t(x, 330, 30, f'{p} · {q}', 'cv-l cv-m') for x, p, q in zip((462, 178), more[::2], more[1::2])))
+
+
+MOTIFS = {'calendar': _calendar, 'script': _script, 'height': _height, 'switch': _switch, 'fade': _fade, 'timeline': _timeline,
+          'scene': _scene, 'ticket': _ticket, 'endings': _endings, 'mirror': _mirror}
+# how many names each drawing holds
+COVER_NAMES = {'calendar': (4, 4), 'script': (4, 4), 'height': (4, 4), 'switch': (5, 5), 'fade': (6, 6), 'timeline': (4, 7),
+               'scene': (5, 5), 'ticket': (2, 2), 'endings': (6, 6), 'mirror': (6, 6)}
+
+
+def check_covers(G, need):
+    """a cover for every guide, with a drawing and tone that exist, the right number of names, and no name on two covers"""
+    seen = {}
+    for g in G:
+        slug, C = g['slug'], g.get('cover')
+        assert C, f'guides: {slug} has no cover (cover: motif, tone, names)'
+        assert C.get('motif') in MOTIFS, f'guides: {slug}: cover motif {C.get("motif")} is not one of {" ".join(MOTIFS)}'
+        assert C.get('tone') in TONES, f'guides: {slug}: cover tone {C.get("tone")} is not one of {" ".join(TONES)}'
+        N, (lo, hi) = C.get('names') or [], COVER_NAMES[C['motif']]
+        assert lo <= len(N) <= hi and len(set(N)) == len(N), f'guides: {slug}: a {C["motif"]} cover needs {lo}-{hi} different names'
+        for n in N:
+            need(n, f'{slug} cover')
+            assert n not in seen, f'guides: {n} is on the covers of {seen.get(n)} and {slug}'
+            seen[n] = slug
+        for key, motif in (('holidays', 'calendar'), ('arabic', 'script')):
+            assert C['motif'] != motif or len(C.get(key) or []) == len(N), f'guides: {slug}: a {motif} cover needs {key}, one for each name'
+        if C['motif'] == 'endings':
+            for end in ('אל', 'יה'):
+                assert sum(n.endswith(end) for n in N) == 3, f'guides: {slug}: an endings cover needs 3 names ending with {end}'
+
+
+def cover_svg(g, D):
+    """the cover of guide g; D: what the drawings read from the data (holiday, switch, peak, first, form)"""
+    C = g['cover']
+    gid = f'cg-{g["slug"]}'
     bg = (f'<defs><radialGradient id="{gid}" cx="88%" cy="6%" r="95%">'
-          f'<stop offset="0" style="stop-color:var(--{C["tone"]});stop-opacity:.34"/>'
-          f'<stop offset=".7" style="stop-color:var(--{C["tone"]});stop-opacity:0"/></radialGradient></defs>'
+          '<stop offset="0" style="stop-color:var(--t);stop-opacity:.3"/>'
+          '<stop offset=".7" style="stop-color:var(--t);stop-opacity:0"/></radialGradient></defs>'
           f'<rect width="{CW}" height="{CH}" class="cv-bg"/><rect width="{CW}" height="{CH}" fill="url(#{gid})"/>')
     return (f'<svg class="cover" viewBox="0 0 {CW} {CH}" preserveAspectRatio="xMidYMid slice" style="--t:var(--{C["tone"]})" aria-hidden="true" focusable="false">'
-            f'{bg}{MOTIFS[C["motif"]](C["names"])}</svg>')
+            f'{bg}{MOTIFS[C["motif"]](g, D)}</svg>')
 
 
 def build(c):
@@ -493,8 +586,24 @@ def build(c):
         """the names the page links to"""
         return set(re.findall(r'href="/names/([^"#?]+)"', html))
 
+    check_covers(G, need)
+
+    def form_of(g, n):
+        """the international form of n in the guide's forms tables"""
+        rows = dict(r for F in g.get('forms', {}).values() for r in F['rows'])
+        assert n in rows, f'guides: {g["slug"]} cover: {n} is not in the guide\'s forms'
+        return rows[n]
+
+    def holiday_of(h):
+        D_ = next((x for x in PREG['holidays'] if x['id'] == h), None)
+        assert D_, f'guides: cover: {h} is not a holiday of pregnancy.json'
+        return D_
+
+    DRAW = {'holiday': holiday_of, 'peak': peak_year, 'first': first_any, 'form': form_of,
+            'switch': lambda g, n: (girls(n, *g['periods'][0], g['slug'] + ' cover'), girls(n, *g['periods'][1], g['slug'] + ' cover'))}
     for g in G:
-        check_cover(g, need)
+        for n, h in zip(g['cover']['names'], g['cover'].get('holidays', [])):
+            assert n in holiday_of(h)['names'], f'guides: {g["slug"]} cover: {n} is not a name of {h}'
     paths, listed = [], []
     for g in G:
         slug, path = g['slug'], '/guides/' + g['slug']
@@ -532,13 +641,34 @@ def build(c):
         faq = [(fill(q, slug, False), fill(a, slug, False)) for q, a in g.get('faq', [])]
         faq_html = ('<h2 id="faq">שאלות נפוצות</h2>' + ''.join(
             f'<h3>{e(fill(q, slug, False))}</h3><p>{fill(a, slug)}</p>' for q, a in g['faq'])) if faq else ''
-        # the other guides, so every guide links to the rest (not in the table of contents: the h2 has no id)
-        more = [o for o in G if o is not g]
-        more_html = ('<h2>עוד מדריכים</h2><ul>' + ''.join(f'<li><a href="/guides/{o["slug"]}">{e(o["h1"])}</a>: {e(o["card"])}</li>' for o in more)
-                     + '</ul>') if more else ''
+        for n in g['cover']['names']:
+            assert f'href="/names/{enc(n)}"' in body, f'guides: {slug} cover: the guide does not link to {n}'
+        listed.append({'g': g, 'path': path, 'url': url, 'title': title, 'body': body, 'faq': faq, 'faq_html': faq_html,
+                       'date': date_he(g.get('updated') or g['published']), 'min': minutes(body + faq_html), 'names': linked(body)})
+
+    def card(x, i=None):
+        g = x['g']
+        feat = ' class="gfeat"' if i == 0 else ''
+        return (f'<li data-t="{e(g["badge"])}"{feat}><a href="/guides/{g["slug"]}">'
+                f'<span class="gcv">{cover_svg(g, DRAW)}</span><span class="gtx"><span class="gbadge">{e(g["badge"])}</span><b>{e(g["h1"])}</b>'
+                f'<span class="gsum">{e(g["card"])}</span><span class="gfoot"><span class="gfacts">{x["min"]} דק׳ קריאה · {len(x["names"])} שמות</span>'
+                f'<span class="gdate">{x["date"]}</span>{c["arrow"]}</span></span></a></li>')
+
+    js = c['hashed']('guides', 'js', open(S + 'app/guides.mjs', encoding='utf-8').read())
+    script = f'<script type="module" src="{js}"></script>'
+    for x in listed:
+        g, slug, path, url, title, body, faq, faq_html = x['g'], x['g']['slug'], x['path'], x['url'], x['title'], x['body'], x['faq'], x['faq_html']
+        # the other guides, so every guide links to the rest (not in the table of contents: the h2 has no id):
+        # three cards, of the same badge first and then the newest, and the rest as a short list
+        more = sorted((o for o in listed if o is not x), key=lambda o: o['g']['badge'] != g['badge'])
+        more_html = ('<h2>עוד מדריכים</h2><ul class="gcards grel">' + ''.join(card(o) for o in more[:3]) + '</ul>'
+                     + ('<ul class="gmore">' + ''.join(f'<li><a href="/guides/{o["g"]["slug"]}">{e(o["g"]["h1"])}</a></li>' for o in more[3:]) + '</ul>' if more[3:] else '')) if more else ''
         dates = f'פורסם ב-{date_he(g["published"])}' + (f' · עודכן ב-{date_he(g["updated"])}' if g.get('updated') else '')
-        inner = (f'<p class="k"><a href="/guides">{SECTION}</a> · השמות של ישראל</p><h1>{e(g["h1"])}</h1>'
-                 f'<p class="gmeta">{dates} · הנתונים: הלשכה המרכזית לסטטיסטיקה, {Y0}–{Y1}</p>{body}{faq_html}{more_html}')
+        chips = ''.join(f'<a href="/names/{enc(n)}">{e(n)}</a>' for n in g['cover']['names'])
+        inner = ('<div class="gprog" aria-hidden="true" hidden><i></i></div>'
+                 f'<p class="k"><a href="/guides">{SECTION}</a> · השמות של ישראל</p><span class="gbadge">{e(g["badge"])}</span><h1>{e(g["h1"])}</h1>'
+                 f'<p class="gmeta">{dates} · {x["min"]} דק׳ קריאה · {len(x["names"])} שמות · הנתונים: הלשכה המרכזית לסטטיסטיקה, {Y0}–{Y1}</p>'
+                 f'<div class="ghero">{cover_svg(g, DRAW)}</div><p class="cgc gchips">{chips}</p>{body}{faq_html}{more_html}{script}')
         ld = {"@context": "https://schema.org", "@graph": [
             {"@type": "WebPage", "@id": url, "url": url, "name": title, "description": g['desc'], "inLanguage": "he",
              "isPartOf": {"@id": PH + "/#website"}, "breadcrumb": {"@id": url + "#breadcrumb"}, "mainEntity": {"@id": url + "#article"}},
@@ -555,19 +685,11 @@ def build(c):
             c['LD_SITE'], c['LD_ORG']]}
         open(c['SRC'] + f'guides/{slug}.html', 'w').write(c['page'](title, g['desc'], path, c['static_shell']('guides', inner), jsonld=ld, app=False))
         paths.append(path)
-        listed.append({'g': g, 'date': date_he(g.get('updated') or g['published']), 'min': minutes(body + faq_html), 'names': linked(body)})
 
     # the hub: the newest guide first and wide, then a grid; a cover, badge, title, summary, reading time and names for each,
     # and buttons that filter by badge (guides.mjs; without JavaScript they stay hidden and every guide shows)
     HT, HD = 'מדריכים ומאמרים לבחירת שם לתינוק | השמות של ישראל', 'מדריכים, מאמרים וטיפים לבחירת שם לתינוק, מבוססים על נתוני הלמ״ס: שמות לתאומים ועוד, עם הפירוש והפופולריות של כל שם.'
 
-    def card(x, i):
-        g = x['g']
-        feat = ' class="gfeat"' if i == 0 else ''
-        return (f'<li data-t="{e(g["badge"])}"{feat}><a href="/guides/{g["slug"]}">'
-                f'<span class="gcv">{cover_svg(g)}</span><span class="gtx"><span class="gbadge">{e(g["badge"])}</span><b>{e(g["h1"])}</b>'
-                f'<span class="gsum">{e(g["card"])}</span><span class="gfoot"><span class="gfacts">{x["min"]} דק׳ קריאה · {len(x["names"])} שמות</span>'
-                f'<span class="gdate">{x["date"]}</span>{c["arrow"]}</span></span></a></li>')
     badges = {}
     for x in listed:
         badges[x['g']['badge']] = badges.get(x['g']['badge'], 0) + 1
@@ -577,7 +699,6 @@ def build(c):
     cards = filt + '<ul class="gcards">' + ''.join(card(x, i) for i, x in enumerate(listed)) + '</ul>'
     all_names = set().union(*(x['names'] for x in listed)) if listed else set()
     stats = f'<p class="gstats"><b>{len(listed)}</b> מדריכים · <b>{len(all_names):,}</b> שמות · נתוני הלמ״ס {Y0}–{Y1}</p>'
-    js = c['hashed']('guides', 'js', open(S + 'app/guides.mjs', encoding='utf-8').read())
     url = PH + '/guides'
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "CollectionPage", "@id": url, "url": url, "name": HT, "description": HD, "inLanguage": "he",
@@ -588,6 +709,6 @@ def build(c):
     open(c['SRC'] + 'guides/index.html', 'w').write(c['page'](
         HT, HD, '/guides', c['static_shell']('guides', f'<p class="k">השמות של ישראל</p><h1>{SECTION}</h1>'
                                              '<p class="dlead">מדריכים, מאמרים וטיפים לבחירת שם, מבוססים על נתוני הלמ״ס והמחקר.</p>'
-                                             f'{stats}{cards}<script type="module" src="{js}"></script>', wide=True),
+                                             f'{stats}{cards}{script}', wide=True),
         jsonld=ld, app=False))
     return ['/guides'] + paths, [(x['g']['slug'], x['g']['title'], x['g']['desc']) for x in listed]

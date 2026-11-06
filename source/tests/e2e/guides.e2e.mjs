@@ -58,6 +58,32 @@ test('the hub: a cover on every card, the newest guide first, and filter buttons
   await noJs.close();
 });
 
+test('an article: its cover, chips of the cover names, three cards and a link to every other guide, and the progress bar', async () => {
+  const G = JSON.parse(readFileSync(new URL('../../data/guides.json', import.meta.url), 'utf-8'));
+  const ctx = await browser.newContext({ viewport: { width: 1200, height: 800 } });
+  const page = await ctx.newPage();
+  for (const g of G) {
+    await page.goto(`${server.url}/guides/${g.slug}`);
+    assert.equal(await page.locator('.ghero svg.cover').count(), 1, g.slug);
+    assert.equal(await page.locator('.gchips a').count(), g.cover.names.length, g.slug);
+    assert.equal(await page.locator('.grel > li').count(), 3, g.slug);
+    for (const o of G.filter(o => o !== g)) assert.ok(await page.locator(`a[href="/guides/${o.slug}"]`).count() >= 1, `${g.slug} -> ${o.slug}`);
+  }
+  assert.ok(await page.locator('.gprog').isVisible());
+  await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+  await page.waitForFunction(() => document.querySelector('.gprog i').style.transform === 'scaleX(1)');
+  await ctx.close();
+});
+
+test('the shared names cover shows Arabic in the Arabic font', async () => {
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.goto(`${server.url}/guides/shared-names`);
+  await page.evaluate(() => document.fonts.ready);
+  assert.ok(await page.evaluate(() => [...document.fonts].some(f => f.family.includes('Noto Kufi Arabic') && f.status === 'loaded')));
+  await ctx.close();
+});
+
 test('the new guides show their tables, with a link for every name', async () => {
   const page = await browser.newPage();
   for (const [slug, tables] of [['gender-switch-names', 4], ['vanished-names', 8], ['new-names', 4], ['shared-names', 2], ['sibling-names', 4]]) {

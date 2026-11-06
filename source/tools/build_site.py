@@ -135,10 +135,28 @@ doc_css = """
 .docbody .gcards.is-filtered>li.gfeat{grid-column:auto}
 .docbody .gcards.is-filtered .gfeat a{display:flex}.docbody .gcards.is-filtered .gfeat .gcv{border-inline-end:0;border-bottom:1px solid var(--line)}
 .docbody .gcards.is-filtered .gfeat .gtx{padding:14px 16px;gap:6px}.docbody .gcards.is-filtered .gfeat b{font-size:18px}.docbody .gcards.is-filtered .gfeat .gsum{font-size:14px;-webkit-line-clamp:3}
+/* an article: the progress bar, the badge, the cover across the column, chips of the cover's names, the contents, more guides */
+.docbody .gprog{position:fixed;inset:0 0 auto;height:3px;z-index:30;pointer-events:none}.docbody .gprog[hidden]{display:none}
+.docbody .gprog i{display:block;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:100% 50%}
+.docbody>.gbadge{display:inline-block;margin-top:10px;font-size:12px;font-weight:600;line-height:1.75;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 10px}
+.docbody .ghero{border:1px solid var(--line);border-radius:18px;overflow:hidden;margin:4px 0 12px}
+.docbody .gchips{margin:0 0 18px}
+.docbody .toc{background:var(--surface);padding:14px 18px}.docbody .toc ol{list-style:none;counter-reset:t;padding:0;margin-top:8px;display:grid;gap:6px}
+.docbody .toc li{counter-increment:t;display:flex;gap:10px;margin:0;line-height:1.45}.docbody .toc li::before{content:counter(t);flex:none;width:22px;height:22px;display:grid;place-items:center;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.docbody .toc a{border:0}
+.docbody .gcards.grel{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));margin-top:12px}.docbody .gcards.grel b{font-size:16.5px}.docbody .gcards.grel .gsum{font-size:13.5px}
+.docbody .gcards.grel .gdate{display:none}.docbody .gcards.grel .gfoot .ic{margin-inline-start:auto}
+.docbody .gmore{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-wrap:wrap;gap:6px}.docbody .gmore li{margin:0}
+.docbody .gmore a{display:inline-flex;align-items:center;min-height:36px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink-2);font-size:14px;font-weight:500}
+.docbody .gmore a:hover{border-color:var(--accent);color:var(--accent)}
 /* the covers: colours from the page's tokens, the guide's own tone in --t */
-.cover .cv-bg{fill:var(--surface-2)}.cover .cv-t{fill:var(--t)}.cover .cv-s{fill:none;stroke:var(--t)}
-.cover text{font-family:var(--f-display);font-weight:700}.cover .cv-n{fill:var(--ink)}.cover .cv-tn{fill:var(--t)}.cover .cv-dim{fill:var(--ink-2);opacity:.7}
-.cover .cv-m{fill:var(--muted);font-family:var(--f-body);font-weight:600}
+@font-face{font-family:'Noto Kufi Arabic';font-style:normal;font-weight:600;font-display:swap;src:url(/assets/fonts/noto-kufi-arabic-arabic-600-normal.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFF}
+.cover{direction:rtl}.cover .cv-bg{fill:var(--surface-2)}.cover .cv-t{fill:var(--t)}.cover .cv-s{fill:none;stroke:var(--t)}
+.cover text{font-family:var(--f-display);font-weight:700}.cover .cv-n{fill:var(--ink)}.cover .cv-tn,.cover text .cv-tn{fill:var(--t)}.cover .cv-dim{fill:var(--muted)}
+.cover .cv-l{font-family:var(--f-body);font-weight:600;fill:var(--ink-2)}.cover .cv-lt{fill:var(--t)}.cover .cv-m{fill:var(--muted)}.cover .cv-on{fill:#141327}
+.cover .cv-ar{font-family:'Noto Kufi Arabic',var(--f-body);font-weight:600;fill:var(--t)}
+.cover .cv-leaf{fill:var(--surface);stroke:var(--line);stroke-width:1.5}.cover .cv-cell{fill:var(--surface);stroke:var(--line)}
+.cover .cv-tick{fill:var(--muted)}.cover .cv-hollow{fill:var(--surface-2);stroke-width:3}.cover .cv-soft{fill:var(--t);opacity:.14}
 /* pregnancy calculator (/pregnancy/calculator): form, result card, weeks list */
 .docbody .pform{display:grid;gap:14px;border:1px solid var(--line);border-radius:16px;padding:16px;margin:18px 0;background:var(--surface)}
 .docbody .pform [hidden],.docbody .pres[hidden],.docbody .perr[hidden]{display:none}
@@ -292,6 +310,8 @@ os.makedirs(SRC + 'assets/fonts', exist_ok=True)
 FF = ''
 for fn in sorted(os.listdir(D + 'assets/fonts')):
     shutil.copy(D + 'assets/fonts/' + fn, SRC + 'assets/fonts/' + fn)
+    if '-arabic-' in fn:   # only the guide covers use it: its @font-face is in doc_css, so app.css and the name pages stay as they are
+        continue
     fam = 'Karantina' if fn.startswith('karantina') else 'IBM Plex Sans Hebrew'
     w = fn.split('-')[-2]
     rng = 'U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F' if '-hebrew-' + w in fn else 'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD'
