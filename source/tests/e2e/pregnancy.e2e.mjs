@@ -288,6 +288,24 @@ test('hero: ticking a checkup does not replay the entry animation; a new calcula
   await page.done();
 });
 
+test('growth chart: the axis labels stay left of the plot and do not overlap', async () => {
+  for (const width of [375, 1200]) {
+    const page = await open('/pregnancy/week-20', { width });
+    const r = await page.evaluate(() => {
+      const box = e => { const b = e.getBoundingClientRect(); return { t: e.textContent, l: b.left, r: b.right, top: b.top, bottom: b.bottom }; };
+      return { labels: [...document.querySelectorAll('figure.pgrow .pg-t')].map(box), plot: box(document.querySelector('figure.pgrow .pg-grid')), svg: box(document.querySelector('figure.pgrow svg')) };
+    });
+    assert.ok(r.labels.length > 8);
+    for (const a of r.labels) {
+      assert.ok(a.l >= r.svg.l - 1 && a.r <= r.svg.r + 1, `"${a.t}" leaves the chart at ${width}`);
+      r.labels.filter(b => b !== a && a.l < b.r && b.l < a.r && a.top < b.bottom && b.top < a.bottom)
+        .forEach(b => assert.fail(`"${a.t}" overlaps "${b.t}" at ${width}`));
+    }
+    for (const a of r.labels.filter(x => /^[0-4]$/.test(x.t))) assert.ok(a.r <= r.plot.l, `axis number ${a.t} is inside the plot at ${width}`);
+    await page.done();
+  }
+});
+
 test('week page: a growth chart with this week marked, and a name for a girl and a boy', async () => {
   for (const [w, dot] of [[20, 1], [6, 0]]) {
     const page = await open(`/pregnancy/week-${w}`, { js: false });

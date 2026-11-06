@@ -89,15 +89,16 @@ def growth_svg(W, cur=None):
     line = ' '.join(f'{x:.1f},{y:.1f}' for x, y in pts)
     grid = ''.join(f'<line class="pg-grid" x1="{x0}" x2="{x1}" y1="{Y(k):.1f}" y2="{Y(k):.1f}"/>'
                    f'<text class="pg-t" x="{x0 - 6}" y="{Y(k) + 3.5:.1f}" text-anchor="end">{k // 1000}</text>' for k in range(0, top + 1, 1000))
-    grid += f'<text class="pg-t" x="{x0 - 6}" y="{y1 - 4}" text-anchor="end">ק״ג</text><text class="pg-t" x="{x0 - 6}" y="{y0 + 16}" text-anchor="end">שבוע</text>'
-    ticks = ''.join(f'<text class="pg-t" x="{X(w):.1f}" y="{y0 + 16}" text-anchor="middle">{w}</text>' for w in (8, 14, 20, 28, 34, 40))
+    grid += f'<text class="pg-t" x="{x0}" y="{y1 - 6}" text-anchor="start">ק״ג</text><text class="pg-t" x="{x0 - 6}" y="{y0 + 18}" text-anchor="end">שבוע</text>'
+    ticks = ''.join(f'<text class="pg-t" x="{X(w):.1f}" y="{y0 + 18}" text-anchor="middle">{w}</text>' for w in (8, 14, 20, 28, 34, 40))
     tri = ''.join(f'<line class="pg-tri" x1="{X(w):.1f}" x2="{X(w):.1f}" y1="{y1}" y2="{y0}"/>' for w in (14, 28))
     mark = ''
     if cur is not None and cur >= GROW_FROM:
         x, y = X(cur), Y(W[cur]['g'])
         mark = (f'<line class="pg-now" x1="{x:.1f}" x2="{x:.1f}" y1="{y:.1f}" y2="{y0}"/><circle class="pg-halo" cx="{x:.1f}" cy="{y:.1f}" r="9"/>'
                 f'<circle class="pg-dot" cx="{x:.1f}" cy="{y:.1f}" r="5"/>')
-    return (f'<svg viewBox="0 0 320 180" role="img" aria-hidden="true" dir="ltr">{grid}{tri}'
+    # direction, not dir: dir does not reach SVG text, and in the page's RTL text-anchor="end" means the left edge of the text
+    return (f'<svg viewBox="0 0 320 180" role="img" aria-hidden="true" direction="ltr">{grid}{tri}'
             f'<path class="pg-area" d="M{x0},{y0} L{line} L{x1},{y0} Z"/><polyline class="pg-line" points="{line}"/>{ticks}{mark}</svg>')
 
 
