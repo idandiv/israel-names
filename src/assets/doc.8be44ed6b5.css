@@ -222,5 +222,13 @@
 .docbody .pchk .is-done b{color:var(--muted);text-decoration:line-through}
 .docbody .pchks td{font-size:14.5px}.docbody .pchks td b{font-size:15px}
 .docbody .pchks th:first-child{width:34%}.docbody .pchks th:nth-child(2){width:24%}
+/* the main collections (/names/boys, girls, unisex): breadcrumbs, quick links (one scrolling line on a phone), rank changes, tables of top names */
+.docbody .crumbs{color:var(--muted);font-size:13px;margin:0}.docbody .crumbs a{color:var(--muted);font-weight:400;border:0}.docbody .crumbs a:hover{color:var(--accent)}
+.docbody .cgc.ctop{margin:14px 0 6px}
+@media (max-width:600px){.docbody .cgc.ctop{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.docbody .cgc.ctop::-webkit-scrollbar{display:none}.docbody .cgc.ctop a{flex:none;white-space:nowrap}}
+.docbody .coll .mv{display:inline-block;min-width:30px;text-align:end;font-size:12px;font-weight:600;margin-inline-start:4px}.docbody .coll .mv0{color:var(--muted)}.docbody .coll .mvu{color:var(--good)}.docbody .coll .mvd{color:var(--bad)}.docbody .coll .mvn{color:var(--accent)}
+.docbody .gtop td{font-size:14.5px}.docbody .gtop td a{font-size:15px;font-weight:600}.docbody .gtop .cn{display:inline;font-variant-numeric:tabular-nums}.docbody .gtop .gi{display:inline-block;margin-inline-end:12px;white-space:nowrap}
+.docbody .gtop.gsec th:first-child{width:24%}
+.docbody .gsteps{margin:0 0 12px;padding-inline-start:20px}.docbody .gsteps li{margin-bottom:8px}
 @media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gfoot .ic,.docbody .cover,.docbody .gfilt button{transition:none}
   .docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gfoot .ic,.docbody .gcards a:hover .cover{transform:none}}
