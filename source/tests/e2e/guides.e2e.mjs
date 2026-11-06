@@ -84,7 +84,7 @@ test('the shared names cover shows Arabic in the Arabic font', async () => {
   await ctx.close();
 });
 
-test('every guide shares its own image, and the home tile shows three small covers', async () => {
+test('every guide shares its own image', async () => {
   const G = JSON.parse(readFileSync(new URL('../../data/guides.json', import.meta.url), 'utf-8'));
   const ctx = await browser.newContext({ viewport: { width: 1200, height: 800 } });
   const page = await ctx.newPage();
@@ -95,11 +95,6 @@ test('every guide shares its own image, and the home tile shows three small cove
     await page.goto(`${server.url}/guides/${g.slug}`);
     assert.match(await page.locator('meta[property="og:image"]').getAttribute('content'), new RegExp(`/og/guides/${g.slug}\\.png$`));
   }
-  await page.goto(`${server.url}/`);
-  const imgs = page.locator('.tthumbs img');
-  assert.equal(await imgs.count(), 3);
-  await imgs.first().scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => [...document.querySelectorAll('.tthumbs img')].every(i => i.complete && i.naturalWidth === 320));
   await ctx.close();
 });
 

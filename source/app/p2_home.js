@@ -31,7 +31,7 @@ function renderHome(){
   ${SITE.routing==='path'?`<div class="tiles3">
     ${(()=>{const w=pregWeek();return w?`<a class="tilec" href="/pregnancy/week-${w}"><span class="k">${t('להורים בדרך','Expecting?')}</span><b>${t(`שבוע ${w} להריון`,`Pregnancy week ${w}`)}</b><span>${t('לפי התאריך ששמרתם: מה קורה השבוע והבדיקות שלכם','From your saved date: this week and your checkups (in Hebrew)')}</span></a>`
       :`<a class="tilec" href="/pregnancy/calculator"><span class="k">${t('להורים בדרך','Expecting?')}</span><b>${t('מחשבון הריון','Pregnancy calculator')}</b><span>${t('באיזה שבוע אתם, מתי התאריך המשוער ושמות לחודש הלידה','Your week, the due date and names for the birth month (in Hebrew)')}</span></a>`})()}
-    <a class="tilec" href="/guides"><span class="tthumbs" aria-hidden="true">${[1,2,3].map(i=>`<img src="/og/home/${i}.png" alt="" width="320" height="180" loading="lazy">`).join('')}</span><span class="k">${t('מדריכים ומאמרים','Guides')}</span><b>${t('לבחור שם בעזרת הנתונים','Choosing with the data')}</b><span>${t('שמות לתאומים, שמות שהחליפו מגדר, השמות שנעלמו ועוד','Twin names, names that switched gender and more (in Hebrew)')}</span></a>
+    <a class="tilec" href="/guides"><span class="k">${t('מדריכים ומאמרים','Guides')}</span><b>${t('לבחור שם בעזרת הנתונים','Choosing with the data')}</b><span>${t('שמות לתאומים, שמות שהחליפו מגדר, השמות שנעלמו ועוד','Twin names, names that switched gender and more (in Hebrew)')}</span></a>
     <a class="tilec" href="/names#colls"><span class="k">${t('אוספי שמות','Name lists')}</span><b>${t('רשימות מוכנות','Ready-made lists')}</b><span>${t('מקראיים, בעלייה, נדירים, שמות לתאומים ועוד','Biblical, rising, rare, twin names and more (in Hebrew)')}</span></a>
   </div>`:''}
 `;

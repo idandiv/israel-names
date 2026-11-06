@@ -320,15 +320,9 @@ css = FF + css
 A_CSS = hashed('app', 'css', css)
 A_DOC = hashed('doc', 'css', doc_css)
 shutil.copy(D + 'assets/og.png', SRC + 'og.png')
-# the guides' share images (npm run og), and the three newest guides' small covers for the home tile: by place, so a new guide changes
-# only the pictures, and app.js and the name pages stay as they are
+# the guides' share images (npm run og)
 if os.path.isdir(D + 'assets/og/guides'):
     shutil.copytree(D + 'assets/og/guides', SRC + 'og/guides', dirs_exist_ok=True, ignore=shutil.ignore_patterns('hashes.json'))
-    os.makedirs(SRC + 'og/home', exist_ok=True)
-    for i, g in enumerate(guides.load()[:3], 1):
-        thumb = SRC + f'og/guides/thumb/{g["slug"]}.png'
-        if os.path.isfile(thumb):
-            shutil.copy(thumb, SRC + f'og/home/{i}.png')
 A_CHART = hashed('chart', 'js', chart)
 A_DATA = hashed('data', 'js', 'const DATA=' + data + ';')
 A_MEAN = hashed('meanings', 'js', 'const MEANINGS=' + json.dumps(meanings.compact(MEANINGS), ensure_ascii=False, separators=(',', ':')) + ';')

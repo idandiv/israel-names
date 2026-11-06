@@ -59,8 +59,6 @@
 .tilec{all:unset;box-sizing:border-box;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px;transition:border-color .15s,transform .15s}
 .tilec:hover{border-color:var(--accent);transform:translateY(-2px)}
 .tilec:focus-visible{outline:2px solid var(--accent)}
-.tthumbs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:8px}
-.tthumbs img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px}
 .tilec .k,.card.advanced .k{font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--accent)}
 .tilec b{font-size:18px;color:var(--ink)}
 .tilec span:last-child{font-size:13.5px;color:var(--ink-2)}
