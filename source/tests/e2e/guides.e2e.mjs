@@ -32,6 +32,32 @@ for (const width of [375, 1200]) {
   });
 }
 
+test('the hub: a cover on every card, the newest guide first, and filter buttons by badge', async () => {
+  const G = JSON.parse(readFileSync(new URL('../../data/guides.json', import.meta.url), 'utf-8'));
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.goto(`${server.url}/guides`);
+  const cards = page.locator('.gcards > li');
+  assert.equal(await cards.count(), G.length);
+  assert.equal(await page.locator('.gcards > li svg.cover').count(), G.length);
+  assert.equal(await page.locator('.gcards > li:first-child').getAttribute('class'), 'gfeat');
+  assert.equal(await page.locator('.gcards > li:first-child a').getAttribute('href'), `/guides/${G[0].slug}`);
+  assert.ok(await page.locator('.gfilt').isVisible());
+  const badge = G[1].badge;
+  await page.locator(`.gfilt button[data-t="${badge}"]`).click();
+  assert.equal(await page.locator('.gcards > li:visible').count(), G.filter(g => g.badge === badge).length);
+  assert.equal(await page.locator(`.gfilt button[data-t="${badge}"]`).getAttribute('aria-pressed'), 'true');
+  await page.locator('.gfilt button[data-t=""]').click();
+  assert.equal(await page.locator('.gcards > li:visible').count(), G.length);
+  await ctx.close();
+  const noJs = await browser.newContext({ javaScriptEnabled: false });
+  const p2 = await noJs.newPage();
+  await p2.goto(`${server.url}/guides`);
+  assert.equal(await p2.locator('.gcards > li:visible').count(), G.length);   // without JavaScript: every guide, no buttons
+  assert.equal(await p2.locator('.gfilt').isVisible(), false);
+  await noJs.close();
+});
+
 test('the new guides show their tables, with a link for every name', async () => {
   const page = await browser.newPage();
   for (const [slug, tables] of [['gender-switch-names', 4], ['vanished-names', 8], ['new-names', 4], ['shared-names', 2], ['sibling-names', 4]]) {

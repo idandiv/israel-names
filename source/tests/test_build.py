@@ -117,13 +117,14 @@ class GuideBlocks(unittest.TestCase):
         names = {n for n, _, _ in YC}
         by_name = {n: {'n': n, 'g': 50, 'origin': '', 'en': n, 'sec': 'יהודים'} for n in names}
         self.tmp = tempfile.mkdtemp()
-        self.c = {'page': lambda *a, **k: '', 'static_shell': lambda cur, inner: inner, 'by_name': by_name, 'YC': YC, 'SN': SN, 'SC': SC,
+        self.c = {'page': lambda *a, **k: '', 'static_shell': lambda cur, inner, **k: inner, 'hashed': lambda *a: '/assets/x.js', 'by_name': by_name, 'YC': YC, 'SN': SN, 'SC': SC,
                   'PREG': {'months': [{'month': 'תשרי', 'note': 'n', 'names': ['שי']}],
                            'holidays': [{'id': 'sukkot', 'name': 'סוכות', 'month': 'תשרי', 'day': 15, 'len': 7, 'note': 'n', 'names': ['דוד']}]},
                   'ny': lambda x, s: YC.get((x['n'], s, self.Y1), 0), 'enc': lambda n: n, 'fmt': lambda n: f'{n:,}',
                   'short_mean': lambda x: '', 'coll_list': lambda rows, f: '', 'arrow': '', 'Y0': self.Y0, 'Y1': self.Y1,
                   'SRC': self.tmp + '/', 'PH': '', 'LD_SITE': {}, 'LD_ORG': {}, 'LD_DATA': {}}
         self.g = {'slug': 'test', 'title': 't', 'h1': 'h', 'desc': 'd', 'badge': 'b', 'card': 'c', 'published': '2026-11-05',
+                  'cover': {'motif': 'names', 'tone': 'accent', 'names': ['שי', 'קרן', 'דוד', 'דן']},
                   'periods': [[1980, 1999], [2015, 2024]],
                   'switch': {'up': {'dir': 'girls', 'names': ['שי']}},
                   'faded': {'g80': {'sex': 0, 'decade': 1980, 'names': ['קרן', 'גלית']}},
@@ -196,6 +197,16 @@ class GuideBlocks(unittest.TestCase):
         self.build(lambda g: g.update({'pairs': pairs, 'different_start': True, 'body': g['body'] + '<!--pairs:boys-->'}))
         pairs['boys'][0]['pairs'] = [['דוד', 'דן']]   # both start with ד
         self.broken(lambda g: g.update({'pairs': pairs, 'different_start': True, 'body': g['body'] + '<!--pairs:boys-->'}))
+
+    def test_cover(self):
+        for m in guides.MOTIFS:
+            self.build(lambda g: g['cover'].update({'motif': m}))   # every motif draws with the fewest names
+            self.assertIn('<svg class="cover"', guides.cover_svg({**self.g, 'cover': {**self.g['cover'], 'motif': m}}))
+        self.broken(lambda g: g.pop('cover'))
+        self.broken(lambda g: g['cover'].update({'motif': 'nope'}))
+        self.broken(lambda g: g['cover'].update({'tone': 'red'}))
+        self.broken(lambda g: g['cover'].update({'names': ['שי', 'קרן', 'דוד']}))            # too few
+        self.broken(lambda g: g['cover'].update({'names': ['שי', 'קרן', 'דוד', 'אין-כזה']}))  # not in the data
 
     def test_heb_day(self):
         self.assertEqual([guides.heb_day(d) for d in (1, 10, 15, 16, 25, 30)], ['א׳', 'י׳', 'ט״ו', 'ט״ז', 'כ״ה', 'ל׳'])

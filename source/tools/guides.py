@@ -89,6 +89,93 @@ def heb_day(d):
     return s + '׳' if len(s) == 1 else s[:-1] + '״' + s[-1]
 
 
+# ---- covers: a drawing for every guide (hub card, top of the article), inline SVG built from the guide's own names ----
+# cover: {"motif": a key of MOTIFS, "tone": a colour token of base.css, "names": 4-7 names of the guide, all in the data}
+TONES = ('accent', 'stamp', 'c3', 'c4', 'girl', 'boy')
+COVER_NAMES = (4, 7)
+CW, CH = 640, 360   # the cover's viewBox, 16:9
+
+
+def _txt(x, y, size, n, cls='cv-n', extra=''):
+    return f'<text x="{x}" y="{y}" font-size="{size}" text-anchor="middle" class="{cls}"{extra}>{H.escape(n)}</text>'
+
+
+def _calendar(N):
+    """the Hebrew year as a ring of 12 months, the first name inside it, the rest beside it"""
+    import math
+    cx, cy, r = 190, 180, 120
+    dots = ''
+    for i in range(12):
+        a = -math.pi / 2 + i * math.pi / 6
+        x, y = cx + r * math.cos(a), cy + r * math.sin(a)
+        dots += (f'<circle cx="{x:.1f}" cy="{y:.1f}" r="11" class="cv-t"/>' if i in (0, 3, 6, 8)
+                 else f'<circle cx="{x:.1f}" cy="{y:.1f}" r="6" class="cv-t" opacity=".4"/>')
+    ring = f'<circle cx="{cx}" cy="{cy}" r="{r}" class="cv-s" stroke-width="1.5" opacity=".35"/>' \
+           f'<circle cx="{cx}" cy="{cy}" r="{r - 34}" class="cv-s" stroke-width="1" stroke-dasharray="2 7" opacity=".45"/>'
+    side = ''.join(_txt(470, y, s, n, 'cv-n' if i % 2 == 0 else 'cv-n cv-tn')
+                   for i, (n, y, s) in enumerate(zip(N[1:5], (98, 168, 238, 308), (66, 54, 60, 50))))
+    return ring + dots + _txt(cx, cy + 26, 78, N[0]) + side
+
+
+def _mirror(N):
+    """twins: two names side by side, reflected as in water, and two more pairs under them"""
+    a, b = N[0], N[1]
+    top = _txt(462, 172, 104, a) + _txt(178, 172, 104, b, 'cv-n cv-tn')
+    refl = f'<g transform="translate(0 362) scale(1 -1)" opacity=".13">{top}</g>'
+    axis = f'<line x1="320" y1="44" x2="320" y2="300" class="cv-s" stroke-width="1.5" stroke-dasharray="3 8" opacity=".5"/>' \
+           f'<circle cx="320" cy="34" r="5" class="cv-t"/><line x1="40" y1="190" x2="600" y2="190" class="cv-s" stroke-width="1" opacity=".22"/>'
+    pairs = ''.join(_txt(x, 330, 32, f'{p} · {q}', 'cv-m') for x, (p, q) in zip((462, 178), zip(N[2::2], N[3::2])))
+    return axis + refl + top + pairs
+
+
+def _fade(N):
+    """names that faded: a line that peaks and falls behind them, the names dimmer and dimmer"""
+    pts = [(0, 330), (80, 316), (160, 270), (230, 150), (280, 90), (330, 120), (400, 220), (480, 290), (560, 318), (640, 326)]
+    line = ' '.join(f'{x},{y}' for x, y in reversed([(CW - x, y) for x, y in pts]))
+    chart = (f'<polygon points="{CW},{CH} {line} 0,{CH}" class="cv-t" opacity=".07"/>'
+             f'<polyline points="{line}" class="cv-s" stroke-width="2.5" stroke-linejoin="round" opacity=".55"/>')
+    spots = ((520, 128), (320, 128), (120, 128), (520, 262), (320, 262), (120, 262))
+    names = ''.join(_txt(x, y, 70, n, extra=f' opacity="{o}"') for (x, y), n, o in zip(spots, N, (1, .78, .58, .42, .28, .17)))
+    return chart + names
+
+
+def _names(N):
+    """the default: the guide's names set like a poster, a few dots of the tone"""
+    spots = ((468, 122, 82, 'cv-n'), (190, 112, 58, 'cv-n cv-tn'), (330, 210, 66, 'cv-n'), (528, 282, 52, 'cv-n cv-tn'),
+             (150, 262, 70, 'cv-n cv-dim'), (360, 322, 44, 'cv-m'), (80, 320, 0, ''))
+    out = ''.join(_txt(x, y, s, n, cls) for (x, y, s, cls), n in zip(spots, N) if s)
+    dots = ''.join(f'<circle cx="{x}" cy="{y}" r="{r}" class="cv-t" opacity="{o}"/>'
+                   for x, y, r, o in ((96, 64, 6, .9), (590, 56, 4, .6), (612, 196, 8, .35), (40, 180, 3, .7), (250, 300, 5, .5)))
+    return dots + out
+
+
+MOTIFS = {'calendar': _calendar, 'mirror': _mirror, 'fade': _fade, 'names': _names}
+
+
+def check_cover(g, need):
+    C = g.get('cover')
+    assert C, f'guides: {g["slug"]} has no cover (cover: motif, tone, names)'
+    assert C.get('motif') in MOTIFS, f'guides: {g["slug"]}: cover motif {C.get("motif")} is not one of {" ".join(MOTIFS)}'
+    assert C.get('tone') in TONES, f'guides: {g["slug"]}: cover tone {C.get("tone")} is not one of {" ".join(TONES)}'
+    N = C.get('names') or []
+    assert COVER_NAMES[0] <= len(N) <= COVER_NAMES[1] and len(set(N)) == len(N), \
+        f'guides: {g["slug"]}: a cover needs {COVER_NAMES[0]}-{COVER_NAMES[1]} different names'
+    for n in N:
+        need(n, f'{g["slug"]} cover')
+
+
+def cover_svg(g, uid=''):
+    """the cover of guide g; uid tells two drawings of the same guide on one page apart (the gradient's id)"""
+    C = g['cover']
+    gid = f'cg-{g["slug"]}{uid}'
+    bg = (f'<defs><radialGradient id="{gid}" cx="88%" cy="6%" r="95%">'
+          f'<stop offset="0" style="stop-color:var(--{C["tone"]});stop-opacity:.34"/>'
+          f'<stop offset=".7" style="stop-color:var(--{C["tone"]});stop-opacity:0"/></radialGradient></defs>'
+          f'<rect width="{CW}" height="{CH}" class="cv-bg"/><rect width="{CW}" height="{CH}" fill="url(#{gid})"/>')
+    return (f'<svg class="cover" viewBox="0 0 {CW} {CH}" preserveAspectRatio="xMidYMid slice" style="--t:var(--{C["tone"]})" aria-hidden="true" focusable="false">'
+            f'{bg}{MOTIFS[C["motif"]](C["names"])}</svg>')
+
+
 def build(c):
     """c: what build_site.py shares (page, static_shell, by_name, ny, YC, SN, SC, PREG, enc, fmt, short_mean, coll_list, Y0, Y1, SRC, PH, LD_*).
     Writes src/guides/; returns (paths for the sitemap, [(slug, title, desc)] for llms.txt and the hub)."""
@@ -397,6 +484,17 @@ def build(c):
             f'<li><a href="#{i}">{t}</a></li>' for i, t in items) + '</ol></nav>'
 
     date_he = lambda d: '.'.join(str(int(p)) for p in reversed(d.split('-')))
+    def minutes(html):
+        """reading time: the words of the page (tables included), 180 a minute"""
+        words = len(re.sub(r'<[^>]+>', ' ', html).split())
+        return max(1, -(-words // 180))
+
+    def linked(html):
+        """the names the page links to"""
+        return set(re.findall(r'href="/names/([^"#?]+)"', html))
+
+    for g in G:
+        check_cover(g, need)
     paths, listed = [], []
     for g in G:
         slug, path = g['slug'], '/guides/' + g['slug']
@@ -457,23 +555,39 @@ def build(c):
             c['LD_SITE'], c['LD_ORG']]}
         open(c['SRC'] + f'guides/{slug}.html', 'w').write(c['page'](title, g['desc'], path, c['static_shell']('guides', inner), jsonld=ld, app=False))
         paths.append(path)
-        listed.append((slug, g['title'], g['desc'], g['card'], g['badge'], date_he(g.get('updated') or g['published'])))
+        listed.append({'g': g, 'date': date_he(g.get('updated') or g['published']), 'min': minutes(body + faq_html), 'names': linked(body)})
 
-    # the hub: one card per guide (badge, title, summary, date, and a "read" call to action)
+    # the hub: the newest guide first and wide, then a grid; a cover, badge, title, summary, reading time and names for each,
+    # and buttons that filter by badge (guides.mjs; without JavaScript they stay hidden and every guide shows)
     HT, HD = 'מדריכים ומאמרים לבחירת שם לתינוק | השמות של ישראל', 'מדריכים, מאמרים וטיפים לבחירת שם לתינוק, מבוססים על נתוני הלמ״ס: שמות לתאומים ועוד, עם הפירוש והפופולריות של כל שם.'
-    cards = '<ul class="gcards">' + ''.join(
-        f'<li><a href="/guides/{s}"><span class="gbadge">{e(bd)}</span><b>{e(t)}</b><span class="gsum">{e(cd)}</span>'
-        f'<span class="gfoot"><span class="gdate">עודכן ב-{d}</span><span class="gcta">לקריאת המאמר המלא {c["arrow"]}</span></span></a></li>'
-        for s, t, _, cd, bd, d in listed) + '</ul>'
+
+    def card(x, i):
+        g = x['g']
+        feat = ' class="gfeat"' if i == 0 else ''
+        return (f'<li data-t="{e(g["badge"])}"{feat}><a href="/guides/{g["slug"]}">'
+                f'<span class="gcv">{cover_svg(g)}</span><span class="gtx"><span class="gbadge">{e(g["badge"])}</span><b>{e(g["h1"])}</b>'
+                f'<span class="gsum">{e(g["card"])}</span><span class="gfoot"><span class="gfacts">{x["min"]} דק׳ קריאה · {len(x["names"])} שמות</span>'
+                f'<span class="gdate">{x["date"]}</span>{c["arrow"]}</span></span></a></li>')
+    badges = {}
+    for x in listed:
+        badges[x['g']['badge']] = badges.get(x['g']['badge'], 0) + 1
+    filt = ('<div class="gfilt" role="group" aria-label="סינון לפי נושא" hidden><button type="button" aria-pressed="true" data-t="">הכל '
+            f'<span>{len(listed)}</span></button>' + ''.join(f'<button type="button" aria-pressed="false" data-t="{e(b)}">{e(b)} <span>{k}</span></button>'
+                                                          for b, k in sorted(badges.items(), key=lambda t: -t[1])) + '</div>')
+    cards = filt + '<ul class="gcards">' + ''.join(card(x, i) for i, x in enumerate(listed)) + '</ul>'
+    all_names = set().union(*(x['names'] for x in listed)) if listed else set()
+    stats = f'<p class="gstats"><b>{len(listed)}</b> מדריכים · <b>{len(all_names):,}</b> שמות · נתוני הלמ״ס {Y0}–{Y1}</p>'
+    js = c['hashed']('guides', 'js', open(S + 'app/guides.mjs', encoding='utf-8').read())
     url = PH + '/guides'
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "CollectionPage", "@id": url, "url": url, "name": HT, "description": HD, "inLanguage": "he",
          "dateModified": "__MODIFIED__", "isPartOf": {"@id": PH + "/#website"}, "author": {"@id": PH + "/#organization"},
          "mainEntity": {"@type": "ItemList", "numberOfItems": len(listed), "itemListElement": [
-             {"@type": "ListItem", "position": i, "name": t, "url": f'{PH}/guides/{s}'} for i, (s, t, *_) in enumerate(listed, 1)]}},
+             {"@type": "ListItem", "position": i, "name": x['g']['title'], "url": f'{PH}/guides/{x["g"]["slug"]}'} for i, x in enumerate(listed, 1)]}},
         c['LD_SITE'], c['LD_ORG']]}
     open(c['SRC'] + 'guides/index.html', 'w').write(c['page'](
         HT, HD, '/guides', c['static_shell']('guides', f'<p class="k">השמות של ישראל</p><h1>{SECTION}</h1>'
-                                             '<p class="dlead">מדריכים, מאמרים וטיפים לבחירת שם, מבוססים על נתוני הלמ״ס והמחקר.</p>' + cards),
+                                             '<p class="dlead">מדריכים, מאמרים וטיפים לבחירת שם, מבוססים על נתוני הלמ״ס והמחקר.</p>'
+                                             f'{stats}{cards}<script type="module" src="{js}"></script>', wide=True),
         jsonld=ld, app=False))
-    return ['/guides'] + paths, [(s, t, d) for s, t, d, *_ in listed]
+    return ['/guides'] + paths, [(x['g']['slug'], x['g']['title'], x['g']['desc']) for x in listed]

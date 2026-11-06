@@ -93,18 +93,52 @@ doc_css = """
 .docbody .pg-area{fill:var(--accent-soft)}.docbody .pg-line{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
 .docbody .pg-now{stroke:var(--stamp);stroke-width:1.5;stroke-dasharray:2 3}.docbody .pg-halo{fill:var(--stamp);opacity:.22}.docbody .pg-dot{fill:var(--stamp);stroke:var(--bg);stroke-width:2}
 .docbody .gforms .gform{font-size:16px;font-weight:600}.docbody .gforms .gn{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
-.docbody .gcards{list-style:none;padding:0;margin:14px 0;display:grid;gap:10px}
-.docbody .gcards a{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:16px;padding:16px 18px;color:var(--ink);font-weight:400;background:var(--surface);
-  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
-.docbody .gcards a:hover,.docbody .gcards a:focus-visible{border-color:var(--accent);background:var(--surface-2);transform:translateY(-2px);
+/* the hub: a wider column, a line of numbers, filter buttons, the newest guide wide and the rest in a grid; each card has its cover */
+.docin.docwide{max-width:1040px}
+.docbody .gstats{color:var(--muted);font-size:14px;margin:-6px 0 18px}.docbody .gstats b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.docbody .gfilt{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}.docbody .gfilt[hidden]{display:none}
+.docbody .gfilt button{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:4px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface);
+  color:var(--ink-2);font:600 13.5px var(--f-body);cursor:pointer;transition:border-color .15s ease,color .15s ease}
+.docbody .gfilt button span{color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+.docbody .gfilt button:hover{border-color:var(--accent);color:var(--ink)}
+.docbody .gfilt button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}.docbody .gfilt button[aria-pressed="true"] span{color:inherit}
+.docbody .gfilt button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:600px){.docbody .gfilt{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-18px;padding:2px 18px}.docbody .gfilt::-webkit-scrollbar{display:none}.docbody .gfilt button{flex:none}}
+.docbody .gcards{list-style:none;padding:0;margin:0 0 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.docbody .gcards>li{min-width:0;display:flex}.docbody .gcards>li[hidden]{display:none}
+.docbody .gcards a{display:flex;flex-direction:column;width:100%;border:1px solid var(--line);border-radius:18px;overflow:hidden;color:var(--ink);font-weight:400;background:var(--surface);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.docbody .gcards a:hover,.docbody .gcards a:focus-visible{border-color:var(--accent);transform:translateY(-2px);
   box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent),0 10px 28px -14px color-mix(in srgb,var(--accent) 60%,transparent)}
+.docbody .gcards a:focus-visible{outline:none}
+.docbody .gcv{display:block;overflow:hidden;border-bottom:1px solid var(--line)}
+.docbody .cover{display:block;width:100%;height:auto;aspect-ratio:16/9;transition:transform .35s ease}
+.docbody .gcards a:hover .cover{transform:scale(1.03)}
+.docbody .gtx{display:flex;flex-direction:column;gap:6px;padding:14px 16px 14px;flex:1}
 .docbody .gcards .gbadge{align-self:flex-start;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 10px}
-.docbody .gcards b{font-size:19px;line-height:1.35}
-.docbody .gcards .gsum{color:var(--ink-2);font-size:14.5px;line-height:1.6}
-.docbody .gcards .gfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;padding-top:10px;border-top:1px solid var(--line)}
-.docbody .gcards .gdate{color:var(--muted);font-size:13px}
-.docbody .gcards .gcta{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-size:14px;font-weight:700}
-.docbody .gcards .gcta .ic{width:16px;height:16px;transition:transform .18s ease}.docbody .gcards a:hover .gcta .ic{transform:translateX(-3px)}
+.docbody .gcards b{font-size:18px;line-height:1.35}
+.docbody .gcards .gsum{color:var(--ink-2);font-size:14px;line-height:1.6;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.docbody .gcards .gfoot{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+.docbody .gcards .gfacts{font-variant-numeric:tabular-nums}.docbody .gcards .gdate{margin-inline-start:auto;font-variant-numeric:tabular-nums}
+.docbody .gcards .gfoot .ic{width:16px;height:16px;color:var(--accent);flex:none;transition:transform .18s ease}.docbody .gcards a:hover .gfoot .ic{transform:translateX(-3px)}
+/* the newest guide: across the grid, the cover beside the text (above it on a phone) */
+.docbody .gcards>li.gfeat{grid-column:1/-1}
+.docbody .gcards .gfeat b{font-size:clamp(22px,3vw,30px);line-height:1.25}
+.docbody .gcards .gfeat .gsum{font-size:15.5px;-webkit-line-clamp:4}
+@media (min-width:720px){
+  .docbody .gcards .gfeat a{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+  .docbody .gcards .gfeat .gcv{border-bottom:0;border-inline-end:1px solid var(--line)}
+  .docbody .gcards .gfeat .cover{height:100%;object-fit:cover}
+  .docbody .gcards .gfeat .gtx{padding:22px 24px;justify-content:center;gap:10px}
+  .docbody .gcards .gfeat .gfoot{margin-top:8px}
+}
+.docbody .gcards.is-filtered>li.gfeat{grid-column:auto}
+.docbody .gcards.is-filtered .gfeat a{display:flex}.docbody .gcards.is-filtered .gfeat .gcv{border-inline-end:0;border-bottom:1px solid var(--line)}
+.docbody .gcards.is-filtered .gfeat .gtx{padding:14px 16px;gap:6px}.docbody .gcards.is-filtered .gfeat b{font-size:18px}.docbody .gcards.is-filtered .gfeat .gsum{font-size:14px;-webkit-line-clamp:3}
+/* the covers: colours from the page's tokens, the guide's own tone in --t */
+.cover .cv-bg{fill:var(--surface-2)}.cover .cv-t{fill:var(--t)}.cover .cv-s{fill:none;stroke:var(--t)}
+.cover text{font-family:var(--f-display);font-weight:700}.cover .cv-n{fill:var(--ink)}.cover .cv-tn{fill:var(--t)}.cover .cv-dim{fill:var(--ink-2);opacity:.7}
+.cover .cv-m{fill:var(--muted);font-family:var(--f-body);font-weight:600}
 /* pregnancy calculator (/pregnancy/calculator): form, result card, weeks list */
 .docbody .pform{display:grid;gap:14px;border:1px solid var(--line);border-radius:16px;padding:16px;margin:18px 0;background:var(--surface)}
 .docbody .pform [hidden],.docbody .pres[hidden],.docbody .perr[hidden]{display:none}
@@ -242,7 +276,8 @@ doc_css = """
 .docbody .pchk .is-done b{color:var(--muted);text-decoration:line-through}
 .docbody .pchks td{font-size:14.5px}.docbody .pchks td b{font-size:15px}
 .docbody .pchks th:first-child{width:34%}.docbody .pchks th:nth-child(2){width:24%}
-@media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gcta .ic{transition:none}.docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gcta .ic{transform:none}}
+@media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gfoot .ic,.docbody .cover,.docbody .gfilt button{transition:none}
+  .docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gfoot .ic,.docbody .gcards a:hover .cover{transform:none}}
 """
 
 
@@ -556,8 +591,9 @@ MATCH_CTA = (f'<a class="matchcta collcta" href="/#match"><span class="gl1">{ic(
              f'<span class="go">להתחיל {ic(IC_ARROW)}</span></a>')
 
 
-def static_shell(cur, inner):
-    return f'''<div class="docin" dir="rtl">
+def static_shell(cur, inner, wide=False):
+    """wide: a wider column, for a grid of cards (the guides hub)"""
+    return f'''<div class="docin{' docwide' if wide else ''}" dir="rtl">
 <div class="doctop"><a class="docback" href="/">{ic(IC_BACK)}<span>לדף הבית</span></a><span class="docbrand">השמות של ישראל</span></div>
 <article class="docbody">{inner}</article>
 {MATCH_CTA}
@@ -883,7 +919,7 @@ for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
         jsonld=coll_ld(path, title, desc, COLL_ROWS[k], faq), app=False))
 
 # ---- guides: /guides and /guides/<slug> (tools/guides.py) ----
-GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 'by_name': by_name, 'ny': ny, 'YC': YC, 'SN': SN, 'SC': SC, 'enc': enc, 'fmt': fmt,
+GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'ny': ny, 'YC': YC, 'SN': SN, 'SC': SC, 'enc': enc, 'fmt': fmt,
                                     'short_mean': short_mean, 'coll_list': coll_list, 'arrow': ic(IC_ARROW), 'Y0': Y0, 'Y1': Y1, 'SRC': SRC, 'PH': PH,
                                     'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG, 'LD_DATA': LD_DATA, 'PREG': pregnancy.load()})
 # ---- the pregnancy calculator: /pregnancy/calculator (tools/pregnancy.py) ----
