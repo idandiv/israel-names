@@ -9,9 +9,10 @@ Fails (exit 1, with a list of problems) when:
 - scripts/paths.json (the sitemap list) and the indexable pages in src/ differ, or lastmod.json misses a path
 - app.js is loaded on a page the app would take over by mistake: only the home page, the info pages, 404
   and the name pages (/names/<name>, with the name's DefinedTerm) may load it
+- a guide has no share image, or its share image was made from another drawing of its cover (npm run og makes them again)
 Standard library only, so CI needs no install.
 """
-import json, os, re, sys
+import hashlib, json, os, re, sys
 from urllib.parse import unquote
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')) + '/'
@@ -120,7 +121,28 @@ def check():
     for p in sitemap:
         if p not in lastmod:
             errs.append(f'scripts/lastmod.json has no date for {p}')
+    errs += check_guide_images()
     return len(pages), errs
+
+
+def check_guide_images():
+    """every guide has a share image made from its cover as it is now, and its page points to it"""
+    errs = []
+    hashes_file = ROOT + 'source/assets/og/guides/hashes.json'
+    hashes = json.load(open(hashes_file, encoding='utf-8')) if os.path.isfile(hashes_file) else {}
+    for g in json.load(open(ROOT + 'source/data/guides.json', encoding='utf-8')):
+        slug = g['slug']
+        s = open(SRC + f'guides/{slug}.html', encoding='utf-8').read()
+        cover = re.search(r'<div class="ghero">(<svg.*?</svg>)</div>', s, re.S)
+        if not cover:
+            errs.append(f'/guides/{slug}: no cover')
+        elif hashlib.sha1(cover.group(1).encode()).hexdigest() != hashes.get(slug):
+            errs.append(f'/guides/{slug}: the cover changed since its share image was made: run npm run og')
+        if not os.path.isfile(SRC + f'og/guides/{slug}.png'):
+            errs.append(f'/guides/{slug}: og/guides/{slug}.png is missing: run npm run og')
+        if f'<meta property="og:image" content="{PH}/og/guides/{slug}.png">' not in s:
+            errs.append(f'/guides/{slug}: og:image does not point to its share image')
+    return errs
 
 
 if __name__ == '__main__':

@@ -84,6 +84,20 @@ test('the shared names cover shows Arabic in the Arabic font', async () => {
   await ctx.close();
 });
 
+test('every guide shares its own image', async () => {
+  const G = JSON.parse(readFileSync(new URL('../../data/guides.json', import.meta.url), 'utf-8'));
+  const ctx = await browser.newContext({ viewport: { width: 1200, height: 800 } });
+  const page = await ctx.newPage();
+  for (const g of G) {
+    const res = await page.goto(`${server.url}/og/guides/${g.slug}.png`);
+    assert.equal(res.status(), 200, g.slug);
+    assert.equal(res.headers()['content-type'], 'image/png', g.slug);
+    await page.goto(`${server.url}/guides/${g.slug}`);
+    assert.match(await page.locator('meta[property="og:image"]').getAttribute('content'), new RegExp(`/og/guides/${g.slug}\\.png$`));
+  }
+  await ctx.close();
+});
+
 test('the new guides show their tables, with a link for every name', async () => {
   const page = await browser.newPage();
   for (const [slug, tables] of [['gender-switch-names', 4], ['vanished-names', 8], ['new-names', 4], ['shared-names', 2], ['sibling-names', 4]]) {

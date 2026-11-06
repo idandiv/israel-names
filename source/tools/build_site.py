@@ -320,6 +320,9 @@ css = FF + css
 A_CSS = hashed('app', 'css', css)
 A_DOC = hashed('doc', 'css', doc_css)
 shutil.copy(D + 'assets/og.png', SRC + 'og.png')
+# the guides' share images (npm run og)
+if os.path.isdir(D + 'assets/og/guides'):
+    shutil.copytree(D + 'assets/og/guides', SRC + 'og/guides', dirs_exist_ok=True, ignore=shutil.ignore_patterns('hashes.json'))
 A_CHART = hashed('chart', 'js', chart)
 A_DATA = hashed('data', 'js', 'const DATA=' + data + ';')
 A_MEAN = hashed('meanings', 'js', 'const MEANINGS=' + json.dumps(meanings.compact(MEANINGS), ensure_ascii=False, separators=(',', ':')) + ';')
@@ -366,11 +369,13 @@ def modified(path, content):
     return LASTMOD[path][1]
 
 
-def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
+def page(title, desc, path, body, noindex=False, jsonld=None, app=True, og=None):
     """app=False: a plain static page (collections, the all-names hub) that the app does not take over.
-    jsonld may hold "__MODIFIED__", which becomes the date the page content last changed."""
+    jsonld may hold "__MODIFIED__", which becomes the date the page content last changed.
+    og: (path of the share image, its description), instead of the site's image."""
     canon = PH + path
     e = H.escape
+    og_img, og_alt = og or ('/og.png', 'השמות של ישראל – מאגר שמות לתינוקות ומשחק בחירת שם ביחד')
     ld = json.dumps(jsonld, ensure_ascii=False) if jsonld else ''
     if not noindex:
         ld = ld.replace('__MODIFIED__', modified(path, title + desc + body + ld))
@@ -390,14 +395,14 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True):
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{canon}">
-<meta property="og:image" content="{PH}/og.png">
+<meta property="og:image" content="{PH}{og_img}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="השמות של ישראל – מאגר שמות לתינוקות ומשחק בחירת שם ביחד">
+<meta property="og:image:alt" content="{e(og_alt)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{e(title)}">
 <meta name="twitter:description" content="{e(desc)}">
-<meta name="twitter:image" content="{PH}/og.png">
+<meta name="twitter:image" content="{PH}{og_img}">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
