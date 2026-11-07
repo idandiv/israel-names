@@ -294,6 +294,14 @@ doc_css = """
 .docbody .pchk .is-done b{color:var(--muted);text-decoration:line-through}
 .docbody .pchks td{font-size:14.5px}.docbody .pchks td b{font-size:15px}
 .docbody .pchks th:first-child{width:34%}.docbody .pchks th:nth-child(2){width:24%}
+/* the main collections (/names/boys, girls, unisex): breadcrumbs, quick links (one scrolling line on a phone), rank changes, tables of top names */
+.docbody .crumbs{color:var(--muted);font-size:13px;margin:0}.docbody .crumbs a{color:var(--muted);font-weight:400;border:0}.docbody .crumbs a:hover{color:var(--accent)}
+.docbody .cgc.ctop{margin:14px 0 6px}
+@media (max-width:600px){.docbody .cgc.ctop{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.docbody .cgc.ctop::-webkit-scrollbar{display:none}.docbody .cgc.ctop a{flex:none;white-space:nowrap}}
+.docbody .coll .mv{display:inline-block;min-width:30px;text-align:end;font-size:12px;font-weight:600;margin-inline-start:4px}.docbody .coll .mv0{color:var(--muted)}.docbody .coll .mvu{color:var(--good)}.docbody .coll .mvd{color:var(--bad)}.docbody .coll .mvn{color:var(--accent)}
+.docbody .gtop td{font-size:14.5px}.docbody .gtop td a{font-size:15px;font-weight:600}.docbody .gtop .cn{display:inline;font-variant-numeric:tabular-nums}.docbody .gtop .gi{display:inline-block;margin-inline-end:12px;white-space:nowrap}
+.docbody .gtop.gsec th:first-child{width:24%}
+.docbody .gsteps{margin:0 0 12px;padding-inline-start:20px}.docbody .gsteps li{margin-bottom:8px}
 @media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gfoot .ic,.docbody .cover,.docbody .gfilt button{transition:none}
   .docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gfoot .ic,.docbody .gcards a:hover .cover{transform:none}}
 """
@@ -627,17 +635,21 @@ def static_shell(cur, inner, wide=False):
 </div>'''
 
 
-def coll_ld(path, title, desc, lists, faq=()):
-    """CollectionPage + one ItemList per list of names (lists: [(name, rows)]), and a FAQPage of the page's questions (faq: [(q, a)])"""
+def coll_ld(path, title, desc, lists, faq=(), trail=None):
+    """CollectionPage + one ItemList per list of names (lists: [(name, rows)]), a FAQPage of the page's questions (faq: [(q, a)]),
+    and a BreadcrumbList when the page shows breadcrumbs (trail: [(name, path)], the last path None)"""
     url = PH + path
     return {"@context": "https://schema.org", "@graph": [
         {"@type": "CollectionPage", "@id": url, "url": url, "name": title, "description": desc, "inLanguage": "he",
          "dateModified": "__MODIFIED__", "isPartOf": {"@id": PH + "/#website"}, "author": {"@id": PH + "/#organization"}, "isBasedOn": LD_DATA,
+         **({"breadcrumb": {"@id": url + "#breadcrumb"}} if trail else {}),
          **({"mainEntity": [{"@type": "ItemList", "name": ln, "numberOfItems": len(rows), "itemListOrder": "https://schema.org/ItemListOrderDescending",
                              "itemListElement": [{"@type": "ListItem", "position": i, "name": x['n'], "url": f"{PH}/names/{enc(x['n'])}"}
                                                  for i, x in enumerate(rows, 1)]} for ln, rows in lists]} if lists else {})},
         *([{"@type": "FAQPage", "@id": url + "#faq", "isPartOf": {"@id": url}, "inLanguage": "he",
             "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faq]}] if faq else []),
+        *([{"@type": "BreadcrumbList", "@id": url + "#breadcrumb",
+            "itemListElement": [{"@type": "ListItem", "position": i, "name": n, **({"item": PH + p} if p else {})} for i, (n, p) in enumerate(trail, 1)]}] if trail else []),
         LD_SITE, LD_ORG]}
 
 
@@ -803,23 +815,8 @@ def kind_page(k, s):
             f'<h2>שמות עבריים ל{w} לפי פופולריות ב-{Y1}</h2>' + coll_list(rows, born_s(s)))
 
 
+# boys, girls and unisex are added below (main_page, unisex_page), once the helpers they need are defined
 COLL_PAGES = {
-    'boys': ('שמות לבנים', f'שמות לבנים – 100 השמות הנפוצים בישראל ב-{Y1}',
-             f'רשימת 100 שמות הבנים הנפוצים בישראל ב-{Y1} לפי הלמ״ס, עם מספר התינוקות, משמעות כל שם וקישור לתיק השם המלא.',
-             f'<p class="dlead">מחפשים שם לבן? אלה 100 השמות שניתנו הכי הרבה לבנים בישראל ב-{Y1}, לפי נתוני הלשכה המרכזית לסטטיסטיקה. '
-             'לכל שם יש תיק מלא עם משמעות, מקור ופופולריות לאורך השנים.</p>',
-             f'<h2>100 שמות הבנים המובילים ב-{Y1}</h2>' + coll_list(boys, born_s(1))),
-    'girls': ('שמות לבנות', f'שמות לבנות – 100 השמות הנפוצים בישראל ב-{Y1}',
-              f'רשימת 100 שמות הבנות הנפוצים בישראל ב-{Y1} לפי הלמ״ס, עם מספר התינוקות, משמעות כל שם וקישור לתיק השם המלא.',
-              f'<p class="dlead">מחפשים שם לבת? אלה 100 השמות שניתנו הכי הרבה לבנות בישראל ב-{Y1}, לפי נתוני הלשכה המרכזית לסטטיסטיקה. '
-              'לכל שם יש תיק מלא עם משמעות, מקור ופופולריות לאורך השנים.</p>',
-              f'<h2>100 שמות הבנות המובילים ב-{Y1}</h2>' + coll_list(girls, born_s(0))),
-    'unisex': ('שמות יוניסקס', 'שמות יוניסקס – שמות שמתאימים לבנים ולבנות',
-               f'{len(unisex)} שמות יוניסקס ישראליים שניתנים גם לבנים וגם לבנות, עם החלוקה המדויקת בין בנות לבנים לפי נתוני הלמ״ס.',
-               '<p class="dlead">שמות יוניסקס הם שמות שניתנים בישראל גם לבנות וגם לבנים. '
-               f'ברשימה {len(unisex)} שמות שבין 20% ל-80% מהתינוקות שנקראו בהם הם בנות, מסודרים לפי הפופולריות שלהם ב-{Y1}, '
-               'עם החלוקה המדויקת לפי נתוני הלמ״ס.</p>',
-               '<h2>שמות לבנים ולבנות</h2>' + coll_list(unisex, split)),
     'popular': ('השמות הנפוצים בישראל', f'השמות הנפוצים בישראל – המובילים ב-{Y1} ובכל הזמנים',
                 f'השמות הנפוצים ביותר בישראל לפי הלמ״ס: 50 השמות המובילים ב-{Y1} ו-50 השמות שניתנו הכי הרבה מאז {Y0}.',
                 f'<p class="dlead">אילו שמות הכי נפוצים בישראל? כאן שתי רשימות לפי נתוני הלשכה המרכזית לסטטיסטיקה: '
@@ -862,11 +859,11 @@ n_s = lambda x, s: f'{x["n"]} ({fmt(ny(x, s))} {sex_he(s)})'  # one sex
 and_list = lambda items: items[0] if len(items) == 1 else ', '.join(items[:-1]) + ' ו' + items[-1]
 
 
-def top_sector(s, sec, k=3):
-    """the k names given most to sex s in sector sec in Y1: [(name, babies)]"""
+def top_sector(s, sec, k=3, year=Y1):
+    """the k names given most to sex s in sector sec in that year: [(name, babies)]"""
     c = {}
     for (nm, sx, q, y), v in SC.items():
-        if sx == s and q == sec and y == Y1 and nm in by_name:
+        if sx == s and q == sec and y == year and nm in by_name:
             c[nm] = c.get(nm, 0) + v
     return sorted(c.items(), key=lambda t: -t[1])[:k]
 
@@ -880,19 +877,192 @@ def top_decade(d, s, k=3):
     return sorted(c.items(), key=lambda t: -t[1])[:k]
 
 
+# ---- the main collections, /names/boys, /names/girls and /names/unisex: the list first, then what the numbers show ----
+PAGE_YEAR = 2026  # the year in their <title>, the year parents choose in. The numbers are of Y1, and the description and the page say so
+MAIN_COLLS = ('boys', 'girls', 'unisex')
+MAIN_ROWS = {1: boys, 0: girls}
+name_a = lambda n: f'<a href="/names/{enc(n)}">{H.escape(n)}</a>'
+trail_of = lambda name: [('דף הבית', '/'), ('כל השמות', '/names'), (name, None)]
+# The Population Authority's ranking of the children born in the Hebrew year תשפ"ו, published 6 Sep 2026, names only (no counts).
+# Checked against both mako and kikar.co.il, which print the same top ten. A different source and a different year from the CBS numbers, so never added to them.
+TASHPAV_URL = 'https://www.mako.co.il/ninemonth-baby_names/articles/Article-d51f739a89570a1027.htm'
+TASHPAV = {1: {'all': ['מוחמד', 'אריאל', 'יוסף', 'אדם', 'דוד'], 'jewish': ['אריאל', 'דוד', 'רפאל', 'לביא', 'אורי']},
+           0: {'all': ['אביגיל', 'מרים', 'ליה', 'ליבי', 'תמר'], 'jewish': ['אביגיל', 'ליבי', 'תמר', 'יעל', 'ליה']}}
+assert all(n in by_name for t in TASHPAV.values() for ns in t.values() for n in ns)
+
+
+def ranks(s, y):
+    """{name: its place among the names given to sex s in year y}, in the same order as the lists of boys and girls"""
+    rows = sorted([x for x in NAMES if YC.get((x['n'], s, y))], key=lambda x: -YC[(x['n'], s, y)])
+    return {x['n']: i for i, x in enumerate(rows, 1)}
+
+
+RANK = {s: {y: ranks(s, y) for y in (Y1, Y1 - 1, Y1 - 5)} for s in (0, 1)}
+assert all(RANK[s][Y1][x['n']] == i for s in (0, 1) for i, x in enumerate(MAIN_ROWS[s], 1))
+
+
+def rank_mark(x, s):
+    """the mark beside a name in the list: how many places it moved since the year before"""
+    then, now = RANK[s][Y1 - 1].get(x['n'], 999), RANK[s][Y1][x['n']]
+    if then > 100:
+        return f' <span class="mv mvn" role="img" aria-label="לא היה ב-100 המובילים ב-{Y1 - 1}">חדש</span>'
+    d = then - now
+    if not d:
+        return f' <span class="mv mv0" role="img" aria-label="אותו מקום כמו ב-{Y1 - 1}">–</span>'
+    places = 'מקום אחד' if abs(d) == 1 else f'{abs(d)} מקומות'
+    return (f' <span class="mv {"mvu" if d > 0 else "mvd"}" role="img" aria-label="{"עלה" if d > 0 else "ירד"} {places} מאז {Y1 - 1}">'
+            f'{"▲" if d > 0 else "▼"}{abs(d)}</span>')
+
+
+def rank_moves(s):
+    """the names that moved most among those in the top 100 in both years, those that came in, and those that went out"""
+    rows, r1, r0 = MAIN_ROWS[s], RANK[s][Y1], RANK[s][Y1 - 1]
+    stayed = [x['n'] for x in rows if r0.get(x['n'], 999) <= 100]
+    d = lambda n: r0[n] - r1[n]
+    return {'up': [n for n in sorted(stayed, key=lambda n: -d(n)) if d(n) > 0][:5],
+            'down': [n for n in sorted(stayed, key=d) if d(n) < 0][:5],
+            'in': [x['n'] for x in rows if r0.get(x['n'], 999) > 100],
+            'out': [n for n, r in sorted(r0.items(), key=lambda t: t[1]) if r <= 100 and r1.get(n, 999) > 100]}
+
+
+def place_change(s, n, link=True):
+    """"כפיר (ממקום 168 ל-100)", with only the side that exists when the name was not given in one of the years"""
+    a, b = RANK[s][Y1 - 1].get(n), RANK[s][Y1].get(n)
+    what = f'ממקום {a} ל-{b}' if a and b else (f'היה במקום {a}' if a else 'חדש')
+    return f'{name_a(n) if link else n} ({what})'
+
+
+def one_in(s, rank):
+    """one baby of how many of that sex got the name at this place in the list"""
+    tot = sum(ST.get((s, q, Y1), 0) for q in SECTORS)
+    return round(tot / ny(MAIN_ROWS[s][rank - 1], s))
+
+
+def chips(label, items):
+    return f'<nav class="cgc ctop" aria-label="{label}">' + ''.join(f'<a href="{h}">{v}</a>' for h, v in items) + '</nav>'
+
+
+def top_tables(s):
+    w = sex_he(s)
+    sectors = ''.join(f'<tr><td>{SECTOR_HE[q].replace("במגזר ה", "")}</td><td>'
+                      + ' '.join(f'<span class="gi">{name_a(n)} <span class="cn">{fmt(c)}</span></span>' for n, c in top_sector(s, q, 5)) + '</td></tr>' for q in SECTOR_HE)
+    top_of = lambda y: max([x for x in NAMES if YC.get((x['n'], s, y))], key=lambda x: YC[(x['n'], s, y)])
+    years = ''
+    for y in range(Y1, Y1 - 10, -1):
+        x, (jn, jc) = top_of(y), top_sector(s, 'Jewish', 1, y)[0]
+        years += (f'<tr><td>{y}</td><td>{name_a(x["n"])} <span class="cn">{fmt(YC[(x["n"], s, y)])}</span></td>'
+                  f'<td>{name_a(jn)} <span class="cn">{fmt(jc)}</span></td></tr>')
+    return (f'<h2 id="sectors">השמות המובילים ל{w} בכל מגזר</h2><p>הרשימה למעלה סופרת את כל המגזרים יחד. בכל מגזר נפוצים שמות אחרים, '
+            f'ואלה חמשת השמות המובילים בו ב-{Y1} ומספר ה{w} שנקראו בהם.</p>'
+            f'<table class="gtbl gtop gsec"><thead><tr><th scope="col">מגזר</th><th scope="col">השמות המובילים</th></tr></thead><tbody>{sectors}</tbody></table>'
+            f'<h2 id="years">השם המוביל ל{w} בכל שנה</h2>'
+            f'<table class="gtbl gtop"><thead><tr><th scope="col">שנה</th><th scope="col">בכל המגזרים</th><th scope="col">במגזר היהודי</th></tr></thead><tbody>{years}</tbody></table>')
+
+
+def data_facts(s):
+    rows, k, w = MAIN_ROWS[s], ('boys' if s else 'girls'), sex_he(s)
+    tot = sum(ST.get((s, q, Y1), 0) for q in SECTORS)
+    share = lambda r: f'{sum(ny(x, s) for x in r) / tot * 100:.1f}%'
+    n34 = sum(1 for x in rows if letters_n(x['n']) in (3, 4))
+    origin = {o: sum(1 for x in rows if x['origin'] == o) for o in ('מקראי', 'עברי', 'ערבי')}
+    r1, r5 = RANK[s][Y1], RANK[s][Y1 - 5]
+    same = sum(1 for x in rows[:10] if r5.get(x['n'], 999) <= 10)
+    jump = sorted([x['n'] for x in rows if x['n'] in r5], key=lambda n: r1[n] - r5[n])[:2]
+    return (f'<h2 id="facts">מה רואים בנתונים</h2><ul>'
+            f'<li>ל-10 השמות המובילים ניתנו {share(rows[:10])} מכל ה{w} שנולדו ב-{Y1}, ול-100 השמות {share(rows)}.</li>'
+            f'<li>{n34} מתוך 100 השמות הם של 3 או 4 אותיות. מחפשים שם קצר? יש גם <a href="/names/short-{k}">רשימה של שמות קצרים ל{w}</a>.</li>'
+            f'<li>{origin["מקראי"]} מהשמות ברשימה <a href="/names/biblical-{k}">מקראיים</a>, {origin["עברי"]} <a href="/names/hebrew-{k}">עבריים</a> ו-{origin["ערבי"]} ערביים. '
+            'לשאר יש מקור אחר, או שלא קבענו להם מקור אחד.</li>'
+            f'<li>{same} מתוך 10 המובילים היו בעשירייה גם ב-{Y1 - 5}. הקפיצות הגדולות מאז: '
+            + and_list([f'{name_a(n)} (ממקום {r5[n]} ל-{r1[n]})' for n in jump]) + '.</li></ul>')
+
+
+def how_to_choose(s):
+    k, w = ('boys' if s else 'girls'), sex_he(s)
+    one, child = ('אחד', 'בן') if s else ('אחת', 'בת')
+    return (f'<h2 id="choose">איך לבחור שם ל{child}</h2><ol class="gsteps">'
+            f'<li><b>כמה השם נפוץ.</b> ב-{Y1} השם הנפוץ ביותר ניתן ל{one} מכל {one_in(s, 1)} {w}, והשם במקום ה-100 ל{one} מכל {one_in(s, 100)}. '
+            f'רוצים שם שלא שומעים בכל גן? התחילו מ<a href="/names/rare-{k}">השמות המיוחדים ל{w}</a>.</li>'
+            f'<li><b>לאן השם הולך.</b> בעמוד של כל שם אפשר לראות את הפופולריות שלו לאורך השנים. שם שעולה היום יכול להיות נפוץ הרבה יותר בעוד כמה שנים, '
+            'אז שווה להציץ גם ב<a href="/names/rising">שמות בעלייה</a> וב<a href="/names/comeback">שמות הישנים שחוזרים</a>.</li>'
+            f'<li><b>מה הוא אומר.</b> ברשימה מופיע הפירוש של כל שם שהפירוש שלו ידוע, ובעמוד השם גם המקור שלו. מחפשים שם עם שורשים? יש רשימות של '
+            f'<a href="/names/biblical-{k}">שמות מקראיים</a> ושל <a href="/names/hebrew-{k}">שמות עבריים</a>.</li>'
+            '<li><b>איך הוא נשמע.</b> אמרו אותו בקול עם שם המשפחה ועם שמות האחים. יש לנו גם '
+            f'<a href="/guides/sibling-names#{k}">זוגות שמות לאחים ואחיות</a> ו<a href="/guides/international-names#easy-{k}">שמות שקל לבטא בכל שפה</a>.</li></ol>')
+
+
+def main_page(s):
+    """(name, title, description, lead, sections) of /names/boys or /names/girls"""
+    k, w, child = ('boys', 'בנים', 'בן') if s else ('girls', 'בנות', 'בת')
+    name, rows, mv = f'שמות ל{w}', MAIN_ROWS[s], rank_moves(s)
+    t = TASHPAV[s]
+    links = [(f'/names/rare-{k}', f'שמות מיוחדים ל{w}'), (f'/names/short-{k}', f'שמות קצרים ל{w}'), (f'/names/biblical-{k}', f'שמות מקראיים ל{w}'),
+             (f'/names/hebrew-{k}', f'שמות עבריים ל{w}'), (f'/guides/international-names#easy-{k}', f'שמות בינלאומיים ל{w}'), ('/guides/nature-names', 'שמות מהטבע'),
+             (f'/guides/sibling-names#{k}', 'שמות לאחים ואחיות'), (f'/guides/twin-names#{k}', 'שמות לתאומים')]
+    return (name, f'{name}: 100 השמות הנפוצים, פירושים ומקורות ({PAGE_YEAR})',
+            f'100 שמות ה{w} הנפוצים בישראל, עם פירושים ומקורות, מי עלה ומי ירד, ואיך בוחרים שם ל{child}. לפי נתוני הלמ״ס העדכניים ({Y1}).',
+            f'<p class="dlead">מחפשים שם ל{child}? אלה 100 השמות שניתנו הכי הרבה ל{w} בישראל ב-{Y1}, השנה האחרונה שהלשכה המרכזית לסטטיסטיקה פרסמה, עם הפירושים שלהם. '
+            f'אחרי הרשימה: <a href="#moves">מי עלה ומי ירד</a>, <a href="#sectors">השמות המובילים בכל מגזר</a> ו<a href="#choose">איך לבחור שם ל{child}</a>. '
+            f'מחפשים שמות מיוחדים ל{w} או שמות מומלצים לפי נושא? התחילו מהרשימות והמדריכים האלה:</p>' + chips(f'רשימות ומדריכים של שמות ל{w}', links),
+            f'<h2 id="list">100 שמות ה{w} המובילים ב-{Y1}</h2><p class="k">לפי מספר התינוקות, בכל המגזרים יחד. החץ מראה את השינוי בדירוג מאז {Y1 - 1}.</p>'
+            + coll_list(rows, lambda x: born_s(s)(x) + rank_mark(x, s))
+            + f'<h2 id="now">ומה בשנה האחרונה?</h2><p>נתוני הלמ״ס מתפרסמים רק חודשים אחרי סוף השנה. בספטמבר 2026 פרסמה רשות האוכלוסין וההגירה דירוג של הילדים שנולדו בשנת תשפ״ו. '
+            f'בכלל האוכלוסייה הובילו ב{w} {and_list([name_a(n) for n in t["all"]])}. במגזר היהודי: {and_list([name_a(n) for n in t["jewish"]])}. '
+            f'זה מקור אחר ושנה עברית, ובפרסום אין מספרי תינוקות, ולכן אי אפשר להשוות אותו ישירות למספרים בעמוד הזה. <a href="{TASHPAV_URL}">לרשימה המלאה ב-mako</a>.</p>'
+            + f'<h2 id="moves">מי עלה ומי ירד ב-{Y1}</h2><p>השוואה בין הדירוג של {Y1} לדירוג של {Y1 - 1}.</p>'
+            + f'<h3>עלו הכי הרבה</h3><p>{and_list([place_change(s, n) for n in mv["up"]])}.</p>'
+            + f'<h3>ירדו הכי הרבה</h3><p>{and_list([place_change(s, n) for n in mv["down"]])}.</p>'
+            + f'<h3>נכנסו ל-100 המובילים</h3><p>{and_list([place_change(s, n) for n in mv["in"]])}.</p>'
+            + f'<h3>יצאו מ-100 המובילים</h3><p>{and_list([place_change(s, n) for n in mv["out"]])}.</p>'
+            + top_tables(s) + data_facts(s) + how_to_choose(s))
+
+
+# the names closest to an even split between girls and boys in Y1, among those given to 100 babies or more
+both_y1 = lambda x: YC.get((x['n'], 0, Y1), 0) + YC.get((x['n'], 1, Y1), 0)
+girls_y1 = lambda x: round(YC.get((x['n'], 0, Y1), 0) / both_y1(x) * 100)
+balanced = sorted([x for x in NAMES if both_y1(x) >= 100], key=lambda x: (abs(YC.get((x['n'], 0, Y1), 0) / both_y1(x) - .5), -both_y1(x)))[:10]
+
+
+def unisex_page():
+    links = [('/names/boys', 'שמות לבנים'), ('/names/girls', 'שמות לבנות'), ('/guides/gender-switch-names', 'שמות שהחליפו מגדר'),
+             ('/guides/sibling-names#mixed', 'שמות לאח ואחות'), ('/guides/twin-names#mixed', 'שמות לתאומים בן ובת'), ('/names/rising', 'שמות בעלייה')]
+    return ('שמות יוניסקס', f'שמות יוניסקס: {len(unisex)} שמות לבנים ולבנות, פירושים ומקורות ({PAGE_YEAR})',
+            f'{len(unisex)} שמות יוניסקס שניתנים בישראל גם לבנים וגם לבנות, עם פירושים, החלוקה המדויקת ואיך בוחרים שם יוניסקס. לפי נתוני הלמ״ס העדכניים ({Y1}).',
+            '<p class="dlead">שמות יוניסקס הם שמות שניתנים בישראל גם לבנות וגם לבנים. '
+            f'ברשימה {len(unisex)} שמות שבין 20% ל-80% מהתינוקות שנקראו בהם הם בנות, מסודרים לפי הפופולריות שלהם ב-{Y1}. '
+            f'אחרי הרשימה: <a href="#balanced">השמות הכי מאוזנים ב-{Y1}</a> ו<a href="#faq">שאלות נפוצות</a>.</p>' + chips('רשימות ומדריכים קשורים', links),
+            f'<h2 id="list">שמות לבנים ולבנות</h2><p class="k">החלוקה מחושבת על כל התינוקות שנקראו בשם מאז {Y0}.</p>' + coll_list(unisex, split)
+            + f'<h2 id="balanced">השמות הכי מאוזנים ב-{Y1}</h2><p>החלוקה בין בנים לבנות משתנה עם השנים. אלה השמות שהיו הכי קרובים לחצי-חצי ב-{Y1} עצמה, '
+            'מבין השמות שניתנו לפחות ל-100 תינוקות באותה שנה.</p>'
+            + coll_list(balanced, lambda x: f'{girls_y1(x)}% בנות · {100 - girls_y1(x)}% בנים'))
+
+
+COLL_PAGES.update(boys=main_page(1), girls=main_page(0), unisex=unisex_page())
+
+
 def coll_faq(k):
     if k in ('boys', 'girls'):
         s = 1 if k == 'boys' else 0
-        rows, jw = (boys if s else girls), top_sector(s, 'Jewish')
-        return [(f'מה השם הנפוץ ביותר ל{sex_he(s)} בישראל ב-{Y1}?',
+        rows, jw, w, mv = (boys if s else girls), top_sector(s, 'Jewish'), sex_he(s), rank_moves(s)
+        one = 'אחד' if s else 'אחת'
+        return [(f'מה השם הנפוץ ביותר ל{w} בישראל ב-{Y1}?',
                  f'{n_s(rows[0], s)}, ואחריו {and_list([n_s(x, s) for x in rows[1:3]])}, לפי נתוני הלמ״ס.'),
-                (f'מה השם הנפוץ ביותר ל{sex_he(s)} במגזר היהודי ב-{Y1}?',
-                 f'{jw[0][0]} ({fmt(jw[0][1])} {sex_he(s)}), ואחריו {and_list([f"{n} ({fmt(c)})" for n, c in jw[1:]])}.')]
+                (f'מה השם הנפוץ ביותר ל{w} במגזר היהודי ב-{Y1}?',
+                 f'{jw[0][0]} ({fmt(jw[0][1])} {w}), ואחריו {and_list([f"{n} ({fmt(c)})" for n, c in jw[1:]])}.'),
+                (f'איך בוחרים שם ל{"בן" if s else "בת"} לפי נתוני הלמ״ס?',
+                 f'בודקים כמה {w} נקראו בשם בשנה האחרונה, ואם השם עולה או יורד. ב-{Y1} השם הנפוץ ביותר ניתן ל{one} מכל {one_in(s, 1)} {w}, '
+                 f'והשם במקום ה-100 ל{one} מכל {one_in(s, 100)}. הנתונים לא אומרים מה יפה, אז כדאי לבדוק גם את הפירוש ואיך השם נשמע עם שם המשפחה.'),
+                (f'אילו שמות {w} עלו הכי הרבה ב-{Y1}?',
+                 f'מבין השמות שהיו ב-100 המובילים גם ב-{Y1 - 1}, עלו הכי הרבה {and_list([place_change(s, n, link=False) for n in mv["up"][:3]])}. '
+                 f'{len(mv["in"])} שמות נכנסו ל-100 המובילים, ביניהם {and_list(mv["in"][:3])}.')]
     if k == 'unisex':
-        x = unisex[0]
+        x, b = unisex[0], balanced[0]
         return [('מהו שם היוניסקס הנפוץ ביותר בישראל?',
                  f'{x["n"]}: ב-{Y1} נקראו כך {fmt(x["last"])} תינוקות, ומכל התינוקות שנקראו כך מאז {Y0} {x["g"]}% בנות ו-{100 - x["g"]}% בנים.'),
-                ('מה נחשב כאן שם יוניסקס?', f'שם שבין 20% ל-80% מהתינוקות שנקראו בו מאז {Y0} הם בנות, ושניתן לפחות ל-300 תינוקות.')]
+                ('מה נחשב כאן שם יוניסקס?', f'שם שבין 20% ל-80% מהתינוקות שנקראו בו מאז {Y0} הם בנות, ושניתן לפחות ל-300 תינוקות.'),
+                ('איך בוחרים שם יוניסקס?',
+                 f'בודקים כמה תינוקות נקראים בשם ואיך הם מתחלקים בין בנים לבנות באותה שנה. ב-{Y1} {b["n"]} היה הכי מאוזן מבין השמות שניתנו לפחות ל-100 תינוקות: '
+                 f'{girls_y1(b)}% בנות ו-{100 - girls_y1(b)}% בנים. החלוקה משתנה עם השנים, כמו בשי ובניב שנעשו שמות של בנות, אז כדאי להסתכל גם על המגמה בעמוד השם.')]
     if k == 'popular':
         e0, n0 = top_ever[0], top_now[0]
         return [('מה השם הנפוץ ביותר בישראל בכל הזמנים?',
@@ -938,10 +1108,14 @@ for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
     path = '/names/' + k
     title = h1 + ' | השמות של ישראל'
     faq = coll_faq(k)
-    faq_html = ('<h2>שאלות נפוצות</h2>' + ''.join(f'<h3>{H.escape(q)}</h3><p>{H.escape(a)}</p>' for q, a in faq)) if faq else ''
+    main = k in MAIN_COLLS
+    trail = trail_of(name) if main else None
+    top = ('<nav class="crumbs" aria-label="ניווט באתר">' + ' › '.join(f'<a href="{p}">{n}</a>' if p else f'<span aria-current="page">{n}</span>' for n, p in trail) + '</nav>'
+           if main else '<p class="k">השמות של ישראל · אוספי שמות</p>')
+    faq_html = (('<h2 id="faq">' if main else '<h2>') + 'שאלות נפוצות</h2>' + ''.join(f'<h3>{H.escape(q)}</h3><p>{H.escape(a)}</p>' for q, a in faq)) if faq else ''
     open(SRC + f'names/{k}.html', 'w').write(page(
-        title, desc, path, static_shell(k, f'<p class="k">השמות של ישראל · אוספי שמות</p><h1>{name}</h1>{lead}{lists}{faq_html}'),
-        jsonld=coll_ld(path, title, desc, COLL_ROWS[k], faq), app=False))
+        title, desc, path, static_shell(k, f'{top}<h1>{name}</h1>{lead}{lists}{faq_html}'),
+        jsonld=coll_ld(path, title, desc, COLL_ROWS[k], faq, trail), app=False))
 
 # ---- guides: /guides and /guides/<slug> (tools/guides.py) ----
 GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'ny': ny, 'YC': YC, 'SN': SN, 'SC': SC, 'enc': enc, 'fmt': fmt,
