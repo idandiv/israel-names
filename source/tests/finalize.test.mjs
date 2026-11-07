@@ -27,6 +27,12 @@ test('canonical of a page is the base address plus its path', () => {
   assert.match(read('index.html'), new RegExp(`<link rel="canonical" href="${BASE}/">`));
 });
 
+test('the home page links straight to the boys and girls pages, by their search phrase, without JavaScript', () => {
+  const home = read('index.html');
+  assert.match(home, /<a href="\/names\/boys">שמות לבנים<\/a>/);
+  assert.match(home, /<a href="\/names\/girls">שמות לבנות<\/a>/);
+});
+
 test('sitemap lists every path once, with a lastmod', () => {
   const paths = JSON.parse(fs.readFileSync(path.join(root, 'scripts', 'paths.json'), 'utf8'));
   const locs = [...read('sitemap.xml').matchAll(/<url><loc>([^<]+)<\/loc><lastmod>\d{4}-\d\d-\d\d<\/lastmod><\/url>/g)].map(m => m[1]);

@@ -166,8 +166,11 @@ test('home: NameMatch comes first, then pregnancy, guides and collections tiles'
     await page.waitForSelector('.tiles3 a');
     const order = await page.$$eval('.ctapair > button', (els) => els.map((e) => e.id));
     assert.deepEqual(order, ['matchcta', 'gencta']);
-    const hrefs = await page.$$eval('.tiles3 > *', (els) => els.map((e) => e.getAttribute('href')));
-    assert.deepEqual(hrefs, ['/pregnancy/calculator', '/guides', '/names#colls']);
+    const hrefs = await page.$$eval('.tiles3 > *', (els) => els.map((e) => e.getAttribute('href') || [...e.querySelectorAll('a')].map((a) => a.getAttribute('href')).join(' ')));
+    assert.deepEqual(hrefs, ['/pregnancy/calculator', '/guides', '/names/boys /names/girls /names#colls']);
+    // the two core pages get plain links with their exact search phrase as the anchor text
+    assert.equal(await page.textContent('.tiles3 a[href="/names/boys"]'), 'שמות לבנים');
+    assert.equal(await page.textContent('.tiles3 a[href="/names/girls"]'), 'שמות לבנות');
     assert.equal(await page.$('.tiles3 [data-go]'), null);
     const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     assert.ok(over <= 0, `side scroll ${over}px at ${width}`);

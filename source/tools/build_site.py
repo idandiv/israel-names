@@ -956,7 +956,7 @@ TOOL_PATHS, TOOLS = pregnancy.build({'page': page, 'static_shell': static_shell,
 top = [x['n'] for x in sorted(NAMES, key=lambda x: -x['last'])[:40]]
 home_body = f'''<article class="seo"><h1>השמות של ישראל</h1><p>{H.escape(SITE_D)}</p>
 <h2>השמות הפופולריים ב-{Y1}</h2><ul class="rel">{''.join(f'<li><a href="/names/{enc(n)}">{H.escape(n)}</a></li>' for n in top)}</ul>
-<p><a href="/names">לכל {fmt(len(NAMES))} השמות</a> · <a href="/guides">{guides.SECTION}</a> · <a href="/pregnancy/calculator">מחשבון הריון</a></p></article>'''
+<p><a href="/names/boys">שמות לבנים</a> · <a href="/names/girls">שמות לבנות</a> · <a href="/names">לכל {fmt(len(NAMES))} השמות</a> · <a href="/guides">{guides.SECTION}</a> · <a href="/pregnancy/calculator">מחשבון הריון</a></p></article>'''
 open(SRC + 'index.html', 'w').write(page(SITE_T, SITE_D, '/', home_body,
     jsonld={"@context": "https://schema.org", "@graph": [LD_SITE_HOME, LD_ORG]}))
 # ---- info pages (same content the app shows at /about, /privacy, /terms) ----
