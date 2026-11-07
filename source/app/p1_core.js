@@ -148,11 +148,11 @@ function renderShell(){
   app.innerHTML=`
   <div class="bar">
     <div class="toprow">
-      <button class="brandbtn" id="home" aria-label="${t('לדף הבית','Home')}"><h1 class="bt">${t('השמות של ישראל','Names of Israel')}</h1></button>
+      <button class="brandbtn" id="home" aria-label="${t('השמות של ישראל – לדף הבית','Names of Israel – home')}"><h1 class="bt">${t('השמות של ישראל','Names of Israel')}</h1></button>
       <div class="search tsearch">${icon('search')}<input id="q" type="search" placeholder="${t('חיפוש שם…','Search a name…')}" autocomplete="off" aria-label="${t('חיפוש שם','Search a name')}"><div class="sugg" id="sugg" hidden></div></div>
-      <button class="favtop" id="favtop" aria-label="${t('השמות ששמרתי','Saved names')}">${icon('save',1)}<span>${t('שמורים','Saved')}</span><b id="favcnt">0</b></button>
+      <button class="favtop" id="favtop" title="${t('השמות ששמרתי','Saved names')}">${icon('save',1)}<span>${t('שמורים','Saved')}</span><b id="favcnt">0</b></button>
       <button class="srchbtn" id="srchbtn" aria-label="${t('חיפוש שם','Search')}">${icon('search')}</button>
-      <button class="langbtn" id="lang" aria-label="${t('Switch to English','מעבר לעברית')}">${LANG==='en'?'עב':'EN'}</button>
+      <button class="langbtn" id="lang" aria-label="${t('EN – Switch to English','עב – מעבר לעברית')}">${LANG==='en'?'עב':'EN'}</button>
     </div>
     <nav class="mainnav" role="tablist">${['home','names','gen','trends','games'].map(k=>`<button role="tab" data-tab="${k}" class="${k==='gen'?'hl':''}" aria-selected="${k===TAB}">${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
   </div>
@@ -185,7 +185,7 @@ function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='funct
   stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
 function renderNames(){const sec=$('#tab-names');
-  sec.innerHTML=`<div class="subnav seg" role="tablist">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
+  sec.innerHTML=`<div class="subnav seg" role="group" aria-label="${t('תצוגת שמות','Names view')}">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
     <div id="tab-name"></div><div id="tab-me"></div><div id="tab-compare"></div>`;
   sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();PUSH_ONCE=true;syncURL()}};
   ({file:renderName,me:renderMe,compare:renderCompare})[NSUB]();}

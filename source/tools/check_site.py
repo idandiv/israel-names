@@ -27,7 +27,7 @@ LD = re.compile(r'<script type="application/ld\+json">(.*?)</script>', re.S)
 TITLE = re.compile(r'<title>(.*?)</title>', re.S)
 DESC = re.compile(r'<meta name="description" content="([^"]*)"')
 CANON = re.compile(r'<link rel="canonical" href="([^"]*)"')
-APP_JS = re.compile(r'<script src="/assets/app\.[0-9a-f]+\.js">')
+APP_JS = re.compile(r'<script (?:defer )?src="/assets/app\.[0-9a-f]+\.js">')
 
 
 def page_path(fn):

@@ -285,4 +285,4 @@ body.matchmode{overscroll-behavior:none}
 .gcard2.out{opacity:0;transform:scale(.92);transition:.18s}
 .wzworld{margin:6px 0 14px}
 .wizard.done .wzq{margin-bottom:10px;line-height:1}
-.pill.new25{background:color-mix(in srgb,var(--c3) 16%,transparent);color:var(--c3);cursor:help}
+.pill.new25{background:color-mix(in srgb,var(--c3) 16%,transparent);color:color-mix(in srgb,var(--c3) 80%,#fff);cursor:help}

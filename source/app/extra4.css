@@ -105,7 +105,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .pill{font-size:11.5px;padding:3px 9px}
   .stats .stat .v{font-size:19px}.stat .k,.stat .s{font-size:11px}
   .card{padding:13px;border-radius:14px}
-  .card h3{font-size:15px}.card .sub{font-size:12px}
+  .card h2,.card h3{font-size:15px}.card .sub{font-size:12px}
   .subnav{margin-top:12px}.subnav button{font-size:12.5px;padding:7px 8px}
   .nametools{flex-wrap:nowrap;gap:6px;margin-top:10px}
   .nametools .sectors{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}

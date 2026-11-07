@@ -91,7 +91,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 /* gender meter */
 .meter{margin-top:16px}
 .meter .row{display:flex;justify-content:space-between;font-size:13px;font-weight:600}
-.meter .g{color:var(--girl)} .meter .b{color:var(--boy)}
+.meter .g{color:color-mix(in srgb,var(--girl) 85%,#fff)} .meter .b{color:var(--boy)}
 .meter .track{display:flex;height:12px;border-radius:999px;overflow:hidden;margin-top:5px;gap:2px;background:var(--surface)}
 .meter .track i{display:block;height:100%;transition:width .6s cubic-bezier(.2,.8,.2,1)}
 
@@ -100,7 +100,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .grid .wide{grid-column:1/-1}
 @media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
-.card h3{font-size:16px;font-weight:700}
+.card h2,.card h3{font-size:16px;font-weight:700}
 .card .sub{font-size:13px;color:var(--muted);margin-top:2px}
 .card .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .seg{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;gap:2px}
@@ -304,7 +304,7 @@ button.fact:hover{border-color:var(--accent)}
 .rel small{color:var(--muted);font-size:12px}
 .stag{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--sc) 16%,transparent);color:var(--sc);white-space:nowrap}
 .s0{--sc:var(--c1)}.s1{--sc:var(--c3)}.s2{--sc:var(--c4)}.s3{--sc:var(--c2)}
-.pill.sec{background:color-mix(in srgb,var(--sc) 16%,transparent);color:var(--sc)}
+.pill.sec{background:color-mix(in srgb,var(--sc) 16%,transparent);color:color-mix(in srgb,var(--sc) 80%,#fff)}
 .stags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:2px}
 #bridge button{grid-template-columns:minmax(70px,140px) minmax(0,1fr) 90px}
 
@@ -393,7 +393,7 @@ button.fact:hover{border-color:var(--accent)}
 .modesw .seg button{font-size:13px;padding:5px 12px;color:var(--accent)}
 .modesw .seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
 .card.more{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:var(--accent-soft);border-color:transparent}
-.card.more h3{font-size:17px}
+.card.more h2,.card.more h3{font-size:17px}
 .card.more>div{flex:1;min-width:220px}
 .nopts{display:grid;gap:8px;margin-bottom:12px}
 .nopts .fl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -739,7 +739,7 @@ body.matchmode{overscroll-behavior:none}
 .gcard2.out{opacity:0;transform:scale(.92);transition:.18s}
 .wzworld{margin:6px 0 14px}
 .wizard.done .wzq{margin-bottom:10px;line-height:1}
-.pill.new25{background:color-mix(in srgb,var(--c3) 16%,transparent);color:var(--c3);cursor:help}
+.pill.new25{background:color-mix(in srgb,var(--c3) 16%,transparent);color:color-mix(in srgb,var(--c3) 80%,#fff);cursor:help}
 /* ---- v12: always dark, decades grid ---- */
 :root,:root[data-theme="light"],:root[data-theme="dark"]{
   --bg:#101119; --surface:#1a1c28; --surface-2:#232637; --ink:#f0f1f8; --ink-2:#b9bcd3; --muted:#8a8ea8;
@@ -847,7 +847,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .pill{font-size:11.5px;padding:3px 9px}
   .stats .stat .v{font-size:19px}.stat .k,.stat .s{font-size:11px}
   .card{padding:13px;border-radius:14px}
-  .card h3{font-size:15px}.card .sub{font-size:12px}
+  .card h2,.card h3{font-size:15px}.card .sub{font-size:12px}
   .subnav{margin-top:12px}.subnav button{font-size:12.5px;padding:7px 8px}
   .nametools{flex-wrap:nowrap;gap:6px;margin-top:10px}
   .nametools .sectors{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
