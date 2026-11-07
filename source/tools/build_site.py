@@ -427,11 +427,11 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True, og=None)
 {f"""<div id="app" dir="rtl">{body}</div>
 <div class="toast" id="toast" hidden></div>
 <div class="modal" id="modal" hidden></div>
-<script src="/site-config.js"></script>
-<script src="{A_CHART}"></script>
-<script src="{A_DATA}"></script>
-<script src="{A_MEAN}"></script>
-<script src="{A_APP}"></script>""" if app else body}
+<script defer src="/site-config.js"></script>
+<script defer src="{A_CHART}"></script>
+<script defer src="{A_DATA}"></script>
+<script defer src="{A_MEAN}"></script>
+<script defer src="{A_APP}"></script>""" if app else body}
 <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

@@ -84,7 +84,7 @@
 .modesw .seg button{font-size:13px;padding:5px 12px;color:var(--accent)}
 .modesw .seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
 .card.more{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:var(--accent-soft);border-color:transparent}
-.card.more h3{font-size:17px}
+.card.more h2,.card.more h3{font-size:17px}
 .card.more>div{flex:1;min-width:220px}
 .nopts{display:grid;gap:8px;margin-bottom:12px}
 .nopts .fl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}

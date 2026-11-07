@@ -283,11 +283,11 @@ function renderShell(){
   app.innerHTML=`
   <div class="bar">
     <div class="toprow">
-      <button class="brandbtn" id="home" aria-label="${t('לדף הבית','Home')}"><h1 class="bt">${t('השמות של ישראל','Names of Israel')}</h1></button>
+      <button class="brandbtn" id="home" aria-label="${t('השמות של ישראל – לדף הבית','Names of Israel – home')}"><h1 class="bt">${t('השמות של ישראל','Names of Israel')}</h1></button>
       <div class="search tsearch">${icon('search')}<input id="q" type="search" placeholder="${t('חיפוש שם…','Search a name…')}" autocomplete="off" aria-label="${t('חיפוש שם','Search a name')}"><div class="sugg" id="sugg" hidden></div></div>
-      <button class="favtop" id="favtop" aria-label="${t('השמות ששמרתי','Saved names')}">${icon('save',1)}<span>${t('שמורים','Saved')}</span><b id="favcnt">0</b></button>
+      <button class="favtop" id="favtop" title="${t('השמות ששמרתי','Saved names')}">${icon('save',1)}<span>${t('שמורים','Saved')}</span><b id="favcnt">0</b></button>
       <button class="srchbtn" id="srchbtn" aria-label="${t('חיפוש שם','Search')}">${icon('search')}</button>
-      <button class="langbtn" id="lang" aria-label="${t('Switch to English','מעבר לעברית')}">${LANG==='en'?'עב':'EN'}</button>
+      <button class="langbtn" id="lang" aria-label="${t('EN – Switch to English','עב – מעבר לעברית')}">${LANG==='en'?'עב':'EN'}</button>
     </div>
     <nav class="mainnav" role="tablist">${['home','names','gen','trends','games'].map(k=>`<button role="tab" data-tab="${k}" class="${k==='gen'?'hl':''}" aria-selected="${k===TAB}">${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
   </div>
@@ -320,7 +320,7 @@ function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='funct
   stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
 function renderNames(){const sec=$('#tab-names');
-  sec.innerHTML=`<div class="subnav seg" role="tablist">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
+  sec.innerHTML=`<div class="subnav seg" role="group" aria-label="${t('תצוגת שמות','Names view')}">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
     <div id="tab-name"></div><div id="tab-me"></div><div id="tab-compare"></div>`;
   sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();PUSH_ONCE=true;syncURL()}};
   ({file:renderName,me:renderMe,compare:renderCompare})[NSUB]();}
@@ -612,21 +612,21 @@ function renderName(){
     <div class="actions">${favBtn(nm,'lbl big')}<button class="next" id="shlink">${icon('link')}${t(' שיתוף העמוד',' Share page')}</button><button class="copybtn" id="card">${t('כרטיס לשיתוף','Share card')}</button><button class="copybtn" id="cpy">${t('העתקת סיכום','Copy summary')}</button><button class="copybtn" id="tocmp">${t('הוספה להשוואה','Add to compare')}</button></div>
   </div>
   <div class="grid">
-    <div class="card wide"><div class="head"><div><h3>${t(`הסיפור של ${esc(nm)} לאורך השנים`,`${dn} through the years`)}</h3><div class="sub" id="tsub"></div></div>
+    <div class="card wide"><div class="head"><div><h2>${t(`הסיפור של ${esc(nm)} לאורך השנים`,`${dn} through the years`)}</h2><div class="sub" id="tsub"></div></div>
       ${S?'':`<div class="ctrls"><div class="seg" id="tseg"><button data-t="sex" aria-pressed="${tmode_==='sex'}">${t('לפי מין','By sex')}</button><button data-t="sec" aria-pressed="${tmode_==='sec'}">${t('לפי מגזר','By community')}</button><button data-t="mix" aria-pressed="${tmode_==='mix'}">${t('חלוקה למגזרים','Community mix')}</button></div>
       <div class="seg" id="mseg" ${tmode_==='mix'?'hidden':''}><button data-m="n" aria-pressed="${metric_==='n'}">${t('מספרים','Counts')}</button><button data-m="p" aria-pressed="${metric_==='p'}">${t('לכל 1,000','Per 1,000')}</button></div></div>`}</div>
       <div class="cw"><canvas id="cTime"></canvas></div>
       <div class="legend" id="tleg"></div></div>
-    <div class="card"><div class="head"><div><h3>${t('ציר הדרך של השם','The name\u2019s journey')}</h3><div class="sub">${t('הרגעים החשובים בחיים של השם','Key moments in the name\u2019s life')}${F>=0?' · '+sectName(F):''}</div></div></div><ol class="journey" id="journey"></ol></div>
-    <div class="card"><div class="head"><div><h3>${t('בני כמה הם היום?','How old are they today?')}</h3><div class="sub">${t(`כל מי שנקרא ${esc(nm)}, לפי שלב בחיים`,`Everyone named ${dn}, by life stage`)}</div></div></div><div id="lstage"></div></div>
-    ${S?'':`<div class="card"><div class="head"><div><h3>${t('מקום בדירוג','Rank over time')}</h3><div class="sub">${dom?t('בין שמות הבנים','Among boys’ names'):t('בין שמות הבנות','Among girls’ names')} · ${t('למעלה זה טוב · קו מקווקו: מתחת לסף הרישום','higher is better · dashed: below the listing threshold')}</div></div></div><div class="cw sm"><canvas id="cRank"></canvas></div></div>
-    <div class="card"><div class="head"><div><h3>${t('מדד נוכחות בכיתה','Class presence')}</h3><div class="sub">${t('מה הסיכוי לפגוש עוד ילד בשם הזה בכיתה, היום ובשיא','How likely another child in the class shares the name, today and at its peak')}</div></div></div><div id="classbox"></div></div>
-    <div class="card"><div class="head"><div><h3>${t('באיזה מגזר?','Which community?')}</h3><div class="sub">${t('כל התינוקות בשם, בכל המגזרים','All babies with this name, all communities')}</div></div></div><div class="hb" id="secs"></div></div>`}
-    <div class="card ${S?'wide':''}"><div class="head"><div><h3>${t('השנה שלך','Your year')}</h3><div class="sub">${t(`בחרו שנת לידה וגלו כמה ${esc(nm)} נולדו איתכם`,`Pick a birth year to see how many were born with you`)}</div></div></div>
+    <div class="card"><div class="head"><div><h2>${t('ציר הדרך של השם','The name\u2019s journey')}</h2><div class="sub">${t('הרגעים החשובים בחיים של השם','Key moments in the name\u2019s life')}${F>=0?' · '+sectName(F):''}</div></div></div><ol class="journey" id="journey"></ol></div>
+    <div class="card"><div class="head"><div><h2>${t('בני כמה הם היום?','How old are they today?')}</h2><div class="sub">${t(`כל מי שנקרא ${esc(nm)}, לפי שלב בחיים`,`Everyone named ${dn}, by life stage`)}</div></div></div><div id="lstage"></div></div>
+    ${S?'':`<div class="card"><div class="head"><div><h2>${t('מקום בדירוג','Rank over time')}</h2><div class="sub">${dom?t('בין שמות הבנים','Among boys’ names'):t('בין שמות הבנות','Among girls’ names')} · ${t('למעלה זה טוב · קו מקווקו: מתחת לסף הרישום','higher is better · dashed: below the listing threshold')}</div></div></div><div class="cw sm"><canvas id="cRank"></canvas></div></div>
+    <div class="card"><div class="head"><div><h2>${t('מדד נוכחות בכיתה','Class presence')}</h2><div class="sub">${t('מה הסיכוי לפגוש עוד ילד בשם הזה בכיתה, היום ובשיא','How likely another child in the class shares the name, today and at its peak')}</div></div></div><div id="classbox"></div></div>
+    <div class="card"><div class="head"><div><h2>${t('באיזה מגזר?','Which community?')}</h2><div class="sub">${t('כל התינוקות בשם, בכל המגזרים','All babies with this name, all communities')}</div></div></div><div class="hb" id="secs"></div></div>`}
+    <div class="card ${S?'wide':''}"><div class="head"><div><h2>${t('השנה שלך','Your year')}</h2><div class="sub">${t(`בחרו שנת לידה וגלו כמה ${esc(nm)} נולדו איתכם`,`Pick a birth year to see how many were born with you`)}</div></div></div>
       <div class="yr"><select id="ysel" aria-label="${t('שנת לידה','Birth year')}">${YEARS.slice().reverse().map(y=>`<option ${y===store.get('yr',1990)?'selected':''}>${y}</option>`).join('')}</select></div><div class="yrout" id="yout"></div></div>
-    <div class="card wide"><div class="head"><div><h3>${t('פרופיל אופי השם','Name character profile')}</h3><div class="sub">${t(`איך ${esc(nm)} נראה בנתונים, לעומת שם טיפוסי`,`How ${dn} looks in the data, compared with a typical name`)}</div></div></div><div id="prof"></div></div>
-    <div class="card wide"><div class="head"><div><h3>${t(`שאלות נפוצות על השם ${esc(nm)}`,'Did you know?')}</h3></div></div><div class="faq" id="faq"></div></div>
-    <div class="card wide"><div class="head"><div><h3>${t(`שמות קרובים ל${esc(nm)}`,`Names related to ${dn}`)}</h3><div class="sub" id="relsub"></div></div>
+    <div class="card wide"><div class="head"><div><h2>${t('פרופיל אופי השם','Name character profile')}</h2><div class="sub">${t(`איך ${esc(nm)} נראה בנתונים, לעומת שם טיפוסי`,`How ${dn} looks in the data, compared with a typical name`)}</div></div></div><div id="prof"></div></div>
+    <div class="card wide"><div class="head"><div><h2>${t(`שאלות נפוצות על השם ${esc(nm)}`,'Did you know?')}</h2></div></div><div class="faq" id="faq"></div></div>
+    <div class="card wide"><div class="head"><div><h2>${t(`שמות קרובים ל${esc(nm)}`,`Names related to ${dn}`)}</h2><div class="sub" id="relsub"></div></div>
       <div class="seg" id="relseg">${[['tw',t('תאומי זהות','Twins')],['var',t('כתיבים','Spellings')],['rhy',t('חרוזים','Rhymes')],['gem',t('גימטריה','Gematria')]].map(([k,l])=>`<button data-r="${k}" aria-pressed="${REL===k}">${l}</button>`).join('')}</div></div>
       <div class="rel" id="rel"></div></div>
   </div>`;
