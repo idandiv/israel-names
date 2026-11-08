@@ -86,8 +86,35 @@ doc_css = """
 .docbody .gvals td.gv{font-variant-numeric:tabular-nums;font-size:14.5px;color:var(--ink-2);white-space:nowrap}.docbody .gvals .gl{display:block}
 .docbody .gvals th:first-child{width:38%}
 .docbody .gsec th:first-child{width:30%}.docbody .gsec td.gv{font-size:14px}
-.docbody .pgrow{margin:8px 0 16px}.docbody .pgrow svg{display:block;width:100%;max-width:560px;height:auto}
-.docbody .pgrow figcaption{color:var(--muted);font-size:13px;line-height:1.55;margin-top:4px}
+.docbody .pgrows{display:grid;gap:4px 18px;margin:8px 0 12px}@media (min-width:640px){.docbody .pgrows{grid-template-columns:1fr 1fr}}
+.docbody .pgrow{margin:0 0 8px;min-width:0}.docbody .pgrow svg{display:block;width:100%;max-width:560px;height:auto}
+.docbody .pgrow .pg-h{font-size:14px;font-weight:700;color:var(--ink);margin:0 0 2px}
+.docbody .pgrow .pg-cap{color:var(--muted);font-size:13px;line-height:1.55;margin:4px 0 0}
+.docbody .pg-note{fill:var(--ink-2);font-size:9.5px}
+/* week pages: the drawing of the size, the names of the week (save buttons), births in Israel, stage steps */
+.docbody .pr-size{display:flex;align-items:center;gap:10px}
+.docbody .pr-art{flex:none;display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:var(--surface-2)}
+.docbody .pr-art svg{width:42px;height:42px;overflow:visible}
+.docbody .pfav{display:inline-flex;align-items:center;min-height:36px;margin-top:6px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--ink-2);font:600 13px var(--f-body);padding:4px 12px;cursor:pointer}
+.docbody .pfav[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}.docbody .pfav[hidden],.docbody .pfav-n[hidden]{display:none}
+.docbody .pfav-n{font-size:14px;color:var(--ink-2);margin:-6px 0 10px}
+.docbody .pil{border-inline-start:3px solid var(--accent);background:var(--surface);border-radius:0 12px 12px 0;padding:10px 14px;margin:12px 0}
+.docbody .pil b{font-size:13px;color:var(--accent)}.docbody .pil p{margin:2px 0 0;font-size:14.5px}
+.docbody .pbars th[scope=row]{font-weight:600;font-size:14px;width:42%}.docbody .pbars td:last-child{width:4.5em;text-align:end}
+.docbody .pbar{display:block;height:10px;border-radius:999px;background:var(--surface-2);overflow:hidden}.docbody .pbar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.docbody .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.docbody .pfetal tbody th{white-space:nowrap}.docbody .pfetal tbody th a{font-weight:700}.docbody .pfetal .ptri th{font-size:13px;color:var(--accent);padding-top:14px}
+.docbody .pj-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;list-style:none;margin:8px 0;padding:0;counter-reset:st}
+.docbody .pj-steps li{position:relative;margin:0;padding:22px 2px 0;text-align:center;font-size:12.5px;color:var(--muted);counter-increment:st}
+.docbody .pj-steps li::before{content:counter(st);position:absolute;top:0;inset-inline:0;margin:auto;width:18px;height:18px;border-radius:50%;background:var(--surface-2);color:var(--muted);font-size:11px;line-height:18px}
+.docbody .pj-steps li.is-past::before{background:var(--accent-soft);color:var(--accent)}
+.docbody .pj-steps li.is-now{color:var(--ink);font-weight:700}.docbody .pj-steps li.is-now::before{background:var(--accent);color:var(--bg)}
+/* the brit calculator: sunset by time and city, the options in a column */
+.docbody .pr-sun summary{cursor:pointer;font-size:14px;color:var(--accent);min-height:36px;display:flex;align-items:center}
+.docbody .pr-sunf{display:flex;flex-wrap:wrap;gap:10px 16px;margin:6px 0}.docbody .pr-sunf .pfield{flex:1 1 150px}
+.docbody .pr-sun [hidden]{display:none}
+.docbody .pr-optcol{flex-direction:column;border:0;padding:0;margin:0;min-width:0}.docbody .pr-optcol legend{font-size:13px;color:var(--muted);padding:0;margin-bottom:2px}
+.docbody .pr-il{margin:-4px 0 10px}
 .docbody .pg-grid{stroke:var(--line);stroke-width:1}.docbody .pg-tri{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4}
 .docbody .pg-t{fill:var(--muted);font-size:10px;font-family:inherit}
 .docbody .pg-area{fill:var(--accent-soft)}.docbody .pg-line{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
@@ -1122,7 +1149,7 @@ GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 
                                     'short_mean': short_mean, 'coll_list': coll_list, 'arrow': ic(IC_ARROW), 'Y0': Y0, 'Y1': Y1, 'SRC': SRC, 'PH': PH,
                                     'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG, 'LD_DATA': LD_DATA, 'PREG': pregnancy.load()})
 # ---- the pregnancy calculator: /pregnancy/calculator (tools/pregnancy.py) ----
-TOOL_PATHS, TOOLS = pregnancy.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'enc': enc, 'fit': fit,
+TOOL_PATHS, TOOLS = pregnancy.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'enc': enc, 'fit': fit, 'YC': YC,
                                      'ny': ny, 'short_mean': short_mean, 'fmt': fmt, 'Y1': Y1,
                                      'SRC': SRC, 'PH': PH, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
 
