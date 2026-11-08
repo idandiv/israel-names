@@ -96,6 +96,12 @@ class PregnancyData(unittest.TestCase):
         self.broken(lambda P: P['israel'].update({'source': ['x', 'https://evilgov.il/a.pdf']}))
         self.broken(lambda P: P['israel']['bw'].update({'low': 5}))
 
+    def test_intergrowth(self):
+        self.assertEqual(self.P['intergrowth']['median']['24'], 32.0)
+        self.broken(lambda P: P['intergrowth']['median'].update({'25': 31.0}))                         # going down
+        self.broken(lambda P: P['intergrowth']['median'].pop('25'))                                    # a week missing
+        self.broken(lambda P: P['intergrowth'].update({'source': ['x', 'https://example.com/a.pdf']}))
+
     def test_month_of(self):
         self.assertEqual([pregnancy.month_of(w) for w in (4, 5, 13, 14, 20, 27, 28, 36, 40)], [0, 1, 2, 3, 4, 5, 6, 8, 8])
         self.assertIsNone(pregnancy.month_of(41))
@@ -128,6 +134,10 @@ class PregnancyPages(unittest.TestCase):
             bc = next(n for n in graph if n['@type'] == 'BreadcrumbList')['itemListElement']
             self.assertEqual(shown, [i['item'].replace('__BASE_URL__', '') for i in bc if 'item' in i], name)
             self.assertNotIn('item', bc[-1], name)
+
+    def test_length_note_on_weeks_24_and_25(self):
+        for name, n in (('week-24', 1), ('week-25', 1), ('week-26', 0), ('fetal-weight', 1)):
+            self.assertEqual(self.page(name).count('intergrowth21.ndog.ox.ac.uk'), n, name)
 
     def test_brit_title_and_sources(self):
         s = self.page('brit-mila')

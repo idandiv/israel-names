@@ -94,6 +94,14 @@ def check(P):
     for k in ('ga', 'bw'):
         assert 99 <= sum(p for _, p in I[k]['groups']) <= 100.5, f'pregnancy.json: israel.{k}.groups must add up to 100%'
     assert I['bw']['low'] == I['bw']['groups'][0][1], 'pregnancy.json: israel.bw.low is the first group'
+    # the length at birth from INTERGROWTH-21st (Oxford), next to the common table: weeks 24 on, growing every week
+    G = P['intergrowth']
+    assert (urlparse(G['source'][1]).hostname or '').endswith('.ox.ac.uk'), 'pregnancy.json: intergrowth.source must be ox.ac.uk'
+    weeks = list(range(24, 24 + len(G['median'])))
+    assert sorted(G['median'], key=int) == [str(w) for w in weeks] and {'24', '25', '28'} <= set(G['median']), \
+        'pregnancy.json: intergrowth.median: weeks 24 on, in a row (24, 25 and 28 at least)'
+    m = [G['median'][str(w)] for w in weeks]
+    assert m == sorted(set(m)), 'pregnancy.json: intergrowth.median must grow every week'
     return P
 
 
@@ -293,6 +301,16 @@ def build(c):
         ('מחשבון הריון', PATH, 'שבוע ההריון, השליש ותאריך הלידה המשוער (לועזי ועברי) לפי וסת אחרונה, תאריך הפריה או החזרת עובר ב-IVF, עם שמות שמתאימים לחודש הלידה.')]
 
 
+def length_note(P, W):
+    """the jump of the common length table between weeks 24 and 25, next to INTERGROWTH-21st's length at birth"""
+    G = P['intergrowth']['median']
+    return (f'<aside class="pil"><b>על האורך בשבועות 24 ו-25</b><p>בטבלה המקובלת, כמו אצל NHS, האורך קופץ מכ-{W[24]["cm"]} ס״מ בשבוע 24 '
+            f'לכ-{W[25]["cm"]} ס״מ בשבוע 25, פי ארבעה בערך מבשבועות שלפני ואחרי, וכנראה לא בגלל קפיצה אמיתית בגדילה. '
+            f'לפי INTERGROWTH-21st של אוניברסיטת אוקספורד, האורך החציוני של תינוקות שנולדים בשבוע 24 הוא כ-{G["24"]} ס״מ, בשבוע 25 כ-{G["25"]} ס״מ '
+            f'ובשבוע 28 כ-{G["28"]} ס״מ: כ-1.3 ס״מ בכל שבוע. '
+            f'מקור: <a href="{H.escape(P["intergrowth"]["source"][1])}" target="_blank" rel="noopener" dir="ltr">INTERGROWTH-21st</a>.</p></aside>')
+
+
 def israel_note(I, w):
     """a line on births in Israel for the last weeks (33 on), from the Ministry of Health's report; '' before that"""
     g, y = dict(I['ga']['groups']), I['year']
@@ -380,7 +398,7 @@ def build_weeks(c, P, reviewed, js, art):
 <h2 id="growth">גדילה עד שבוע {w}</h2>
 {growth(W, w)}
 <p class="k">משקל ואורך לכל השבועות: <a href="{FETAL}">משקל העובר לפי שבועות</a>.</p>
-{israel_note(I, w)}
+{length_note(P, W) if w in (24, 25) else ''}{israel_note(I, w)}
 {names}
 <h2>מה זה ״שבוע {w}״?</h2>
 <p>שבוע {w} להריון הוא {w}+0 עד {w}+6: {w} שבועות שלמים מהיום הראשון של הווסת האחרונה, כלומר השבוע ה-{w + 1} של ההריון. כך כותבים גם במכתבי הבדיקות ובאולטרסאונד. כדי לדעת בדיוק באיזה שבוע ויום אתם, ומתי התאריך המשוער, אפשר להשתמש ב<a href="{PATH}">מחשבון ההריון</a>.</p>
@@ -481,6 +499,7 @@ def build_fetal(c, P, reviewed):
 <p>המשקל והאורך הם ממוצעים משוערים. עד שבוע {MEASURE_FROM - 1} האורך נמדד מהראש עד העכוז, ומשבוע {MEASURE_FROM} מהראש עד העקב. לכל שבוע יש עמוד עם מה שמתפתח בו, הבדיקות ושמות לבת ולבן.</p>
 <table class="gtbl gnum pfetal"><thead><tr><th scope="col">שבוע</th><th scope="col">משקל</th><th scope="col">אורך</th><th scope="col">בגודל של</th></tr></thead>
 <tbody><tr class="ptri"><th scope="rowgroup" colspan="4">{tri(4)["name"]}</th></tr>{rows}</tbody></table>
+{length_note(P, W)}
 <h2 id="birth">משקל הלידה בישראל</h2>
 <p>ב-{I["year"]} נולדו בישראל כ-{I["births"]:,} תינוקות. חציון משקל הלידה היה {bw["median"]:,} גרם: חצי מהתינוקות שקלו פחות, וחצי יותר. בלידה ראשונה החציון נמוך יותר, {bw["first"]:,} גרם, ובתאומים {bw["twins"]:,} גרם.</p>
 <table class="gtbl gnum pbars"><thead><tr><th scope="col">משקל לידה</th><th scope="col"><span class="vh">חלק מהתינוקות</span></th><th scope="col">אחוז</th></tr></thead><tbody>{bars}</tbody></table>

@@ -108,6 +108,9 @@
   {"id": "decide", "until": 42, "step": "להחליט", "title": "זמן להחליט", "text": "הלידה מתקרבת. ואם עוד לא החלטתם, זה בסדר: יש הורים שמחכים לפגוש את התינוק לפני שהם בוחרים.",
    "links": [["/pregnancy/brit-mila", "חישוב תאריך ברית מילה"], ["/#match", "בוחרים שם ביחד"], ["/guides/hebrew-month-names", "שמות לפי חודש עברי וחגים"]]}
  ],
+ "intergrowth": {"source": ["INTERGROWTH-21st, University of Oxford: very preterm size at birth reference, length (Villar et al., Lancet 2016)", "https://intergrowth21.ndog.ox.ac.uk/Content/PDF/VeryPreterm/INTERGROWTH-21st_Length_Standards_Boys.pdf"],
+  "note": "the 50th centile of length at birth at n+0 weeks, the mean of the boys' and the girls' tables, rounded to 1 mm",
+  "median": {"24": 32.0, "25": 33.3, "26": 34.5, "27": 35.8, "28": 37.1, "29": 38.4, "30": 39.6, "31": 40.9, "32": 42.2}},
  "israel": {
   "source": ["משרד הבריאות: לידות ותמותת תינוקות בישראל 2000–2024 (פברואר 2026)", "https://www.gov.il/BlobFolder/reports/live-birth-in-israel-live_birth_2000-2024/he/files_publications_units_epidemiology_Live_Birth_2000-2024.pdf"],
   "year": 2024, "births": 181000,
