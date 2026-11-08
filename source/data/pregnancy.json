@@ -97,5 +97,25 @@
   ["NHS: Your pregnancy week by week", "https://www.nhs.uk/pregnancy/week-by-week/"],
   ["ACOG: How your fetus grows during pregnancy", "https://www.acog.org/womens-health/faqs/how-your-fetus-grows-during-pregnancy"],
   ["ACOG: Definition of term pregnancy", "https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2013/11/definition-of-term-pregnancy"]
- ]
+ ],
+ "stages": [
+  {"id": "dream", "until": 13, "step": "לחלום", "title": "זמן לחלום", "text": "עוד מוקדם, וזה בדיוק הזמן לאסוף שמות שאוהבים, בלי לחץ ובלי להחליט.",
+   "links": [["/guides", "מדריכים ומאמרים"], ["/names", "כל השמות ואוספי השמות"], ["/guides/hebrew-month-names", "שמות לפי חודש עברי וחגים"]]},
+  {"id": "sex", "until": 22, "step": "לדעת מין", "title": "כבר יודעים בן או בת?", "text": "רבים יודעים בשלב הזה אם זה בן או בת, וזה זמן טוב להתחיל רשימה משותפת.",
+   "links": [["/names/girls", "שמות לבנות"], ["/names/boys", "שמות לבנים"], ["/#match", "בוחרים שם ביחד"]]},
+  {"id": "narrow", "until": 33, "step": "לצמצם", "title": "זמן לצמצם את הרשימה", "text": "כדאי להגיד כל שם בקול עם שם המשפחה, ולבדוק כמה תינוקות קיבלו אותו בשנים האחרונות.",
+   "links": [["/#match", "בוחרים שם ביחד"], ["/names/popular", "השמות הנפוצים"], ["/guides/sibling-names", "שמות לאחים ואחיות"]]},
+  {"id": "decide", "until": 42, "step": "להחליט", "title": "זמן להחליט", "text": "הלידה מתקרבת. ואם עוד לא החלטתם, זה בסדר: יש הורים שמחכים לפגוש את התינוק לפני שהם בוחרים.",
+   "links": [["/pregnancy/brit-mila", "חישוב תאריך ברית מילה"], ["/#match", "בוחרים שם ביחד"], ["/guides/hebrew-month-names", "שמות לפי חודש עברי וחגים"]]}
+ ],
+ "intergrowth": {"source": ["INTERGROWTH-21st, University of Oxford: very preterm size at birth reference, length (Villar et al., Lancet 2016)", "https://intergrowth21.ndog.ox.ac.uk/Content/PDF/VeryPreterm/INTERGROWTH-21st_Length_Standards_Boys.pdf"],
+  "note": "the 50th centile of length at birth at n+0 weeks, the mean of the boys' and the girls' tables, rounded to 1 mm",
+  "median": {"24": 32.0, "25": 33.3, "26": 34.5, "27": 35.8, "28": 37.1, "29": 38.4, "30": 39.6, "31": 40.9, "32": 42.2}},
+ "israel": {
+  "source": ["משרד הבריאות: לידות ותמותת תינוקות בישראל 2000–2024 (פברואר 2026)", "https://www.gov.il/BlobFolder/reports/live-birth-in-israel-live_birth_2000-2024/he/files_publications_units_epidemiology_Live_Birth_2000-2024.pdf"],
+  "year": 2024, "births": 181000,
+  "ga": {"median": 39, "median_2000": 40, "twins_median": 36, "groups": [["לפני שבוע 37", 6.2], ["שבועות 37 עד 39", 51.2], ["שבוע 40 ואחריו", 42.5]], "before_33": 1.0, "before_28": 0.2},
+  "bw": {"median": 3250, "first": 3140, "single": 3270, "twins": 2440, "low": 6.7, "very_low": 0.7,
+   "groups": [["פחות מ-2,500 גרם", 6.7], ["2,500 עד 2,999 גרם", 22], ["3,000 עד 3,499 גרם", 42], ["3,500 עד 3,999 גרם", 24], ["4,000 גרם ומעלה", 5]]}
+ }
 }

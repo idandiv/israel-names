@@ -291,38 +291,76 @@ test('hero: ticking a checkup does not replay the entry animation; a new calcula
   await page.done();
 });
 
-test('growth chart: the axis labels stay left of the plot and do not overlap', async () => {
+test('growth charts: the axis labels stay left of each plot and do not overlap', async () => {
   for (const width of [375, 1200]) {
     const page = await open('/pregnancy/week-20', { width });
-    const r = await page.evaluate(() => {
+    const figs = await page.evaluate(() => {
       const box = e => { const b = e.getBoundingClientRect(); return { t: e.textContent, l: b.left, r: b.right, top: b.top, bottom: b.bottom }; };
-      return { labels: [...document.querySelectorAll('figure.pgrow .pg-t')].map(box), plot: box(document.querySelector('figure.pgrow .pg-grid')), svg: box(document.querySelector('figure.pgrow svg')) };
+      return [...document.querySelectorAll('figure.pgrow')].map(f => ({
+        labels: [...f.querySelectorAll('.pg-t')].map(box), plot: box(f.querySelector('.pg-grid')), svg: box(f.querySelector('svg')) }));
     });
-    assert.ok(r.labels.length > 8);
-    for (const a of r.labels) {
-      assert.ok(a.l >= r.svg.l - 1 && a.r <= r.svg.r + 1, `"${a.t}" leaves the chart at ${width}`);
-      r.labels.filter(b => b !== a && a.l < b.r && b.l < a.r && a.top < b.bottom && b.top < a.bottom)
-        .forEach(b => assert.fail(`"${a.t}" overlaps "${b.t}" at ${width}`));
+    assert.equal(figs.length, 2, 'a weight chart and a length chart');
+    for (const r of figs) {
+      assert.ok(r.labels.length > 8);
+      for (const a of r.labels) {
+        assert.ok(a.l >= r.svg.l - 1 && a.r <= r.svg.r + 1, `"${a.t}" leaves the chart at ${width}`);
+        r.labels.filter(b => b !== a && a.l < b.r && b.l < a.r && a.top < b.bottom && b.top < a.bottom)
+          .forEach(b => assert.fail(`"${a.t}" overlaps "${b.t}" at ${width}`));
+      }
+      for (const a of r.labels.filter(x => /^\d+$/.test(x.t) && x.r <= r.plot.l + 1)) assert.ok(a.r <= r.plot.l, `axis number ${a.t} is inside the plot at ${width}`);
     }
-    for (const a of r.labels.filter(x => /^[0-4]$/.test(x.t))) assert.ok(a.r <= r.plot.l, `axis number ${a.t} is inside the plot at ${width}`);
+    await noSideScroll(page);
     await page.done();
   }
 });
 
-test('week page: a growth chart with this week marked, and a name for a girl and a boy', async () => {
-  for (const [w, dot] of [[20, 1], [6, 0]]) {
+test('week page: breadcrumbs, the drawing, two charts with this week marked, a name for a girl and a boy', async () => {
+  for (const [w, dot] of [[20, 2], [6, 0]]) {
     const page = await open(`/pregnancy/week-${w}`, { js: false });
-    assert.equal(await page.locator('figure.pgrow svg').count(), 1);
+    assert.equal(await page.textContent('nav.crumbs [aria-current="page"]'), `שבוע ${w} להריון`);
+    assert.equal(await page.locator('nav.crumbs a').count(), 2);
+    assert.equal(await page.locator('.pr-art svg path, .pr-art svg circle, .pr-art svg ellipse').count() > 0, true, 'the size drawing, without JS');
+    assert.equal(await page.locator('figure.pgrow svg').count(), 2);
     assert.equal(await page.locator('figure.pgrow .pg-dot').count(), dot, `week ${w}`);
-    assert.match(await page.textContent('figure.pgrow figcaption'), new RegExp(`שבוע ${w}`));
+    assert.match(await page.textContent('figure.pgrow .pg-cap'), new RegExp(`שבוע ${w}`));
+    assert.equal(await page.locator('figure.pgrow polyline.pg-line').count(), 3, 'the length line breaks at week 20');
     assert.equal(await page.locator('table.pnames td a[href^="/names/"]').count(), 2);
+    assert.equal(await page.locator('.pfav:visible').count(), 0, 'no save buttons without JS');
     await noSideScroll(page);
     await page.done();
   }
   const hub = await open('/pregnancy', { js: false });
   assert.equal(await hub.locator('figure.pgrow .pg-dot').count(), 0);
   assert.equal(await hub.locator('a[href="/pregnancy/brit-mila"]').count(), 1);
+  assert.equal(await hub.locator('#israel + p + table.pbars tbody tr').count(), 3);
   await hub.done();
+});
+
+test('week page: saving a name of the week puts it in the site\'s list, and a second click takes it out', async () => {
+  const page = await open('/pregnancy/week-20');
+  const btn = page.locator('.pfav').first(), name = await btn.getAttribute('data-fav');
+  await btn.waitFor();
+  assert.equal(await btn.getAttribute('aria-pressed'), 'false');
+  await btn.click();
+  assert.equal(await btn.getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('bnil_fav'))), [name]);
+  assert.match(await page.textContent('.pfav-n'), /שמרתם שם אחד/);
+  await btn.click();
+  assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('bnil_fav'))), []);
+  assert.equal(await page.locator('.pfav-n').isHidden(), true);
+  await page.done();
+});
+
+test('fetal weight page: every week in the table, the charts, birth weights in Israel, no side scroll', async () => {
+  for (const width of [375, 1200]) {
+    const page = await open('/pregnancy/fetal-weight', { width });
+    assert.equal(await page.locator('table.pfetal tbody th a[href^="/pregnancy/week-"]').count(), 39);
+    assert.equal(await page.locator('figure.pgrow svg').count(), 2);
+    assert.equal(await page.locator('#birth ~ table.pbars').first().locator('tbody tr').count(), 5);
+    assert.match(await page.textContent('nav.crumbs'), /משקל העובר לפי שבועות/);
+    await noSideScroll(page);
+    await page.done();
+  }
 });
 
 test('calculator: the names journey by stage, the saved names, and the holidays around the due date', async () => {
@@ -345,16 +383,49 @@ test('calculator: the names journey by stage, the saved names, and the holidays 
 test('brit mila: day 8 and day 31, after sunset one day later, a pidyon on Shabbat moves to Sunday', async () => {
   const page = await open('/pregnancy/brit-mila');
   await page.fill('input[name=date]', '2026-11-05');   // a Thursday: day 31 is Shabbat 5.12.2026
+  await page.check('input[name=first]');
   await page.click('.pgo');
   const text = await page.textContent('#bres');
   assert.match(text, /יום חמישי, 12 בנובמבר 2026/);
   assert.match(text, /יום ראשון, 6 בדצמבר 2026/);
   assert.match(text, /חל בשבת/);
-  await page.check('input[name=evening]');
+  assert.equal(await page.locator('#bres a[href*="305.11"]').count(), 1, 'the source of the moved pidyon');
+  await page.check('input[name=time][value=night]');
   await page.click('.pgo');
   const late = await page.textContent('#bres');
   assert.match(late, /יום חמישי, 5 בנובמבר 2026, אחרי השקיעה/);
   assert.match(late, /יום שישי, 13 בנובמבר 2026/);
   await noSideScroll(page);
+  await page.done();
+});
+
+test('brit mila: a birth time near sunset ticks "near sunset"; Friday near sunset moves the brit to Sunday', async () => {
+  const page = await open('/pregnancy/brit-mila');
+  await page.fill('input[name=date]', '2026-11-06');   // a Friday; sunset in Tel Aviv about 16:48
+  await page.click('.pr-sun summary');
+  await page.selectOption('select[name=city]', 'tel-aviv');
+  await page.fill('input[name=clock]', '16:55');
+  await page.locator('input[name=clock]').dispatchEvent('change');
+  assert.equal(await page.isChecked('input[name=time][value=twilight]'), true);
+  assert.match(await page.textContent('#bsun'), /השקיעה בתל אביב ביום הזה: בערך 16:4\d/);
+  await page.click('.pgo');
+  const t = await page.textContent('#bres');
+  assert.match(t, /יום ראשון, 15 בנובמבר 2026/);
+  assert.match(t, /רס״ו, ח/);
+  assert.match(t, /רק לבן שהוא הלידה הראשונה/, 'not marked firstborn: no pidyon date');
+  await page.done();
+});
+
+test('brit mila: a caesarean birth is not circumcised on Shabbat and is exempt from the pidyon', async () => {
+  const page = await open('/pregnancy/brit-mila');
+  await page.fill('input[name=date]', '2026-10-31');   // a Shabbat: day 8 is Shabbat 7.11.2026
+  await page.check('input[name=caesar]');
+  await page.check('input[name=first]');
+  await page.click('.pgo');
+  const t = await page.textContent('#bres');
+  assert.match(t, /יום ראשון, 8 בנובמבר 2026/);
+  assert.match(t, /רס״ו, י\)/);
+  assert.match(t, /פטור מפדיון הבן/);
+  assert.doesNotMatch(t, /פדיון הבן\s*יום/);
   await page.done();
 });

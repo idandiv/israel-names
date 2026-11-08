@@ -135,15 +135,69 @@ export function yomTov(day) {
   const x = hebDM(day);
   return (YOMTOV[MONTH_KEY[x.m] || x.m] || {})[x.d] || '';
 }
-/* birth: the civil date of the birth; evening: born after sunset, when the Hebrew day has already turned.
-   heb: the civil day whose daytime is the Hebrew birth day (day 1); brit: day 8; pidyon: day 31, or the next day
-   that is not Shabbat or a holiday */
-export function britDates(birth, evening) {
-  const heb = birth + (evening ? 1 : 0), brit = heb + 7, first = heb + 30;
-  let pidyon = first;
-  while (isShabbat(pidyon) || yomTov(pidyon)) pidyon++;
-  return { heb, brit, britRest: isShabbat(brit) ? 'שבת' : yomTov(brit), pidyon, moved: pidyon !== first,
-    movedFrom: isShabbat(first) ? 'שבת' : yomTov(first) };
+const restOf = day => { const y = yomTov(day); return isShabbat(day) ? (y ? `שבת ו${y}` : 'שבת') : y; };
+/* birth: the civil date of the birth. o (or true/false for night/day, as before):
+     time: 'day' (before sunset, also after midnight: the Hebrew day of that date), 'twilight' (between sunset and the
+           stars: a doubt, counted from the night, so from the next day, YD 266:8) or 'night' (after dark: the next day)
+     caesar: born by caesarean section; first: the mother's firstborn (false: not); kl: a kohen or levi (father or mother)
+   heb: the civil day whose daytime is the Hebrew birth day (day 1). brit: day 8, which overrides Shabbat and a holiday
+   (YD 266:2), except a caesarean birth (266:10) or a doubt (266:8): then the next day that is neither.
+   pidyon: day 31, or the next day that is not Shabbat or a holiday (305:11); null when exempt: 'caesar' (305:24),
+   'kl' (305:18) or 'notfirst' */
+export function britDates(birth, o = {}) {
+  if (typeof o === 'boolean') o = { time: o ? 'night' : 'day' };
+  const time = o.time || 'day', heb = birth + (time === 'day' ? 0 : 1), on8 = heb + 7, p31 = heb + 30;
+  const strict = o.caesar ? 'caesar' : time === 'twilight' ? 'twilight' : '';
+  let brit = on8, pidyon = p31;
+  if (strict) while (restOf(brit)) brit++;
+  while (restOf(pidyon)) pidyon++;
+  const exempt = o.caesar ? 'caesar' : o.kl ? 'kl' : o.first === false ? 'notfirst' : '';
+  return { heb, time, brit, britRest: restOf(brit), strict, britMoved: brit !== on8, britFrom: restOf(on8),
+    pidyon: exempt ? null : pidyon, exempt, moved: !exempt && pidyon !== p31, movedFrom: restOf(p31) };
+}
+
+/* ---- sunset, to tell whether a birth was before it (NOAA's approximation at sea level, within a minute or two of
+   Hebcal; the true sunset depends on height and horizon, so close to it the calculator says to ask) ---- */
+export const CITIES = { jerusalem: ['ירושלים', 31.769, 35.216], 'tel-aviv': ['תל אביב', 32.081, 34.781], haifa: ['חיפה', 32.813, 34.999],
+  'beer-sheva': ['באר שבע', 31.252, 34.791], tiberias: ['טבריה', 32.794, 35.532], eilat: ['אילת', 29.558, 34.948] };
+/* minutes after 00:00 UTC of the civil day */
+export function sunsetUTC(day, lat, lon) {
+  const r = Math.PI / 180, d = new Date(day * DAY), doy = (day * DAY - Date.UTC(d.getUTCFullYear(), 0, 1)) / DAY + 1;
+  const y = 2 * Math.PI / 365 * (doy - 1 + (16 - 12) / 24);
+  const eq = 229.18 * (0.000075 + 0.001868 * Math.cos(y) - 0.032077 * Math.sin(y) - 0.014615 * Math.cos(2 * y) - 0.040849 * Math.sin(2 * y));
+  const dec = 0.006918 - 0.399912 * Math.cos(y) + 0.070257 * Math.sin(y) - 0.006758 * Math.cos(2 * y) + 0.000907 * Math.sin(2 * y)
+    - 0.002697 * Math.cos(3 * y) + 0.00148 * Math.sin(3 * y);
+  const ha = Math.acos(Math.cos(90.833 * r) / (Math.cos(lat * r) * Math.cos(dec)) - Math.tan(lat * r) * Math.tan(dec)) / r;
+  return 720 - 4 * (lon - ha) - eq;
+}
+/* the sunset on Israel's clock (summer time included), in whole minutes after midnight */
+export function sunsetLocal(day, city) {
+  const [, lat, lon] = CITIES[city], at = new Date(day * DAY + Math.round(sunsetUTC(day, lat, lon)) * 6e4);
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(at).map(x => [x.type, x.value]));
+  return +p.hour * 60 + +p.minute;
+}
+export const NEAR = [10, 40];   // minutes before and after sunset that the calculator treats as a doubt
+/* the birth time ('HH:MM') against that day's sunset: 'day', 'twilight' (near sunset: a question for a rabbi) or 'night' */
+export function timeOfBirth(day, hhmm, city) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || '');
+  if (!m || !CITIES[city]) return null;
+  const t = +m[1] * 60 + +m[2], s = sunsetLocal(day, city);
+  return { time: t < s - NEAR[0] ? 'day' : t > s + NEAR[1] ? 'night' : 'twilight', sunset: s };
+}
+export const hhmm = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+
+/* the brit and the pidyon as a calendar file */
+export function britIcs(b, { site = 'https://www.shemotil.co.il', stamp } = {}) {
+  stamp = stamp || new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//shemotil.co.il//brit//HE', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+  const ev = (uid, day, summary) => L.push('BEGIN:VEVENT', `UID:${uid}-${ymd(b.heb)}@shemotil.co.il`, `DTSTAMP:${stamp}`,
+    `DTSTART;VALUE=DATE:${ymd(day)}`, `DTEND;VALUE=DATE:${ymd(day + 1)}`, `SUMMARY:${icsEscape(summary)}`,
+    `DESCRIPTION:${icsEscape(`${hebrewDate(day).text}. המועד הסופי נקבע עם המוהל או הרב. ${site}/pregnancy/brit-mila`)}`, 'TRANSP:TRANSPARENT', 'END:VEVENT');
+  ev('brit', b.brit, 'ברית מילה');
+  if (b.pidyon != null) ev('pidyon', b.pidyon, 'פדיון הבן');
+  L.push('END:VCALENDAR');
+  return L.map(icsFold).join('\r\n') + '\r\n';
 }
 
 export const gregorianText = day => new Intl.DateTimeFormat('he-IL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
@@ -205,7 +259,8 @@ export function ics({ due, now, info = {}, checkups = [], done = [], weeks = tru
     for (let w = Math.max(4, Math.floor((now - start) / 7) + 1); w <= 41; w++) {
       if (w === 40) continue;
       const wk = info[w], url = `${site}/pregnancy/week-${w}`;
-      ev(`w${w}`, start + w * 7, `שבוע ${w} להריון`, `${wk ? `בגודל של ${wk.size}. ` : ''}מה קורה השבוע: ${url}`, url);
+      const names = wk && wk.names ? `שמות לשבוע: ${wk.names[0]} לבת, ${wk.names[1]} לבן. ` : '';
+      ev(`w${w}`, start + w * 7, `שבוע ${w} להריון`, `${wk ? `בגודל של ${wk.size}. ` : ''}${names}מה קורה השבוע: ${url}`, url);
     }
   }
   if (due >= now) ev('due', due, 'תאריך הלידה המשוער', `שבוע 40. בהצלחה! ${site}/pregnancy/week-40`, `${site}/pregnancy/week-40`);
@@ -468,16 +523,6 @@ function heroLive(m, intro) {
 }
 
 /* ---- the names journey: what to do about the name at this week, holidays around the due date, the saved names ---- */
-const STAGE = {
-  dream: ['זמן לחלום', 'עוד מוקדם, וזה בדיוק הזמן לאסוף שמות שאוהבים, בלי לחץ ובלי להחליט.',
-    [['/guides', 'מדריכים ומאמרים'], ['/names', 'כל השמות ואוספי השמות'], ['/guides/hebrew-month-names', 'שמות לפי חודש עברי וחגים']]],
-  sex: ['כבר יודעים בן או בת?', 'רבים יודעים בשלב הזה אם זה בן או בת, וזה זמן טוב להתחיל רשימה משותפת.',
-    [['/names/girls', 'שמות לבנות'], ['/names/boys', 'שמות לבנים'], ['/#match', 'בוחרים שם ביחד']]],
-  narrow: ['זמן לצמצם את הרשימה', 'כדאי להגיד כל שם בקול עם שם המשפחה, ולבדוק כמה תינוקות קיבלו אותו בשנים האחרונות.',
-    [['/#match', 'בוחרים שם ביחד'], ['/names/popular', 'השמות הנפוצים'], ['/guides/sibling-names', 'שמות לאחים ואחיות']]],
-  decide: ['זמן להחליט', 'הלידה מתקרבת. ואם עוד לא החלטתם, זה בסדר: יש הורים שמחכים לפגוש את התינוק לפני שהם בוחרים.',
-    [['/pregnancy/brit-mila', 'מחשבון ברית מילה ופדיון הבן'], ['/#match', 'בוחרים שם ביחד'], ['/guides/hebrew-month-names', 'שמות לפי חודש עברי וחגים']]],
-};
 const nameLinks = list => list.map(([n, href]) => `<a href="${href}">${n}</a>`).join('');
 /* the names saved on this device (the site's favorites, bnil_fav) */
 function savedNames() {
@@ -486,15 +531,20 @@ function savedNames() {
     return Array.isArray(v) ? v.filter(n => typeof n === 'string' && n && n.length < 40) : [];
   } catch (e) { return []; }
 }
+/* the four stages as steps, the current one marked (D.stages: id -> [step, title, text, links], from pregnancy.json) */
+export function stepsHtml(stages, cur) {
+  const ids = Object.keys(stages), at = ids.indexOf(cur);
+  return `<ol class="pj-steps">${ids.map((id, i) => `<li class="${i < at ? 'is-past' : i === at ? 'is-now' : ''}"${i === at ? ' aria-current="step"' : ''}>${stages[id][0]}</li>`).join('')}</ol>`;
+}
 function journey(D, st, due, fav) {
-  const [title, text, links] = STAGE[journeyStage(st.weeks)];
+  const stage = journeyStage(st.weeks), [, title, text, links] = D.stages[stage];
   const [a, b] = birthWindow(due), near = holidaysBetween(D.holidays || [], a, b);
   const span = h => `<bdi dir="ltr">${h.len > 1 ? `${dm(h.from)}–${dm(h.to)}` : dm(h.from)}</bdi>`;
   const hol = near.length ? `<div class="pj-hol"><h4>חגים סביב התאריך המשוער</h4>
       <p class="k">התאריך המשוער הוא הערכה, והלידה יכולה להיות גם כמה שבועות לפניו או אחריו. בין שבוע 37 לסוף שבוע 41, אצלכם <bdi dir="ltr">${dm(a)}–${dm(b)}</bdi>, ${near.length > 1 ? 'חלים' : 'חל'}:</p>
       ${near.map(h => `<p><b>${h.name}</b> <span class="k">(${span(h)})</span></p><p class="cgc">${nameLinks(h.names)}</p>`).join('')}</div>` : '';
   const favs = fav.length ? `<p class="pj-fav">שמרתם באתר ${fav.length === 1 ? 'שם אחד' : `${fmtN(fav.length)} שמות`}: ${fav.slice(0, 6).map(n => `<a href="/names/${encodeURIComponent(n)}">${esc(n)}</a>`).join(', ')}${fav.length > 6 ? ' ועוד' : ''}. <a href="/">לרשימה המלאה</a></p>` : '';
-  return `<section class="pr-journey"><h3>השמות שלכם: ${title}</h3><p>${text}</p>
+  return `<section class="pr-journey"><h3>השלב שלכם בשמות: ${title}</h3>${stepsHtml(D.stages, stage)}<p>${text}</p>
     <p class="pj-links">${links.map(([href, t]) => `<a href="${href}">${t}</a>`).join('')}</p>${favs}${hol}</section>`;
 }
 const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -510,6 +560,7 @@ function render(D, st, due, now, v, since, still) {
   return `${heroHtml(heroModel(st, wk), st, since, still)}
     <dl class="pr-facts"><div><dt>תאריך לידה משוער</dt><dd>${gregorianText(due)}<span>${heb.text}</span></dd></div>
       <div><dt>עד התאריך המשוער</dt><dd>${left}</dd></div></dl>
+    ${israelLine(D.israel)}
     <section class="pr-week">${size}</section>
     ${checks(D, due, now, v.done || [])}
     ${journey(D, st, due, savedNames())}
@@ -577,25 +628,106 @@ function calculator() {
   } else sync();
 }
 
+/* births in Israel by week (pregnancy.json israel): the due date is an estimate, not the day most babies come */
+export function israelLine(I) {
+  if (!I) return '';
+  const g = Object.fromEntries(I.groups);
+  return `<p class="k pr-il">בישראל, ב-${I.year}, כ-${Math.round(g['לפני שבוע 37'] + g['שבועות 37 עד 39'])}% מהתינוקות נולדו לפני שבוע 40, וחציון הלידה היה שבוע ${I.median}. <a href="/pregnancy#israel">מתי נולדים בישראל</a></p>`;
+}
+
+/* ---- the names of the week on a week page: a button saves a name to the site's list (bnil_fav, the same list as the
+   names app), and a line counts the saved names ---- */
+function weekNames() {
+  const btns = [...document.querySelectorAll('.pfav')], count = document.querySelector('.pfav-n');
+  if (!btns.length) return;
+  const paint = () => {
+    const fav = savedNames();
+    btns.forEach(b => { const on = fav.includes(b.dataset.fav); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'נשמר ברשימה ✓' : 'שמירה לרשימה'; b.hidden = false; });
+    if (count) {
+      count.hidden = !fav.length;
+      count.innerHTML = fav.length ? `שמרתם ${fav.length === 1 ? 'שם אחד' : `${fmtN(fav.length)} שמות`}. <a href="/">לרשימה המלאה ולבחירה ביחד</a>` : '';
+    }
+  };
+  btns.forEach(b => b.addEventListener('click', () => {
+    const n = b.dataset.fav, fav = savedNames();
+    const next = fav.includes(n) ? fav.filter(x => x !== n) : [...fav, n];
+    try { localStorage.setItem('bnil_fav', JSON.stringify(next)); } catch (e) { /* storage blocked: nothing to keep */ }
+    paint();
+  }));
+  addEventListener('storage', e => { if (e.key === 'bnil_fav') paint(); });
+  paint();
+}
+
 /* the brit mila and pidyon haben calculator (/pregnancy/brit-mila) */
+const SA_URL = "https://www.sefaria.org/Shulchan_Arukh%2C_Yoreh_De'ah.";
+const src = (n, t) => `<a href="${SA_URL}${n}" target="_blank" rel="noopener">${t}</a>`;
+const on = r => (r.startsWith('שבת') ? r : `חג (${r})`);
+const EXEMPT = {
+  caesar: `תינוק שנולד בניתוח קיסרי פטור מפדיון הבן, וכך גם הבן שנולד אחריו (${src('305.24', 'שו״ע יו״ד ש״ה, כ״ד')}).`,
+  kl: `כשהאב כהן או לוי, או כשהאם בת כהן או בת לוי, אין פדיון הבן: הדבר תלוי באם (${src('305.18', 'שו״ע יו״ד ש״ה, י״ח')}).`,
+  notfirst: 'פדיון הבן נערך רק לבן שהוא הלידה הראשונה של אמו (פטר רחם). אם הוא הבכור, סמנו זאת למעלה וחשבו שוב.',
+};
+export function britHtml(b, birth) {
+  const day = (d, label) => `<div><dt>${label}</dt><dd>${gregorianText(d)}<span>${hebrewDate(d).text}</span></dd></div>`;
+  const born = { day: '', twilight: ', סמוך לשקיעה', night: ', אחרי השקיעה' }[b.time];
+  const notes = [];
+  if (b.strict && b.britMoved) {
+    notes.push(b.strict === 'caesar'
+      ? `<b>היום השמיני חל ב${on(b.britFrom)}, והברית נדחית.</b> תינוק שנולד בניתוח קיסרי נימול ביום השמיני, אבל הברית שלו לא דוחה שבת (${src('266.10', 'שו״ע יו״ד רס״ו, י')}), ונהוג שגם לא יום טוב. ולכן היא נדחית ל${gregorianText(b.brit).split(',')[0]}.`
+      : `<b>הלידה הייתה סמוך לשקיעה, והיום השמיני חל ב${on(b.britFrom)}.</b> כשלא ברור אם הלידה הייתה ביום או בלילה, סופרים מהלילה, והברית לא נערכת בשבת או בחג מספק (${src('266.8', 'שו״ע יו״ד רס״ו, ח')}). ולכן היא נדחית ל${gregorianText(b.brit).split(',')[0]}.`);
+  } else if (b.strict === 'twilight') {
+    notes.push(`<b>הלידה הייתה סמוך לשקיעה.</b> כשלא ברור אם הלידה הייתה ביום או בלילה, סופרים מהלילה, כלומר מהיום שאחרי, וברית שחלה בשבת או בחג נדחית (${src('266.8', 'שו״ע יו״ד רס״ו, ח')}). בררו עם הרב או המוהל.`);
+  } else if (b.strict === 'caesar') {
+    notes.push(`תינוק שנולד בניתוח קיסרי נימול ביום השמיני, אבל לא בשבת (${src('266.10', 'שו״ע יו״ד רס״ו, י')}), ונהוג שגם לא ביום טוב. הפעם היום השמיני הוא יום חול.`);
+  } else if (b.britRest) {
+    notes.push(`<b>הברית חלה ב${on(b.britRest)}.</b> ברית בזמנה, ביום השמיני, נערכת גם בשבת וביום טוב (${src('266.2', 'שו״ע יו״ד רס״ו, ב')}). ברית שנדחתה, למשל בגלל צהבת, כבר לא נערכת בשבת ובחג.`);
+  }
+  const pid = b.pidyon == null
+    ? `<p class="pr-note">${EXEMPT[b.exempt]}</p>`
+    : `<dl class="pr-facts">${day(b.pidyon, 'פדיון הבן')}</dl>` + (b.moved
+      ? `<p class="pr-note">היום ה-31 חל ב${on(b.movedFrom)}, ובשבת ובחג לא עורכים פדיון הבן (${src('305.11', 'שו״ע יו״ד ש״ה, י״א')}), ולכן הוא נדחה ל${gregorianText(b.pidyon).split(',')[0]}.</p>` : '')
+      + '<p class="k">פדיון הבן נערך אחרי 30 ימים מלאים, לבן בכור לאמו שנולד בלידה רגילה. אחרי הפלה קודמת ובמקרים אחרים צריך לברר עם רב.</p>';
+  return `<dl class="pr-facts"><div><dt>יום הלידה</dt><dd>${gregorianText(birth)}${born}<span>${hebrewDate(b.heb).text}</span></dd></div></dl>
+      <h3>ברית מילה: היום השמיני</h3><dl class="pr-facts">${day(b.brit, 'ברית מילה')}</dl>${notes.map(n => `<p class="pr-note">${n}</p>`).join('')}
+      <p class="k">המוהל קובע את המועד הסופי. כשהתינוק לא בריא, למשל בצהבת, הברית נדחית עד שהוא מבריא.</p>
+      <h3>פדיון הבן: היום ה-31</h3>${pid}`;
+}
 function britCalc() {
   const form = document.getElementById('bform'), out = document.getElementById('bres'), err = document.getElementById('berr');
-  const day = (d, label, extra = '') => `<div><dt>${label}</dt><dd>${gregorianText(d)}<span>${hebrewDate(d).text}</span>${extra}</dd></div>`;
+  const f = form.elements, hint = document.getElementById('bsun');
+  f.date.max = fromDay(todayDay());
+  // a birth time and a city: the sunset of that day, and the matching choice ticked (it can still be changed)
+  const sun = () => {
+    const birth = toDay(f.date.value), t = birth == null ? null : timeOfBirth(birth, f.clock.value, f.city.value);
+    hint.hidden = !t;
+    if (!t) return;
+    form.querySelector(`input[name="time"][value="${t.time}"]`).checked = true;
+    hint.textContent = `השקיעה ב${CITIES[f.city.value][0]} ביום הזה: בערך ${hhmm(t.sunset)}. ` + (t.time === 'twilight'
+      ? `הלידה הייתה סמוך לשקיעה (מ-${NEAR[0]} דקות לפניה עד ${NEAR[1]} אחריה), ולכן סומן ״סמוך לשקיעה״. בשעות האלה צריך לברר עם רב.`
+      : t.time === 'day' ? 'הלידה הייתה לפני השקיעה.' : 'הלידה הייתה אחרי השקיעה, כשכבר התחיל היום העברי הבא.');
+  };
+  ['date', 'clock', 'city'].forEach(k => f[k].addEventListener('change', sun));
   form.addEventListener('submit', e => {
     e.preventDefault();
-    const birth = toDay(form.elements.date.value), evening = form.elements.evening.checked;
+    const birth = toDay(f.date.value);
     err.hidden = birth != null;
     err.textContent = birth == null ? 'בחרו את תאריך הלידה.' : '';
     if (birth == null) { out.hidden = true; return; }
-    const b = britDates(birth, evening);
-    const rest = b.britRest ? `<p class="pr-note"><b>הברית חלה ב${b.britRest === 'שבת' ? 'שבת' : `חג (${b.britRest})`}.</b> ברית בזמנה, ביום השמיני, נערכת גם בשבת ובחג. בלידה בניתוח קיסרי היא לא נערכת בשבת ובחג, ונדחית ליום שאחריהם. בררו עם המוהל.</p>` : '';
-    const moved = b.moved ? `<p class="pr-note">היום ה-31 חל ב${b.movedFrom === 'שבת' ? 'שבת' : `חג (${b.movedFrom})`}, ובשבת ובחג לא עורכים פדיון הבן, ולכן הוא נדחה ל${gregorianText(b.pidyon).split(',')[0]}.</p>` : '';
-    out.innerHTML = `<dl class="pr-facts"><div><dt>יום הלידה</dt><dd>${gregorianText(birth)}${evening ? ', אחרי השקיעה' : ''}<span>${hebrewDate(b.heb).text}</span></dd></div></dl>
-      <h3>ברית מילה: היום השמיני</h3><dl class="pr-facts">${day(b.brit, 'ברית מילה')}</dl>${rest}
-      <p class="k">המוהל קובע את המועד הסופי. כשהתינוק לא בריא, למשל בצהבת, הברית נדחית עד שהוא מבריא.</p>
-      <h3>פדיון הבן: היום ה-31</h3><dl class="pr-facts">${day(b.pidyon, 'פדיון הבן')}</dl>${moved}
-      <p class="k">פדיון הבן נערך לבן בכור לאמו שנולד בלידה רגילה, לא בניתוח קיסרי, כשהאב אינו כהן או לוי והאם אינה בת כהן או לוי. אחרי הפלה קודמת ובמקרים אחרים צריך לברר. בררו עם רב.</p>`;
+    const time = (form.querySelector('input[name="time"]:checked') || {}).value || 'day';
+    const b = britDates(birth, { time, caesar: f.caesar.checked, first: f.first.checked, kl: f.kl.checked });
+    out.innerHTML = britHtml(b, birth) + `<p class="pr-acts"><button type="button" class="pbtn" id="bics">הוספה ליומן</button><button type="button" class="pbtn2" id="bcopy">העתקת המועדים</button></p><p class="pr-msg" id="bmsg" role="status"></p>`;
     out.hidden = false;
+    const msg = document.getElementById('bmsg');
+    document.getElementById('bics').onclick = () => {
+      download(new Blob([britIcs(b, { site: location.origin })], { type: 'text/calendar;charset=utf-8' }), 'shemotil-brit.ics');
+      msg.textContent = 'הקובץ ירד. פתחו אותו כדי להוסיף את המועדים ליומן.';
+    };
+    document.getElementById('bcopy').onclick = async () => {
+      const text = `ברית מילה: ${gregorianText(b.brit)}, ${hebrewDate(b.brit).text}` + (b.pidyon != null ? `\nפדיון הבן: ${gregorianText(b.pidyon)}, ${hebrewDate(b.pidyon).text}` : '')
+        + `\n(לפי ${location.origin}/pregnancy/brit-mila, המועד הסופי נקבע עם המוהל)`;
+      try { await navigator.clipboard.writeText(text); msg.textContent = 'המועדים הועתקו. אפשר להדביק בוואטסאפ.'; } catch (e2) { msg.textContent = text; }
+    };
+    out.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   });
 }
 
@@ -623,4 +755,5 @@ if (typeof document !== 'undefined') {
   if (document.getElementById('pform')) calculator();
   if (document.getElementById('bform')) britCalc();
   document.querySelectorAll('.pmine').forEach(yourWeek);
+  weekNames();
 }

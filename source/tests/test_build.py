@@ -74,6 +74,77 @@ class PregnancyData(unittest.TestCase):
     def test_ltr(self):
         self.assertEqual(pregnancy.ltr('שבוע 12+3'), 'שבוע <bdi dir="ltr">12+3</bdi>')
 
+    def test_length_chart_breaks_where_the_measurement_changes(self):
+        W = {int(w): x for w, x in self.P['weeks'].items()}
+        svg = pregnancy.growth_svg(W, 20, 'cm')
+        self.assertEqual(svg.count('<polyline'), 2)                       # to week 19, and from week 20
+        self.assertIn('pg-note', svg)
+        self.assertEqual(pregnancy.growth_svg(W, 20).count('<polyline'), 1)  # the weight: one line
+        self.assertIn('לא קפיצה בגדילה', pregnancy.growth(W, 20))
+
+    def test_stages(self):
+        self.assertEqual([pregnancy.stage_of(self.P, w)['id'] for w in (4, 13, 14, 22, 23, 33, 34, 42)],
+                         ['dream', 'dream', 'sex', 'sex', 'narrow', 'narrow', 'decide', 'decide'])
+        self.broken(lambda P: P['stages'].reverse())
+        self.broken(lambda P: P['stages'][0].update({'until': 12}))     # not the weeks of journeyStage
+        self.broken(lambda P: P['stages'][1]['links'].pop())
+
+    def test_israel(self):
+        self.broken(lambda P: P['israel']['ga']['groups'][1].__setitem__(1, 41.2))   # no longer adds up to 100%
+        self.broken(lambda P: P['israel']['bw']['groups'].pop())
+        self.broken(lambda P: P['israel'].update({'source': ['x', 'https://example.com/a.pdf']}))
+        self.broken(lambda P: P['israel'].update({'source': ['x', 'https://evilgov.il/a.pdf']}))
+        self.broken(lambda P: P['israel']['bw'].update({'low': 5}))
+
+    def test_intergrowth(self):
+        self.assertEqual(self.P['intergrowth']['median']['24'], 32.0)
+        self.broken(lambda P: P['intergrowth']['median'].update({'25': 31.0}))                         # going down
+        self.broken(lambda P: P['intergrowth']['median'].pop('25'))                                    # a week missing
+        self.broken(lambda P: P['intergrowth'].update({'source': ['x', 'https://example.com/a.pdf']}))
+
+    def test_month_of(self):
+        self.assertEqual([pregnancy.month_of(w) for w in (4, 5, 13, 14, 20, 27, 28, 36, 40)], [0, 1, 2, 3, 4, 5, 6, 8, 8])
+        self.assertIsNone(pregnancy.month_of(41))
+
+    def test_crumbs(self):
+        html, ld = pregnancy.crumbs('https://x', [('בית', '/'), ('הריון', '/pregnancy'), ('שבוע <1>', None)])
+        self.assertIn('<span aria-current="page">שבוע &lt;1&gt;</span>', html)
+        self.assertEqual([i.get('item') for i in ld['itemListElement']], ['https://x/', 'https://x/pregnancy', None])
+
+
+class PregnancyPages(unittest.TestCase):
+    """the built pages (src/pregnancy, from npm run site)"""
+    SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'pregnancy')
+
+    def page(self, name):
+        return open(os.path.join(self.SRC, name + '.html'), encoding='utf-8').read()
+
+    def test_week_titles(self):
+        import re
+        titles = [re.search(r'<title>(.*?)</title>', self.page(f'week-{w}')).group(1) for w in range(4, 43)]
+        self.assertEqual(len(set(titles)), 39)
+        self.assertEqual(titles[16], 'שבוע 20 להריון: התפתחות העובר, משקל, גודל ושמות מומלצים')
+
+    def test_breadcrumbs_match_the_schema(self):
+        import json, re
+        for name in ('week-20', 'calculator', 'brit-mila', 'fetal-weight', 'index'):
+            s = self.page(name)
+            shown = re.findall(r'<a href="([^"]+)">', re.search(r'<nav class="crumbs".*?</nav>', s).group(0))
+            graph = json.loads(re.search(r'application/ld\+json">(.*?)</script>', s, re.S).group(1))['@graph']
+            bc = next(n for n in graph if n['@type'] == 'BreadcrumbList')['itemListElement']
+            self.assertEqual(shown, [i['item'].replace('__BASE_URL__', '') for i in bc if 'item' in i], name)
+            self.assertNotIn('item', bc[-1], name)
+
+    def test_length_note_on_weeks_24_and_25(self):
+        for name, n in (('week-24', 1), ('week-25', 1), ('week-26', 0), ('fetal-weight', 1)):
+            self.assertEqual(self.page(name).count('intergrowth21.ndog.ox.ac.uk'), n, name)
+
+    def test_brit_title_and_sources(self):
+        s = self.page('brit-mila')
+        self.assertIn('<title>חישוב תאריך ברית מילה ופדיון הבן', s)
+        for seif in ('262.1', '266.2', '266.8', '266.10', '305.11', '305.18', '305.24'):
+            self.assertIn(f"Yoreh_De'ah.{seif}", s)
+
 
 class Guides(unittest.TestCase):
     def test_one_letter_apart(self):
