@@ -259,3 +259,14 @@
 .docbody .gsteps{margin:0 0 12px;padding-inline-start:20px}.docbody .gsteps li{margin-bottom:8px}
 @media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gfoot .ic,.docbody .cover,.docbody .gfilt button{transition:none}
   .docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gfoot .ic,.docbody .gcards a:hover .cover{transform:none}}
+/* the language link at the top of a page that has a counterpart in the other language, and the Arabic pages (/ar, tools/arabic.py) */
+.docend{display:inline-flex;align-items:center;gap:12px}
+.doclang{display:inline-flex;align-items:center;min-height:36px;padding:2px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink-2);font-size:14px;font-weight:600;text-decoration:none}
+.doclang:hover,.doclang:focus-visible{border-color:var(--accent);color:var(--accent)}
+/* Arabic body text in the device's own Arabic font: no web font swaps in under it (no layout shift), and none is downloaded */
+html[lang=ar]{--f-body:system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif}
+html[lang=ar] .docbody h1,html[lang=ar] .docbody h2{font-family:'Noto Kufi Arabic',var(--f-body);font-weight:600;letter-spacing:0}
+html[lang=ar] .docbody h1{font-size:34px;line-height:1.35}html[lang=ar] .docbody h2{font-size:21px;line-height:1.5}
+html[lang=ar] .docbody{line-height:1.8}
+.docbody .coll sup,.docbody .gtbl sup{color:var(--muted);font-size:11px;margin-inline-start:1px}
+.docbody .arnote{margin-top:10px;line-height:1.7}

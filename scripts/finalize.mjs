@@ -38,11 +38,19 @@ const paths = JSON.parse(fs.readFileSync(path.join(root, 'scripts', 'paths.json'
 // <lastmod>: the date each page's content last changed (kept by build_site.py), not the build date
 let lastmod = {};
 try { lastmod = JSON.parse(fs.readFileSync(path.join(root, 'scripts', 'lastmod.json'), 'utf8')); } catch {}
+// /sitemap.xml is an index of one sitemap per language (sitemap-he.xml, sitemap-ar.xml for the /ar pages), so Search Console
+// reports indexing for each language apart. The address stays /sitemap.xml, the one robots.txt and Search Console know.
 if (base) {
   const mod = p => (lastmod[decodeURIComponent(p)] || [])[1];
-  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    paths.map(p => `<url><loc>${base}${p}</loc>${mod(p) ? `<lastmod>${mod(p)}</lastmod>` : ''}</url>`).join('\n') + '\n</urlset>\n';
-  fs.writeFileSync(path.join(out, 'sitemap.xml'), xml);
+  const urlset = ps => '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    ps.map(p => `<url><loc>${base}${p}</loc>${mod(p) ? `<lastmod>${mod(p)}</lastmod>` : ''}</url>`).join('\n') + '\n</urlset>\n';
+  const isAr = p => p === '/ar' || p.startsWith('/ar/');
+  const maps = { he: paths.filter(p => !isAr(p)), ar: paths.filter(isAr) };
+  const newest = ps => ps.map(mod).filter(Boolean).sort().pop();
+  for (const [l, ps] of Object.entries(maps)) fs.writeFileSync(path.join(out, `sitemap-${l}.xml`), urlset(ps));
+  fs.writeFileSync(path.join(out, 'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    Object.entries(maps).map(([l, ps]) => `<sitemap><loc>${base}/sitemap-${l}.xml</loc>${newest(ps) ? `<lastmod>${newest(ps)}</lastmod>` : ''}</sitemap>`).join('\n') +
+    '\n</sitemapindex>\n');
 }
 // ads.txt (AdSense): the committed ads.txt at the repo root is served as /ads.txt.
 // If it is still empty and ADSENSE_PUBLISHER_ID is set in Vercel (e.g. pub-1234567890123456), the standard Google line is written.

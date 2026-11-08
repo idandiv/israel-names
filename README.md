@@ -11,6 +11,7 @@
 - 📊 **תיק לכל שם (כ-5,700 שמות):** שכיחות לאורך השנים (1949–2024), שנת שיא, חלוקה בין בנות לבנים, משמעות, פרופיל אופי וגימטריה.
 - 💕 **NameMatch, בוחרים שם ביחד:** כל אחד מבני הזוג מחליק שמות בנפרד, וההתאמות מופיעות מיד לשניהם (Supabase Realtime).
 - 🚀 **עמודי אוספים ל-SEO:** [שמות לבנים](https://www.shemotil.co.il/names/boys), [שמות לבנות](https://www.shemotil.co.il/names/girls), [שמות יוניסקס](https://www.shemotil.co.il/names/unisex), [השמות הנפוצים בישראל](https://www.shemotil.co.il/names/popular), ואינדקס א״ב של [כל השמות](https://www.shemotil.co.il/names).
+- 🌙 **בערבית (`/ar`):** השמות הנפוצים בחברה הערבית והדרוזית, בכתיב ערבי, עם עמוד מקביל לכל עמוד אוסף עברי (hreflang).
 - 🧭 **כלים לבחירת שם:** מחולל שמות לפי העדפות, השוואה בין שמות, מגמות ומשחקים.
 - ⚡ **סטטי ומהיר:** עמוד HTML מוכן לכל שם, שגם מנועי חיפוש קוראים בלי JavaScript. כל הנכסים (קוד, נתונים, פונטים) מאוחסנים באתר עצמו.
 
@@ -31,7 +32,7 @@
 
 - `source/` – **קוד המקור**: קוד האפליקציה (`app/`), נתוני הלמ״ס (`data/`) וכלי הבנייה (`tools/`). הוראות מפורטות ב-[`source/README.md`](source/README.md).
 - `src/` – **האתר הבנוי** (נוצר מ-`source/`): עמוד לכל שם ב-`names/<שם>.html`, עמודי האוספים, האינדקס, עמודי המידע והנכסים ב-`assets/`.
-- `scripts/finalize.mjs` – שלב ה-build ב-Vercel: מעתיק את `src` ל-`public`, ממלא את כתובת האתר ואת הגדרות Supabase, וכותב `sitemap.xml`, `robots.txt`, `llms.txt` ו-`ads.txt`.
+- `scripts/finalize.mjs` – שלב ה-build ב-Vercel: מעתיק את `src` ל-`public`, ממלא את כתובת האתר ואת הגדרות Supabase, וכותב `sitemap.xml` (index של `sitemap-he.xml` ו-`sitemap-ar.xml`), `robots.txt`, `llms.txt` ו-`ads.txt`.
 - `scripts/lastmod.json` – נוצר ב-`build_site.py`: לכל עמוד, התאריך שבו התוכן שלו השתנה לאחרונה (ה-`lastmod` ב-sitemap). נכנס לריפו יחד עם `src/`.
 - `supabase/migrations/` – הטבלאות, פונקציות ה-RPC והרשאות ה-RLS של NameMatch.
 - `vercel.json` – הגדרות הפריסה, כתובות נקיות וכותרות אבטחה.

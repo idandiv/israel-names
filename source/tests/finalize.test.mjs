@@ -33,11 +33,34 @@ test('the home page links straight to the boys and girls pages, by their search 
   assert.match(home, /<a href="\/names\/girls">שמות לבנות<\/a>/);
 });
 
-test('sitemap lists every path once, with a lastmod', () => {
+test('the sitemaps list every path once, with a lastmod: the Hebrew pages in sitemap-he.xml and the /ar pages in sitemap-ar.xml', () => {
   const paths = JSON.parse(fs.readFileSync(path.join(root, 'scripts', 'paths.json'), 'utf8'));
-  const locs = [...read('sitemap.xml').matchAll(/<url><loc>([^<]+)<\/loc><lastmod>\d{4}-\d\d-\d\d<\/lastmod><\/url>/g)].map(m => m[1]);
-  assert.equal(locs.length, paths.length);
-  assert.deepEqual(locs, paths.map(p => BASE + p));
+  const isAr = p => p === '/ar' || p.startsWith('/ar/');
+  const locs = f => [...read(f).matchAll(/<url><loc>([^<]+)<\/loc><lastmod>\d{4}-\d\d-\d\d<\/lastmod><\/url>/g)].map(m => m[1]);
+  assert.deepEqual(locs('sitemap-he.xml'), paths.filter(p => !isAr(p)).map(p => BASE + p));
+  assert.deepEqual(locs('sitemap-ar.xml'), paths.filter(isAr).map(p => BASE + p));
+  assert.ok(paths.some(isAr), 'there are Arabic pages');
+});
+
+test('sitemap.xml is an index of the two language sitemaps', () => {
+  const s = read('sitemap.xml');
+  assert.match(s, /<sitemapindex xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
+  const locs = [...s.matchAll(/<sitemap><loc>([^<]+)<\/loc><lastmod>\d{4}-\d\d-\d\d<\/lastmod><\/sitemap>/g)].map(m => m[1]);
+  assert.deepEqual(locs, [`${BASE}/sitemap-he.xml`, `${BASE}/sitemap-ar.xml`]);
+  assert.ok(!/<url>/.test(s));
+});
+
+test('a Hebrew page and its Arabic counterpart point to each other with full addresses', () => {
+  for (const [he, ar] of [['names/boys.html', 'ar/names/boys.html'], ['ar/index.html', null]]) {
+    const s = read(he);
+    if (!ar) { assert.ok(!/hreflang="he" href/.test(s), `${he} has no counterpart`); continue; }
+    for (const f of [he, ar]) {
+      const t = read(f);
+      assert.match(t, new RegExp(`<link rel="alternate" hreflang="he" href="${BASE}/names/boys">`), f);
+      assert.match(t, new RegExp(`<link rel="alternate" hreflang="ar" href="${BASE}/ar/names/boys">`), f);
+      assert.match(t, new RegExp(`<link rel="alternate" hreflang="x-default" href="${BASE}/names/boys">`), f);
+    }
+  }
 });
 
 test('robots.txt allows every crawler and points to the sitemap', () => {
