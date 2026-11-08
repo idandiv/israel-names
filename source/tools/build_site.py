@@ -7,7 +7,7 @@ Writes: <repo>/src/   (pages with the __BASE_URL__ placeholder, filled at deploy
 Only src/ is replaced; the other repo-root files (vercel.json, finalize.mjs, supabase/...) are kept as they are.
 """
 import gzip, base64, json, hashlib, os, shutil, html as H
-import meanings, guides, pregnancy
+import meanings, guides, pregnancy, arabic
 
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 D = S
@@ -331,6 +331,17 @@ doc_css = """
 .docbody .gsteps{margin:0 0 12px;padding-inline-start:20px}.docbody .gsteps li{margin-bottom:8px}
 @media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gfoot .ic,.docbody .cover,.docbody .gfilt button{transition:none}
   .docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gfoot .ic,.docbody .gcards a:hover .cover{transform:none}}
+/* the language link at the top of a page that has a counterpart in the other language, and the Arabic pages (/ar, tools/arabic.py) */
+.docend{display:inline-flex;align-items:center;gap:12px}
+.doclang{display:inline-flex;align-items:center;min-height:36px;padding:2px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink-2);font-size:14px;font-weight:600;text-decoration:none}
+.doclang:hover,.doclang:focus-visible{border-color:var(--accent);color:var(--accent)}
+/* Arabic body text in the device's own Arabic font: no web font swaps in under it (no layout shift), and none is downloaded */
+html[lang=ar]{--f-body:system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif}
+html[lang=ar] .docbody h1,html[lang=ar] .docbody h2{font-family:'Noto Kufi Arabic',var(--f-body);font-weight:600;letter-spacing:0}
+html[lang=ar] .docbody h1{font-size:34px;line-height:1.35}html[lang=ar] .docbody h2{font-size:21px;line-height:1.5}
+html[lang=ar] .docbody{line-height:1.8}
+.docbody .coll sup,.docbody .gtbl sup{color:var(--muted);font-size:11px;margin-inline-start:1px}
+.docbody .arnote{margin-top:10px;line-height:1.7}
 """
 
 
@@ -404,29 +415,44 @@ def modified(path, content):
     return LASTMOD[path][1]
 
 
-def page(title, desc, path, body, noindex=False, jsonld=None, app=True, og=None):
+# the Hebrew and the Arabic page on the same subject (arabic.PAIRS), both ways: each gets hreflang links to the other and to itself
+ALT = {**{he: {'he': he, 'ar': ar} for he, ar in arabic.PAIRS.items()}, **{ar: {'he': he, 'ar': ar} for he, ar in arabic.PAIRS.items()}}
+
+
+def hreflang(path):
+    """<link rel="alternate"> for a page that has a counterpart in the other language; the Hebrew page is the default"""
+    a = ALT.get(path)
+    if not a:
+        return ''
+    return ''.join(f'<link rel="alternate" hreflang="{l}" href="{PH}{a[k]}">\n' for l, k in (('he', 'he'), ('ar', 'ar'), ('x-default', 'he')))
+
+
+def page(title, desc, path, body, noindex=False, jsonld=None, app=True, og=None, lang='he'):
     """app=False: a plain static page (collections, the all-names hub) that the app does not take over.
     jsonld may hold "__MODIFIED__", which becomes the date the page content last changed.
-    og: (path of the share image, its description), instead of the site's image."""
+    og: (path of the share image, its description), instead of the site's image.
+    lang='ar': an Arabic page (tools/arabic.py): always app=False, with its own locale, site name and heading font."""
     canon = PH + path
     e = H.escape
-    og_img, og_alt = og or ('/og.png', 'השמות של ישראל – מאגר שמות לתינוקות ומשחק בחירת שם ביחד')
+    ar = lang == 'ar'
+    og_img, og_alt = og or ('/og.png', 'أسماء المواليد في إسرائيل بحسب أرقام دائرة الإحصاء المركزية' if ar else 'השמות של ישראל – מאגר שמות לתינוקות ומשחק בחירת שם ביחד')
+    locale = ('ar_IL', 'he_IL') if ar else ('he_IL', 'ar_IL')
     ld = json.dumps(jsonld, ensure_ascii=False) if jsonld else ''
     if not noindex:
         ld = ld.replace('__MODIFIED__', modified(path, title + desc + body + ld))
     return f'''<!doctype html>
-<html lang="he" dir="rtl">
+<html lang="{lang}" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
 {'<meta name="robots" content="noindex">' if noindex else f'<link rel="canonical" href="{canon}">'}
-<meta name="theme-color" content="#0f0e17">
+{'' if noindex else hreflang(path)}<meta name="theme-color" content="#0f0e17">
 <meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
-<meta property="og:locale" content="he_IL">
-<meta property="og:site_name" content="השמות של ישראל">
+<meta property="og:locale" content="{locale[0]}">
+{f'<meta property="og:locale:alternate" content="{locale[1]}">{chr(10)}' if path in ALT else ''}<meta property="og:site_name" content="{'Shemotil' if ar else 'השמות של ישראל'}">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{canon}">
@@ -443,7 +469,7 @@ def page(title, desc, path, body, noindex=False, jsonld=None, app=True, og=None)
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="preload" href="/assets/fonts/ibm-plex-sans-hebrew-hebrew-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/{'noto-kufi-arabic-arabic-600-normal' if ar else 'ibm-plex-sans-hebrew-hebrew-400-normal'}.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{A_CSS}">
 {'' if app else f'<link rel="stylesheet" href="{A_DOC}">'}
 <meta name="google-adsense-account" content="ca-pub-8412399730348585">
@@ -651,14 +677,17 @@ MATCH_CTA = (f'<a class="matchcta collcta" href="/#match"><span class="gl1">{ic(
              f'<span class="go">להתחיל {ic(IC_ARROW)}</span></a>')
 
 
-def static_shell(cur, inner, wide=False):
-    """wide: a wider column, for a grid of cards (the guides hub)"""
+def static_shell(cur, inner, wide=False, ar=None):
+    """wide: a wider column, for a grid of cards (the guides hub). ar: the path of the Arabic page on the same subject (arabic.PAIRS)"""
+    brand = '<span class="docbrand">השמות של ישראל</span>'
+    if ar:
+        brand = f'<span class="docend"><a class="doclang" href="{ar}" hreflang="ar" lang="ar">العربية</a>{brand}</span>'
     return f'''<div class="docin{' docwide' if wide else ''}" dir="rtl">
-<div class="doctop"><a class="docback" href="/">{ic(IC_BACK)}<span>לדף הבית</span></a><span class="docbrand">השמות של ישראל</span></div>
+<div class="doctop"><a class="docback" href="/">{ic(IC_BACK)}<span>לדף הבית</span></a>{brand}</div>
 <article class="docbody">{inner}</article>
 {MATCH_CTA}
 {coll_nav(cur)}
-<div class="docfoot">{nav_links()}<p>מקור: הלשכה המרכזית לסטטיסטיקה.</p></div>
+<div class="docfoot">{nav_links()}<p>מקור: הלשכה המרכזית לסטטיסטיקה. · <a href="/ar" hreflang="ar" lang="ar">العربية</a></p></div>
 </div>'''
 
 
@@ -1141,7 +1170,7 @@ for k, (name, h1, desc, lead, lists) in COLL_PAGES.items():
            if main else '<p class="k">השמות של ישראל · אוספי שמות</p>')
     faq_html = (('<h2 id="faq">' if main else '<h2>') + 'שאלות נפוצות</h2>' + ''.join(f'<h3>{H.escape(q)}</h3><p>{H.escape(a)}</p>' for q, a in faq)) if faq else ''
     open(SRC + f'names/{k}.html', 'w').write(page(
-        title, desc, path, static_shell(k, f'{top}<h1>{name}</h1>{lead}{lists}{faq_html}'),
+        title, desc, path, static_shell(k, f'{top}<h1>{name}</h1>{lead}{lists}{faq_html}', ar=arabic.PAIRS.get(path)),
         jsonld=coll_ld(path, title, desc, COLL_ROWS[k], faq, trail), app=False))
 
 # ---- guides: /guides and /guides/<slug> (tools/guides.py) ----
@@ -1152,6 +1181,10 @@ GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 
 TOOL_PATHS, TOOLS = pregnancy.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'enc': enc, 'fit': fit, 'YC': YC,
                                      'ny': ny, 'short_mean': short_mean, 'fmt': fmt, 'Y1': Y1,
                                      'SRC': SRC, 'PH': PH, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
+
+# ---- the Arabic pages: /ar and /ar/names/... (tools/arabic.py) ----
+AR_PATHS, AR_PAGES = arabic.build({'page': page, 'SRC': SRC, 'PH': PH, 'Y0': Y0, 'Y1': Y1, 'SC': SC, 'enc': enc, 'fmt': fmt, 'by_name': by_name,
+                                   'ic': ic, 'IC_BACK': IC_BACK, 'PAGE_YEAR': PAGE_YEAR, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
 
 # ---- home + 404 ----
 top = [x['n'] for x in sorted(NAMES, key=lambda x: -x['last'])[:40]]
@@ -1208,6 +1241,10 @@ llms = f"""# השמות של ישראל (Shemotil)
 ## כלים
 """ + '\n'.join(f'- [{t}]({PH}{p}): {d}' for t, p, d in TOOLS) + f"""
 
+## بالعربية
+עמודים בערבית: השמות הנפוצים בחברה הערבית והדרוזית (מוסלמים, ערבים נוצרים ודרוזים), עם הכתיב הערבי של השמות.
+""" + '\n'.join(f'- [{t}]({PH}{p}): {d}' for t, p, d in AR_PAGES) + f"""
+
 ## איך לצטט
 השמות של ישראל (shemotil.co.il), על בסיס נתוני הלשכה המרכזית לסטטיסטיקה. עדיף לקשר לעמוד השם עצמו.
 
@@ -1218,7 +1255,7 @@ llms = f"""# השמות של ישראל (Shemotil)
 open(SRC + 'llms.txt', 'w').write(llms)
 
 # list of indexable paths for the sitemap (finalize.mjs adds the base URL)
-paths = ['/', '/names'] + [f'/names/{k}' for k, _ in COLLS + HUBS] + GUIDE_PATHS + TOOL_PATHS + ['/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
+paths = ['/', '/names'] + [f'/names/{k}' for k, _ in COLLS + HUBS] + GUIDE_PATHS + TOOL_PATHS + AR_PATHS + ['/about', '/privacy', '/terms', '/accessibility'] + ['/names/' + enc(x['n']) for x in sorted(NAMES, key=lambda x: -x['tot'])]
 json.dump(paths, open(OUT + 'scripts/paths.json', 'w'), ensure_ascii=False)
 # one page per line, so a rebuild's git diff shows exactly which pages changed
 with open(LASTMOD_F, 'w', encoding='utf-8') as f:

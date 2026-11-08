@@ -9,6 +9,8 @@ Fails (exit 1, with a list of problems) when:
 - scripts/paths.json (the sitemap list) and the indexable pages in src/ differ, or lastmod.json misses a path
 - app.js is loaded on a page the app would take over by mistake: only the home page, the info pages, 404
   and the name pages (/names/<name>, with the name's DefinedTerm) may load it
+- a page's <html lang> is not its language (ar under /ar, he everywhere else), or its hreflang links are not a full, matching pair:
+  he, ar and x-default (the Hebrew page) on both pages, each pointing at a page that exists and links back the same way
 - a guide has no share image, or its share image was made from another drawing of its cover (npm run og makes them again)
 Standard library only, so CI needs no install.
 """
@@ -27,6 +29,8 @@ LD = re.compile(r'<script type="application/ld\+json">(.*?)</script>', re.S)
 TITLE = re.compile(r'<title>(.*?)</title>', re.S)
 DESC = re.compile(r'<meta name="description" content="([^"]*)"')
 CANON = re.compile(r'<link rel="canonical" href="([^"]*)"')
+HTML_LANG = re.compile(r'<html lang="([a-z]+)" dir="rtl">')
+ALTERNATE = re.compile(r'<link rel="alternate" hreflang="([^"]+)" href="([^"]*)">')
 APP_JS = re.compile(r'<script (?:defer )?src="/assets/app\.[0-9a-f]+\.js">')
 
 
@@ -63,7 +67,7 @@ def ld_types(node, out):
 
 
 def check():
-    errs, titles = [], {}
+    errs, titles, alts = [], {}, {}
     pages = sorted(os.path.join(d, f) for d, _, fs in os.walk(SRC) for f in fs if f.endswith('.html'))
     indexable = set()
     for fn in pages:
@@ -71,6 +75,13 @@ def check():
         s = open(fn, encoding='utf-8').read()
         bad = lambda m: errs.append(f'{path}: {m}')
         noindex = '<meta name="robots" content="noindex">' in s
+        lang = HTML_LANG.search(s)
+        want = 'ar' if path == '/ar' or path.startswith('/ar/') else 'he'
+        if not lang or lang.group(1) != want:
+            bad(f'<html lang="{lang.group(1) if lang else "?"}" dir="rtl"> on a page that is in {want}')
+        a = {l: unquote(h[len(PH):] if h.startswith(PH) else h) for l, h in ALTERNATE.findall(s)}
+        if a:
+            alts[path] = a
         t, d = TITLE.search(s), DESC.search(s)
         if not t or not t.group(1).strip():
             bad('no <title>')
@@ -107,6 +118,19 @@ def check():
             m = re.fullmatch(r'/names/([^/]+)', path)
             if not (m and m.group(1) in names):
                 bad('loads app.js, which would take this URL over (build it with page(..., app=False))')
+    for path, a in alts.items():
+        bad = lambda m: errs.append(f'{path}: {m}')
+        if sorted(a) != ['ar', 'he', 'x-default']:
+            bad(f'hreflang links {sorted(a)}, not he, ar and x-default'); continue
+        if a['x-default'] != a['he']:
+            bad('hreflang x-default is not the Hebrew page')
+        if path not in (a['he'], a['ar']):
+            bad('its hreflang links do not include the page itself')
+        for l in ('he', 'ar'):
+            if a[l] not in indexable:
+                bad(f'hreflang {l} points to {a[l]}, which is not an indexable page')
+            elif alts.get(a[l]) != a:
+                bad(f'hreflang {l} page {a[l]} does not link back the same way')
     for t, ps in titles.items():
         if len(ps) > 1:
             errs.append(f'title shared by {len(ps)} pages: {t} ({", ".join(ps[:3])})')
