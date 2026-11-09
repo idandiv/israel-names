@@ -13,6 +13,7 @@
 .docbody .gnum tbody th{font-weight:700}
 .docbody .gvals td.gv{font-variant-numeric:tabular-nums;font-size:14.5px;color:var(--ink-2);white-space:nowrap}.docbody .gvals .gl{display:block}
 .docbody .gvals th:first-child{width:38%}
+.docbody .grk{display:inline-block;min-width:1.7em;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}.docbody .gfc th:first-child{width:34%}
 .docbody .gsec th:first-child{width:30%}.docbody .gsec td.gv{font-size:14px}
 .docbody .pgrows{display:grid;gap:4px 18px;margin:8px 0 12px}@media (min-width:640px){.docbody .pgrows{grid-template-columns:1fr 1fr}}
 .docbody .pgrow{margin:0 0 8px;min-width:0}.docbody .pgrow svg{display:block;width:100%;max-width:560px;height:auto}

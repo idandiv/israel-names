@@ -1,9 +1,9 @@
-"""Build-time checks of the generators (tools/pregnancy.py, tools/guides.py): broken data must stop the build.
+"""Build-time checks of the generators (tools/pregnancy.py, tools/guides.py, tools/forecast.py): broken data must stop the build.
 Run with `python3 -m unittest discover -s tests -p 'test_*.py'` from source/ (part of `npm test`)."""
 import copy, os, shutil, sys, tempfile, unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools'))
-import guides, pregnancy  # noqa: E402
+import forecast, guides, pregnancy  # noqa: E402
 
 
 class PregnancyData(unittest.TestCase):
@@ -160,6 +160,58 @@ class Guides(unittest.TestCase):
 
 
 
+class Forecast(unittest.TestCase):
+    """tools/forecast.py on made-up years, and the saved forecast against the real data"""
+    def data(self):
+        D = {}
+        for y in range(2015, 2025):
+            D[('עולה', 0, y)] = 100 + 20 * (y - 2015)    # rising every year
+            D[('יציב', 0, y)] = 300
+            D[('יורד', 0, y)] = 400 - 30 * (y - 2015)
+            D[('נדיר', 0, y)] = 10                      # fewer than MIN: no forecast
+            D[('אחר', 0, y)] = 5000
+            D[('בן', 1, y)] = 200
+        return D
+
+    def test_predict(self):
+        D = self.data()
+        p = forecast.predict(D, forecast.totals(D), 0, 2024)
+        self.assertNotIn('נדיר', p)
+        self.assertGreater(p['עולה'], D[('עולה', 0, 2024)])
+        self.assertLess(p['יורד'], D[('יורד', 0, 2024)])
+        self.assertAlmostEqual(p['יציב'], 300, delta=3)
+        full = forecast.predict(D, forecast.totals(D), 0, 2024, damp=1)
+        self.assertGreater(full['עולה'], p['עולה'])                     # half the trend moves less than all of it
+        self.assertEqual(forecast.movers(p, lambda n: D[(n, 0, 2024)], True)[0], 'עולה')
+        self.assertEqual(forecast.movers(p, lambda n: D[(n, 0, 2024)], False)[0], 'יורד')
+
+    def test_backtest(self):
+        B = forecast.backtest(self.data(), years=(2023, 2024))
+        self.assertEqual(set(B), {'2023:0', '2024:0', '2023:1', '2024:1'})
+        self.assertEqual(B['2024:0']['top'], 4)                          # the real top has נדיר too, which has no forecast
+        self.assertGreaterEqual(B['2024:0']['down'], 1)                  # יורד went down
+        self.assertTrue(0 <= B['2024:0']['model'] < 100 and 0 <= B['2024:0']['naive'] < 100)
+
+    def test_the_file_is_the_forecast_of_the_data(self):
+        YC, SC = forecast.read_csv()
+        Y1 = max(y for _, _, y in YC)
+        F = forecast.load()
+        self.assertEqual((F['base'], F['target']), (forecast.BASE, forecast.TARGET))
+        forecast.check(F, YC, SC, Y1)
+        F2 = copy.deepcopy(F)
+        F2['forecast']['all']['0']['אביגיל'][1] += 1
+        if Y1 == forecast.BASE:
+            with self.assertRaises(AssertionError):
+                forecast.check(F2, YC, SC, Y1)
+        forecast.check(F2, YC, SC, forecast.BASE + 1)                   # after the CBS publishes the target year, the file stays
+
+    def test_the_authority_lists(self):
+        P = forecast.pa_lists()
+        self.assertEqual(set(P), set(forecast.PA_LIST))
+        self.assertEqual(P[('all', 0)][0], ('אביגיל', 1172))
+        self.assertIn('איילה', dict(P[('all', 0)]))                       # the Authority writes אילה
+
+
 class GuideBlocks(unittest.TestCase):
     """the switch, faded and new blocks on a small made-up dataset: a guide that breaks a rule stops the build"""
     Y0, Y1 = 1980, 2024
@@ -293,7 +345,8 @@ class GuideBlocks(unittest.TestCase):
 
     def test_every_drawing(self):
         D = {'holiday': lambda h: {'month': 'תשרי', 'day': 15, 'name': 'סוכות', 'id': h, 'names': []}, 'switch': lambda g, n: (10, 60),
-             'peak': lambda n, s: 1970, 'first': lambda n: 2010 + names.index(n), 'form': lambda g, n: 'Name'}
+             'peak': lambda n, s: 1970, 'first': lambda n: 2010 + names.index(n), 'form': lambda g, n: 'Name',
+             'spark_years': lambda: (2019, 2025), 'spark': lambda n: [1, 2, 3, 3, 4, 5, 6]}
         names = ['אבאל', 'גדאל', 'הואל', 'זחיה', 'טייה', 'כליה', 'מן']
         extra = {'calendar': {'holidays': ['a', 'b', 'c', 'd']}, 'script': {'arabic': ['ا', 'ب', 'ت', 'ث']}, 'fade': {'sex': 0}}
         self.assertEqual(set(guides.MOTIFS), set(guides.COVER_NAMES))
@@ -306,6 +359,46 @@ class GuideBlocks(unittest.TestCase):
 
     def test_heb_day(self):
         self.assertEqual([guides.heb_day(d) for d in (1, 10, 15, 16, 25, 30)], ['א׳', 'י׳', 'ט״ו', 'ט״ז', 'כ״ה', 'ל׳'])
+
+    def fc_data(self):
+        """a made-up forecast file: דן first in 2024 and third in the forecast, אימרי first"""
+        boys = {'דוד': [200, 210], 'אימרי': [200, 260], 'דן': [250, 140]}
+        return {'base': 2024, 'target': 2025, 'forecast': {'all': {'0': {'אריאה': [30, 31]}, '1': boys}, 'Jewish': {'0': {}, '1': boys}},
+                'backtest': {'2024:0': {'top': 9, 'model': 6.0, 'naive': 6.4, 'up': 6, 'down': 7},
+                             '2024:1': {'top': 10, 'model': 5.0, 'naive': 5.2, 'up': 5, 'down': 8}}}
+
+    def with_forecast(self, g):
+        g['forecast'] = {'top': {'sector': 'all', 'sex': 1, 'kind': 'top', 'n': 2}, 'up': {'sector': 'all', 'sex': 1, 'kind': 'up'}}
+        g['body'] += '<!--forecast:top--><!--forecast:up--><!--backtest--><p>{{fc:אימרי:1:all}} {{fcbase:אימרי:1:all}} {{bt:top}} {{bt:up}} {{pa:דוד:1:all}}</p>'
+
+    def test_forecast(self):
+        self.c['FC'] = self.fc_data()
+        pages = {}
+        self.c['page'] = lambda title, desc, path, body, **k: pages.update({path: body}) or ''
+        self.build(self.with_forecast)
+        html = pages['/guides/test']
+        self.assertIn('<b>260</b>', html)                                          # אימרי, first in the forecast
+        table = html[html.index('gfc'):]
+        self.assertLess(table.index('>אימרי</a>'), table.index('>דוד</a>'))
+        self.assertIn('יוצאים מה-2 הראשונים: <a href="/names/דן">דן</a> (מקום 1 ב-2024)', html)
+        self.assertNotIn('-44%', html)                                              # דן goes down: not in the rising table
+        self.assertIn('+30%', html)                                                 # אימרי: 200 -> 260
+        self.assertIn('19/20', html)                                                # the backtest: 9 + 10 of the top 10
+        self.assertIn('<p>260 200 9.5 55% 1,036</p>', html)                         # the markers; דוד: the Authority's 1,036 boys
+
+    def test_forecast_breaks(self):
+        self.c['FC'] = self.fc_data()
+        def change(f):
+            def go(g):
+                self.with_forecast(g)
+                f(g)
+            return go
+        self.broken(change(lambda g: g['forecast']['top'].update({'sector': 'Muslim'})))
+        self.broken(change(lambda g: g['forecast']['top'].update({'kind': 'sideways'})))
+        self.broken(change(lambda g: g['forecast'].update({'more': {'sector': 'all', 'sex': 1, 'kind': 'down'}})))
+        self.broken(change(lambda g: g.update({'body': g['body'] + '{{fc:שי:1:all}}'})))     # no forecast for שי
+        self.broken(change(lambda g: g.update({'body': g['body'] + '{{pa:אימרי:1:all}}'})))  # not in the Authority's list
+        self.broken(change(lambda g: g.update({'body': g['body'] + '{{bt:best}}'})))
 
     def test_mostly(self):
         self.build(lambda g: g.update({'body': g['body'] + '{{mostly:שי:1:Jewish}}'}))
