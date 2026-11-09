@@ -86,7 +86,9 @@ test('surnames: Hebrew keys, Latin values; final letters count as their regular 
 });
 
 test('the app bundle carries the core as plain functions (build_bundle.py strips "export")', () => {
-  const js = fs.readFileSync(path.join(S, 'dist', 'js_bundle.js'), 'utf8');
+  // the built app script the home page loads (src/ is committed; dist/ is not)
+  const home = fs.readFileSync(path.join(S, '..', 'src', 'index.html'), 'utf8');
+  const js = fs.readFileSync(path.join(S, '..', 'src', home.match(/src="\/(assets\/app\.[0-9a-f]+\.js)"/)[1]), 'utf8');
   assert.ok(js.includes('function spellVariants('));
   assert.doesNotMatch(js, /^export /m);
 });
