@@ -114,6 +114,9 @@ body.hasfav #app{padding-bottom:110px}
 .qvsur label{font-size:13px;font-weight:700;color:var(--ink-2)}
 .qvfull{font-family:var(--f-display);font-size:40px;font-weight:700;line-height:1;color:var(--accent)}
 .qvsur ul{margin:6px 0 0;padding-inline-start:18px;font-size:13.5px;color:var(--ink-2)}
+.fnl{display:grid;gap:2px;margin:6px 0 0}.fnl div{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:14px}.fnl dt{color:var(--muted)}.fnl dd{margin:0;font-weight:600}
+.fnlink{font-size:13.5px;font-weight:600;color:var(--accent);margin-top:2px}
+.fnen{margin:0 0 10px;font-size:15px;color:var(--ink-2)}.fnen b{color:var(--ink);font-size:17px}
 /* finder */
 .seg.modes{margin-top:14px;display:flex;width:100%;overflow-x:auto}
 .seg.modes button{flex:1;white-space:nowrap;padding:9px 12px;font-size:13.5px}

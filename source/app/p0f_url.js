@@ -58,7 +58,10 @@ function seoMeta(i){const x=seoFacts(i),n=x.n;
   const rest=[`${fmt(x.tot)} תינוקות נקראו ${n} בישראל מאז ${Y0}.`,peak,`בנות ${x.g}% · בנים ${100-x.g}%.`,`גימטריה: ${gem(n)}.`];
   return x.mean?{title:`משמעות השם ${n} – מקור, פופולריות וגימטריה | השמות של ישראל`,desc:fitDesc([`משמעות השם ${n}: ${endDot(x.mean)}`,...rest])}
     :{title:`השם ${n} – פופולריות בישראל, סטטיסטיקה וגימטריה | השמות של ישראל`,desc:fitDesc(rest)}}
+/* the name in English (app/fullname-core.mjs): the main spelling, other ways to write it, and the FAQ answer ("enq" in data/seo.json) */
+function enOf(i){const n=NAMES[i],en=rom(i),vars=spellVariants(n,en,arabOf(i),ORIGIN.get(n)==='מקראי');return{en,vars,ans:enAnswer(n,en,TRMAP.has(n),vars)}}
 function seoFAQ(i){const x=seoFacts(i),n=x.n,q=x.mean?[[`מה המשמעות של השם ${n}?`,endDot(x.mean)]]:[];
+  q.push([`איך כותבים את השם ${n} באנגלית?`,enOf(i).ans]);
   const last=x.last?`ב-${Y1} נקראו כך ${fmt(x.last)} תינוקות`+(x.rk?`, מקום ${x.rk} ${x.x===0?'בבנות':'בבנים'}.`:'.'):`ב-${Y1} השם לא ניתן, או שניתן לפחות מ-5 תינוקות.`;
   q.push([`כמה תינוקות נקראו ${n} בישראל?`,`מאז ${Y0} קיבלו את השם ${n} ${fmt(x.tot)} תינוקות בישראל. ${last}`]);
   q.push([`האם ${n} הוא שם לבן או לבת?`,sexAnswer(n,x.g)]);

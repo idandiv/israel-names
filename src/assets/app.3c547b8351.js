@@ -1,5 +1,5 @@
 (()=>{
-const PAGES={"about": {"title": "אודות המיזם", "desc": "מה זה \"השמות של ישראל\", מאיפה הנתונים מגיעים, מה המגבלות שלהם ואיך יוצרים קשר.", "html": "<p class=\"dlead\">\"השמות של ישראל\" הוא מיזם עצמאי שמטרתו להנגיש את נתוני השמות שניתנו לתינוקות בישראל מאז 1949 בצורה ויזואלית, מדויקת ואינטואיטיבית.</p>\n<p>לכל שם יש תיק משלו: כמה תינוקות קיבלו אותו בכל שנה, מתי היה בשיא, באילו מגזרים הוא נפוץ, מה פירושו ואיך הוא משתלב במגמות של התקופה. לצד זה תמצאו באתר מחולל שמות לתינוק, השוואה בין שמות, מגמות ודאטה, משחקים ובחירת שם בזוג.</p>\n<h2>מקור הנתונים</h2>\n<p>הנתונים מגיעים מהלשכה המרכזית לסטטיסטיקה (הלמ״ס), דרך חבילת הקוד הפתוח babynamesIL, ומכסים את שנות הלידה 1949 עד 2024.</p>\n<p><b>מגבלת פרטיות:</b> כדי לשמור על פרטיות, הלמ״ס מדווחת על שם רק אם ניתן לפחות ל-5 תינוקות באותה שנה, באותו מגדר ובאותו מגזר. שמות נדירים יותר אינם מופיעים בנתונים, ולכן אחוזים ודירוגים באתר מחושבים מתוך התינוקות שנרשמו בשמות שבנתונים.</p>\n<p>פירושי השמות הם הפירושים המקובלים, ולחלק מהשמות יש יותר מפירוש אחד. תגיות \"עדכון 2025\" ו\"תשפ״ו\" מבוססות על רשימות השמות המובילים שפרסמה רשות האוכלוסין וההגירה, ולא על נתוני הלמ״ס.</p>\n<p>האתר אינו קשור ללמ״ס או לגוף ממשלתי כלשהו, ואינו מייצג אותם.</p>\n<h2>יצירת קשר ופניות הציבור</h2>\n<p>לשאלות, הצעות, דיווח על טעות בנתונים או בקשות בנושא פרטיות, כתבו לנו: <a href=\"mailto:idandiva11@gmail.com\" dir=\"ltr\">idandiva11@gmail.com</a></p>"}, "privacy": {"title": "מדיניות פרטיות", "desc": "איזה מידע נשמר כשמשתמשים ב\"השמות של ישראל\", איך הוא מאובטח, עוגיות ופרסום, ואיך מוחקים את הנתונים.", "html": "<p class=\"dmeta\">עודכן לאחרונה: 3 בנובמבר 2026</p>\n<p class=\"dlead\">השימוש באתר אינו דורש הרשמה, סיסמה, כתובת מייל או כל פרט מזהה. המדיניות הזו מסבירה איזה מידע נשמר, איפה, ואיך אפשר למחוק אותו.</p>\n<h2>מידע שנשמר בדפדפן שלכם</h2>\n<p>השמות ששמרתם, התשובות במחולל, ההתקדמות במשחקים, התאריך שהזנתם במחשבון ההריון והבדיקות שסימנתם בו והעדפות כמו שפה נשמרים בזיכרון המקומי של הדפדפן במכשיר שלכם בלבד (LocalStorage). המידע הזה לא נשלח אלינו. אפשר למחוק אותו בכל רגע בכפתור \"מחיקת כל הנתונים שלי\" למטה, או דרך הגדרות הדפדפן.</p>\n<h2>בחירת שם בזוג</h2>\n<p>כשפותחים חדר זוגי או מצטרפים אליו, הדפדפן מקבל מזהה אנונימי אקראי משירות Supabase, שמשמש כמסד נתונים מאובטח. אין צורך בהרשמה או בסיסמה, והמזהה אינו קשור לשם, למייל או לטלפון שלכם.</p>\n<p>בשרת נשמרים רק: קוד החדר והגדרותיו, השם שבחרתם להציג בחדר, והבחירות שלכם (אהבתי, לא, מועדף). רק מי שהצטרף לחדר יכול לראות את הבחירות בו, והגישה נאכפת בכללי אבטחה ברמת מסד הנתונים. חדרים שלא היה בהם שימוש 90 יום נמחקים אוטומטית.</p>\n<h2>מחיקת נתונים</h2>\n<p>הכפתור \"מחיקת כל הנתונים שלי\" מוחק מיד ולצמיתות את מה שנשמר בדפדפן, את ההשתתפות שלכם בחדרים הזוגיים ואת הבחירות שלכם בשרת, ואת המזהה האנונימי עצמו. אי אפשר לשחזר את המידע אחרי המחיקה. אפשר גם לבקש מחיקה במייל.</p>\n<div class=\"dwipe\" data-wipe></div>\n<h2>עוגיות (Cookies) ופרסום</h2>\n<p>האתר עצמו אינו משתמש בעוגיות למעקב אחרי משתמשים. עם זאת, האתר עשוי להציג מודעות באמצעות Google AdSense ולהשתמש בכלים לניתוח תנועה, ואלה עשויים להשתמש בעוגיות ובטכנולוגיות דומות.</p>\n<ul>\n<li>ספקים חיצוניים, ובהם Google, משתמשים בעוגיות כדי להציג מודעות על סמך ביקורים קודמים שלכם באתר זה או באתרים אחרים.</li>\n<li>עוגיות הפרסום של Google מאפשרות לה ולשותפיה להציג לכם מודעות על סמך הביקורים שלכם באתר זה ו/או באתרים אחרים באינטרנט.</li>\n<li>אפשר לבטל פרסום מותאם אישית ב<a href=\"https://adssettings.google.com\" target=\"_blank\" rel=\"noopener\">הגדרות המודעות של Google</a>, ולבטל את השימוש של ספקים אחרים בעוגיות לפרסום מותאם אישית ב-<a href=\"https://www.aboutads.info/choices\" target=\"_blank\" rel=\"noopener\" dir=\"ltr\">aboutads.info</a>.</li>\n<li>מידע נוסף: <a href=\"https://policies.google.com/technologies/partner-sites\" target=\"_blank\" rel=\"noopener\">איך Google משתמשת במידע מאתרים שמשתמשים בשירותים שלה</a>.</li>\n</ul>\n<p>ככל שהדין מחייב זאת, תוצג לכם בקשת הסכמה לשימוש בעוגיות לפני השימוש בהן.</p>\n<h2>מידע טכני</h2>\n<p>ספקי האחסון והתשתית של האתר (Vercel ו-Supabase) עשויים לשמור יומני גישה טכניים בסיסיים, כמו כתובת IP, סוג דפדפן ושעת הגישה, לצורכי אבטחה ותפעול בלבד.</p>\n<h2>ילדים</h2>\n<p>האתר אינו מיועד לילדים מתחת לגיל 13, ואינו אוסף ביודעין מידע עליהם.</p>\n<h2>שינויים ויצירת קשר</h2>\n<p>אם המדיניות תשתנה, הגרסה המעודכנת תפורסם בעמוד הזה. לשאלות או לבקשות בנושא פרטיות: <a href=\"mailto:idandiva11@gmail.com\" dir=\"ltr\">idandiva11@gmail.com</a></p>"}, "terms": {"title": "תנאי שימוש", "desc": "תנאי השימוש ב\"השמות של ישראל\": שימוש הוגן, אופי המידע, מידע רפואי ומחשבון ההריון, זכויות יוצרים ויצירת קשר.", "html": "<p class=\"dmeta\">עודכן לאחרונה: 5 בנובמבר 2026</p>\n<p class=\"dlead\">השימוש באתר \"השמות של ישראל\" מהווה הסכמה לתנאים האלה. אם אינכם מסכימים להם, אנא הימנעו משימוש באתר.</p>\n<h2>שימוש הוגן</h2>\n<p>האתר, המחולל, המשחקים והחדרים הזוגיים פתוחים לשימוש אישי וללא תשלום. אסור:</p>\n<ul>\n<li>לנסות לפגוע באתר או בשרתים שלו, להעמיס עליהם או לעקוף את מנגנוני האבטחה.</li>\n<li>להעתיק את האתר או את התוכן שלו באופן אוטומטי ובהיקף רחב (סריקה, Scraping), או לעשות בתוכן שימוש מסחרי בלי אישור בכתב.</li>\n<li>להשתמש בחדרים הזוגיים או במשחקים להטרדה, או להציג בהם שמות פוגעניים.</li>\n</ul>\n<h2>המידע מוצג \"כמות שהוא\" (AS IS)</h2>\n<p>הנתונים באתר מבוססים על מאגרי מידע ציבוריים, ומוצגים לצורכי עניין, ידע כללי ובידור בלבד. השקענו מאמץ להציג אותם במדויק, אבל ייתכנו טעויות, השמטות והבדלי עיגול.</p>\n<p>פירושי השמות, הניתוחים, התגיות, הפרופילים וההערכות באתר הם פרשנות, ואינם מהווים ייעוץ רשמי, מקצועי או סטטיסטי. אין להסתמך עליהם בקבלת החלטות, והאתר ומפעיליו אינם אחראים לכל נזק שייגרם מהשימוש במידע.</p>\n<p>האתר ניתן ללא תשלום, ועשוי להשתנות, להתעדכן או להיות לא זמין מדי פעם.</p>\n<h2>מידע רפואי ומחשבון ההריון</h2>\n<p>מחשבון ההריון, עמודי השבועות ולוח הבדיקות מציגים מידע כללי בלבד. הם אינם ייעוץ רפואי, אינם אבחון ואינם תחליף לבדיקה, להמלצה או למעקב של רופא, רופאה, אחות או מיילדת.</p>\n<ul>\n<li>שבוע ההריון ותאריך הלידה המשוער הם חישוב מקורב לפי הפרטים שהוזנו. המועד שקובעים הרופאים, למשל לפי אולטרסאונד, הוא הקובע.</li>\n<li>לוח הבדיקות מבוסס על ההמלצות שמשרד הבריאות מפרסם, והוא לוח כללי. הבדיקות שמתאימות לכל הריון ומועדיהן נקבעים מול הרופא המטפל והקופה, וההמלצות עשויות להשתנות. בכל עמוד מצוינים המקור ותאריך הבדיקה האחרון שלנו.</li>\n<li>גודל העובר ומשקלו הם ממוצעים משוערים, וכל הריון שונה.</li>\n<li>בכל שאלה או חשש פנו לצוות הרפואי. במצב חירום התקשרו מיד למד״א (101) או פנו לחדר מיון.</li>\n</ul>\n<p>האתר ומפעיליו אינם אחראים לכל נזק שייגרם מהסתמכות על המידע הזה או על החישובים, ובכלל זה מטעויות, מהשמטות או ממידע שלא עודכן.</p>\n<h2>זכויות יוצרים</h2>\n<p>עיצוב האתר, הקוד, הוויזואליזציות, הטקסטים, המשחקים וכלי הניתוח הם יצירה מקורית של האתר \"השמות של ישראל\", וכל הזכויות בהם שמורות © 2026. הנתונים הגולמיים שייכים למקורותיהם (הלמ״ס).</p>\n<p>מותר לשתף קישורים, צילומי מסך וכרטיסי השיתוף שהאתר יוצר, לשימוש אישי ועם קרדיט לאתר.</p>\n<h2>קישורים ומודעות</h2>\n<p>האתר עשוי לכלול מודעות וקישורים לאתרים של צדדים שלישיים. איננו אחראים לתוכן שלהם או למדיניות הפרטיות שלהם.</p>\n<h2>שינויים ודין</h2>\n<p>התנאים עשויים להתעדכן מעת לעת, והגרסה המעודכנת תפורסם בעמוד הזה. על התנאים חל הדין הישראלי.</p>\n<h2>יצירת קשר</h2>\n<p>לשאלות על התנאים: <a href=\"mailto:idandiva11@gmail.com\" dir=\"ltr\">idandiva11@gmail.com</a></p>"}, "accessibility": {"title": "הצהרת נגישות", "desc": "הצהרת הנגישות של \"השמות של ישראל\": מה נעשה כדי שהאתר יהיה נגיש, מגבלות ידועות, ופרטי רכז הנגישות.", "html": "<p class=\"dmeta\">עודכן לאחרונה: 4 באוקטובר 2026</p>\n<p class=\"dlead\">אנחנו רוצים שכל אחד ואחת יוכלו להשתמש ב\"השמות של ישראל\", כולל אנשים עם מוגבלות. האתר נבנה מתוך כוונה לעמוד בתקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), התשע״ג-2013, ובתקן הישראלי ת״י 5568, המבוסס על הנחיות WCAG ברמה AA.</p>\n<h2>מה עשינו כדי שהאתר יהיה נגיש</h2>\n<ul>\n<li>מבנה עמוד תקני בעברית ומימין לשמאל, עם כותרות ברורות ושפה מוגדרת לכל עמוד.</li>\n<li>אפשר לנווט באתר במקלדת: Tab למעבר בין רכיבים, Enter לבחירה ו-Escape לסגירת חלונות וחזרה.</li>\n<li>סימון פוקוס בולט על הרכיב שנבחר במקלדת.</li>\n<li>כפתורים שמוצגים כאייקון בלבד כוללים תיאור טקסטואלי לקוראי מסך.</li>\n<li>ניגודיות גבוהה בין הטקסט לרקע.</li>\n<li>אפשר להגדיל את הטקסט בהגדלת הדפדפן בלי לאבד תוכן, והאתר מותאם לכל גודל מסך.</li>\n<li>אזורי לחיצה מוגדלים במסכי מגע.</li>\n<li>מי שהגדיר במכשיר \"הפחתת תנועה\" יקבל את האתר בלי אנימציות מיותרות.</li>\n<li>לצד הגרפים מוצגים גם הנתונים העיקריים בטקסט, כמו מספרים, שנת שיא ומגמה.</li>\n<li>במשחק \"בוחרים שם ביחד\" אפשר לבחור בכפתורים, לא רק בהחלקה.</li>\n</ul>\n<h2>מגבלות ידועות</h2>\n<p>למרות המאמצים, ייתכן שחלקים מסוימים עדיין אינם נגישים במלואם. הגרפים האינטראקטיביים הם רכיבים חזותיים, ולכן קוראי מסך לא מקריאים כל נקודה בהם. העיקר מופיע בטקסט שלצידם. ייתכן שגם חלק מהמשחקים אינם נוחים לשימוש עם קורא מסך. אנחנו ממשיכים לשפר את הנגישות באופן שוטף.</p>\n<h2>נתקלתם בבעיה? רכז הנגישות</h2>\n<p>אם נתקלתם ברכיב שאינו נגיש או בקושי כלשהו, נשמח לשמוע ולתקן. כדי שנוכל לטפל בפנייה, כתבו בבקשה מה הבעיה, באיזה עמוד, ובאיזה דפדפן וטכנולוגיה מסייעת השתמשתם.</p>\n<p><b>פניות בנושא נגישות:</b> צוות האתר<br><b>מייל:</b> <a href=\"mailto:idandiva11@gmail.com\" dir=\"ltr\">idandiva11@gmail.com</a></p>"}};
+const PAGES={"about": {"title": "אודות המיזם", "desc": "מה זה \"השמות של ישראל\", מאיפה הנתונים מגיעים, מה המגבלות שלהם ואיך יוצרים קשר.", "html": "<p class=\"dlead\">\"השמות של ישראל\" הוא מיזם עצמאי שמטרתו להנגיש את נתוני השמות שניתנו לתינוקות בישראל מאז 1949 בצורה ויזואלית, מדויקת ואינטואיטיבית.</p>\n<p>לכל שם יש תיק משלו: כמה תינוקות קיבלו אותו בכל שנה, מתי היה בשיא, באילו מגזרים הוא נפוץ, מה פירושו ואיך הוא משתלב במגמות של התקופה. לצד זה תמצאו באתר מחולל שמות לתינוק, השוואה בין שמות, מגמות ודאטה, משחקים ובחירת שם בזוג.</p>\n<h2>מקור הנתונים</h2>\n<p>הנתונים מגיעים מהלשכה המרכזית לסטטיסטיקה (הלמ״ס), דרך חבילת הקוד הפתוח babynamesIL, ומכסים את שנות הלידה 1949 עד 2024.</p>\n<p><b>מגבלת פרטיות:</b> כדי לשמור על פרטיות, הלמ״ס מדווחת על שם רק אם ניתן לפחות ל-5 תינוקות באותה שנה, באותו מגדר ובאותו מגזר. שמות נדירים יותר אינם מופיעים בנתונים, ולכן אחוזים ודירוגים באתר מחושבים מתוך התינוקות שנרשמו בשמות שבנתונים.</p>\n<p>פירושי השמות הם הפירושים המקובלים, ולחלק מהשמות יש יותר מפירוש אחד. תגיות \"עדכון 2025\" ו\"תשפ״ו\" מבוססות על רשימות השמות המובילים שפרסמה רשות האוכלוסין וההגירה, ולא על נתוני הלמ״ס.</p>\n<p>האתר אינו קשור ללמ״ס או לגוף ממשלתי כלשהו, ואינו מייצג אותם.</p>\n<h2>יצירת קשר ופניות הציבור</h2>\n<p>לשאלות, הצעות, דיווח על טעות בנתונים או בקשות בנושא פרטיות, כתבו לנו: <a href=\"mailto:idandiva11@gmail.com\" dir=\"ltr\">idandiva11@gmail.com</a></p>"}, "privacy": {"title": "מדיניות פרטיות", "desc": "איזה מידע נשמר כשמשתמשים ב\"השמות של ישראל\", איך הוא מאובטח, עוגיות ופרסום, ואיך מוחקים את הנתונים.", "html": "<p class=\"dmeta\">עודכן לאחרונה: 9 בנובמבר 2026</p>\n<p class=\"dlead\">השימוש באתר אינו דורש הרשמה, סיסמה, כתובת מייל או כל פרט מזהה. המדיניות הזו מסבירה איזה מידע נשמר, איפה, ואיך אפשר למחוק אותו.</p>\n<h2>מידע שנשמר בדפדפן שלכם</h2>\n<p>השמות ששמרתם, התשובות במחולל, ההתקדמות במשחקים, התאריך שהזנתם במחשבון ההריון והבדיקות שסימנתם בו, שם המשפחה שהזנתם כדי לבדוק איך השם נשמע איתו, והעדפות כמו שפה נשמרים בזיכרון המקומי של הדפדפן במכשיר שלכם בלבד (LocalStorage). המידע הזה לא נשלח אלינו. אפשר למחוק אותו בכל רגע בכפתור \"מחיקת כל הנתונים שלי\" למטה, או דרך הגדרות הדפדפן.</p>\n<h2>בחירת שם בזוג</h2>\n<p>כשפותחים חדר זוגי או מצטרפים אליו, הדפדפן מקבל מזהה אנונימי אקראי משירות Supabase, שמשמש כמסד נתונים מאובטח. אין צורך בהרשמה או בסיסמה, והמזהה אינו קשור לשם, למייל או לטלפון שלכם.</p>\n<p>בשרת נשמרים רק: קוד החדר והגדרותיו, השם שבחרתם להציג בחדר, והבחירות שלכם (אהבתי, לא, מועדף). רק מי שהצטרף לחדר יכול לראות את הבחירות בו, והגישה נאכפת בכללי אבטחה ברמת מסד הנתונים. חדרים שלא היה בהם שימוש 90 יום נמחקים אוטומטית.</p>\n<h2>מחיקת נתונים</h2>\n<p>הכפתור \"מחיקת כל הנתונים שלי\" מוחק מיד ולצמיתות את מה שנשמר בדפדפן, את ההשתתפות שלכם בחדרים הזוגיים ואת הבחירות שלכם בשרת, ואת המזהה האנונימי עצמו. אי אפשר לשחזר את המידע אחרי המחיקה. אפשר גם לבקש מחיקה במייל.</p>\n<div class=\"dwipe\" data-wipe></div>\n<h2>עוגיות (Cookies) ופרסום</h2>\n<p>האתר עצמו אינו משתמש בעוגיות למעקב אחרי משתמשים. עם זאת, האתר עשוי להציג מודעות באמצעות Google AdSense ולהשתמש בכלים לניתוח תנועה, ואלה עשויים להשתמש בעוגיות ובטכנולוגיות דומות.</p>\n<ul>\n<li>ספקים חיצוניים, ובהם Google, משתמשים בעוגיות כדי להציג מודעות על סמך ביקורים קודמים שלכם באתר זה או באתרים אחרים.</li>\n<li>עוגיות הפרסום של Google מאפשרות לה ולשותפיה להציג לכם מודעות על סמך הביקורים שלכם באתר זה ו/או באתרים אחרים באינטרנט.</li>\n<li>אפשר לבטל פרסום מותאם אישית ב<a href=\"https://adssettings.google.com\" target=\"_blank\" rel=\"noopener\">הגדרות המודעות של Google</a>, ולבטל את השימוש של ספקים אחרים בעוגיות לפרסום מותאם אישית ב-<a href=\"https://www.aboutads.info/choices\" target=\"_blank\" rel=\"noopener\" dir=\"ltr\">aboutads.info</a>.</li>\n<li>מידע נוסף: <a href=\"https://policies.google.com/technologies/partner-sites\" target=\"_blank\" rel=\"noopener\">איך Google משתמשת במידע מאתרים שמשתמשים בשירותים שלה</a>.</li>\n</ul>\n<p>ככל שהדין מחייב זאת, תוצג לכם בקשת הסכמה לשימוש בעוגיות לפני השימוש בהן.</p>\n<h2>מידע טכני</h2>\n<p>ספקי האחסון והתשתית של האתר (Vercel ו-Supabase) עשויים לשמור יומני גישה טכניים בסיסיים, כמו כתובת IP, סוג דפדפן ושעת הגישה, לצורכי אבטחה ותפעול בלבד.</p>\n<h2>ילדים</h2>\n<p>האתר אינו מיועד לילדים מתחת לגיל 13, ואינו אוסף ביודעין מידע עליהם.</p>\n<h2>שינויים ויצירת קשר</h2>\n<p>אם המדיניות תשתנה, הגרסה המעודכנת תפורסם בעמוד הזה. לשאלות או לבקשות בנושא פרטיות: <a href=\"mailto:idandiva11@gmail.com\" dir=\"ltr\">idandiva11@gmail.com</a></p>"}, "terms": {"title": "תנאי שימוש", "desc": "תנאי השימוש ב\"השמות של ישראל\": שימוש הוגן, אופי המידע, מידע רפואי ומחשבון ההריון, זכויות יוצרים ויצירת קשר.", "html": "<p class=\"dmeta\">עודכן לאחרונה: 5 בנובמבר 2026</p>\n<p class=\"dlead\">השימוש באתר \"השמות של ישראל\" מהווה הסכמה לתנאים האלה. אם אינכם מסכימים להם, אנא הימנעו משימוש באתר.</p>\n<h2>שימוש הוגן</h2>\n<p>האתר, המחולל, המשחקים והחדרים הזוגיים פתוחים לשימוש אישי וללא תשלום. אסור:</p>\n<ul>\n<li>לנסות לפגוע באתר או בשרתים שלו, להעמיס עליהם או לעקוף את מנגנוני האבטחה.</li>\n<li>להעתיק את האתר או את התוכן שלו באופן אוטומטי ובהיקף רחב (סריקה, Scraping), או לעשות בתוכן שימוש מסחרי בלי אישור בכתב.</li>\n<li>להשתמש בחדרים הזוגיים או במשחקים להטרדה, או להציג בהם שמות פוגעניים.</li>\n</ul>\n<h2>המידע מוצג \"כמות שהוא\" (AS IS)</h2>\n<p>הנתונים באתר מבוססים על מאגרי מידע ציבוריים, ומוצגים לצורכי עניין, ידע כללי ובידור בלבד. השקענו מאמץ להציג אותם במדויק, אבל ייתכנו טעויות, השמטות והבדלי עיגול.</p>\n<p>פירושי השמות, הניתוחים, התגיות, הפרופילים וההערכות באתר הם פרשנות, ואינם מהווים ייעוץ רשמי, מקצועי או סטטיסטי. אין להסתמך עליהם בקבלת החלטות, והאתר ומפעיליו אינם אחראים לכל נזק שייגרם מהשימוש במידע.</p>\n<p>האתר ניתן ללא תשלום, ועשוי להשתנות, להתעדכן או להיות לא זמין מדי פעם.</p>\n<h2>מידע רפואי ומחשבון ההריון</h2>\n<p>מחשבון ההריון, עמודי השבועות ולוח הבדיקות מציגים מידע כללי בלבד. הם אינם ייעוץ רפואי, אינם אבחון ואינם תחליף לבדיקה, להמלצה או למעקב של רופא, רופאה, אחות או מיילדת.</p>\n<ul>\n<li>שבוע ההריון ותאריך הלידה המשוער הם חישוב מקורב לפי הפרטים שהוזנו. המועד שקובעים הרופאים, למשל לפי אולטרסאונד, הוא הקובע.</li>\n<li>לוח הבדיקות מבוסס על ההמלצות שמשרד הבריאות מפרסם, והוא לוח כללי. הבדיקות שמתאימות לכל הריון ומועדיהן נקבעים מול הרופא המטפל והקופה, וההמלצות עשויות להשתנות. בכל עמוד מצוינים המקור ותאריך הבדיקה האחרון שלנו.</li>\n<li>גודל העובר ומשקלו הם ממוצעים משוערים, וכל הריון שונה.</li>\n<li>בכל שאלה או חשש פנו לצוות הרפואי. במצב חירום התקשרו מיד למד״א (101) או פנו לחדר מיון.</li>\n</ul>\n<p>האתר ומפעיליו אינם אחראים לכל נזק שייגרם מהסתמכות על המידע הזה או על החישובים, ובכלל זה מטעויות, מהשמטות או ממידע שלא עודכן.</p>\n<h2>זכויות יוצרים</h2>\n<p>עיצוב האתר, הקוד, הוויזואליזציות, הטקסטים, המשחקים וכלי הניתוח הם יצירה מקורית של האתר \"השמות של ישראל\", וכל הזכויות בהם שמורות © 2026. הנתונים הגולמיים שייכים למקורותיהם (הלמ״ס).</p>\n<p>מותר לשתף קישורים, צילומי מסך וכרטיסי השיתוף שהאתר יוצר, לשימוש אישי ועם קרדיט לאתר.</p>\n<h2>קישורים ומודעות</h2>\n<p>האתר עשוי לכלול מודעות וקישורים לאתרים של צדדים שלישיים. איננו אחראים לתוכן שלהם או למדיניות הפרטיות שלהם.</p>\n<h2>שינויים ודין</h2>\n<p>התנאים עשויים להתעדכן מעת לעת, והגרסה המעודכנת תפורסם בעמוד הזה. על התנאים חל הדין הישראלי.</p>\n<h2>יצירת קשר</h2>\n<p>לשאלות על התנאים: <a href=\"mailto:idandiva11@gmail.com\" dir=\"ltr\">idandiva11@gmail.com</a></p>"}, "accessibility": {"title": "הצהרת נגישות", "desc": "הצהרת הנגישות של \"השמות של ישראל\": מה נעשה כדי שהאתר יהיה נגיש, מגבלות ידועות, ופרטי רכז הנגישות.", "html": "<p class=\"dmeta\">עודכן לאחרונה: 4 באוקטובר 2026</p>\n<p class=\"dlead\">אנחנו רוצים שכל אחד ואחת יוכלו להשתמש ב\"השמות של ישראל\", כולל אנשים עם מוגבלות. האתר נבנה מתוך כוונה לעמוד בתקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), התשע״ג-2013, ובתקן הישראלי ת״י 5568, המבוסס על הנחיות WCAG ברמה AA.</p>\n<h2>מה עשינו כדי שהאתר יהיה נגיש</h2>\n<ul>\n<li>מבנה עמוד תקני בעברית ומימין לשמאל, עם כותרות ברורות ושפה מוגדרת לכל עמוד.</li>\n<li>אפשר לנווט באתר במקלדת: Tab למעבר בין רכיבים, Enter לבחירה ו-Escape לסגירת חלונות וחזרה.</li>\n<li>סימון פוקוס בולט על הרכיב שנבחר במקלדת.</li>\n<li>כפתורים שמוצגים כאייקון בלבד כוללים תיאור טקסטואלי לקוראי מסך.</li>\n<li>ניגודיות גבוהה בין הטקסט לרקע.</li>\n<li>אפשר להגדיל את הטקסט בהגדלת הדפדפן בלי לאבד תוכן, והאתר מותאם לכל גודל מסך.</li>\n<li>אזורי לחיצה מוגדלים במסכי מגע.</li>\n<li>מי שהגדיר במכשיר \"הפחתת תנועה\" יקבל את האתר בלי אנימציות מיותרות.</li>\n<li>לצד הגרפים מוצגים גם הנתונים העיקריים בטקסט, כמו מספרים, שנת שיא ומגמה.</li>\n<li>במשחק \"בוחרים שם ביחד\" אפשר לבחור בכפתורים, לא רק בהחלקה.</li>\n</ul>\n<h2>מגבלות ידועות</h2>\n<p>למרות המאמצים, ייתכן שחלקים מסוימים עדיין אינם נגישים במלואם. הגרפים האינטראקטיביים הם רכיבים חזותיים, ולכן קוראי מסך לא מקריאים כל נקודה בהם. העיקר מופיע בטקסט שלצידם. ייתכן שגם חלק מהמשחקים אינם נוחים לשימוש עם קורא מסך. אנחנו ממשיכים לשפר את הנגישות באופן שוטף.</p>\n<h2>נתקלתם בבעיה? רכז הנגישות</h2>\n<p>אם נתקלתם ברכיב שאינו נגיש או בקושי כלשהו, נשמח לשמוע ולתקן. כדי שנוכל לטפל בפנייה, כתבו בבקשה מה הבעיה, באיזה עמוד, ובאיזה דפדפן וטכנולוגיה מסייעת השתמשתם.</p>\n<p><b>פניות בנושא נגישות:</b> צוות האתר<br><b>מייל:</b> <a href=\"mailto:idandiva11@gmail.com\" dir=\"ltr\">idandiva11@gmail.com</a></p>"}};
 const TR_RAW="דולב:Dolev|יוגב:Yogev|קורל:Coral|לירוי:Leroy|רואן:Rawan|מרואן:Marwan|נפתלי:Naftali|בועז:Boaz|נריה:Neria|עודד:Oded|דב:Dov|סהר:Sahar|עינת:Einat|שי-לי:Shai-Li|ליאורה:Liora|יוכבד:Yocheved|שלומית:Shlomit|יורי:Yuri|יזן:Yazan|סמדר:Smadar|אהוד:Ehud|בניה:Bnaya|נוה:Naveh|נאוה:Nava|אתי:Etti|בת אל:Bat-El|ידידיה:Yedidya|אלינור:Elinor|ליהי:Lihi|שלומי:Shlomi|איליה:Ilya|ריאן:Rayan|אמיתי:Amitai|סרגיי:Sergei|אבנר:Avner|חגי:Hagai|שאם:Sham|בארי:Bari|נבו:Nevo|אסנת:Osnat|עינב:Einav|שלו:Shalev|תמרה:Tamara|אביחי:Avichai|בלה:Bella|אודליה:Odelia|צביה:Tzvia|פיגא:Feiga|אליאב:Eliav|יפית:Yafit|סיגלית:Sigalit|עזרא:Ezra|יהל:Yahel|אהובה:Ahuva|אולג:Oleg|זינב:Zeinab|רחמים:Rahamim|אילת:Ayelet|אדוארד:Eduard|אלכסנדרה:Alexandra|אריאלה:Ariela|עילי:Ilai|ליאב:Liav|ביאן:Bayan|שפרה:Shifra|גליה:Galia|וסאם:Wisam|שון:Shon|טארק:Tarek|הודא:Huda|אלברט:Albert|גדעון:Gidon|אוריאן:Orian|מרגלית:Margalit|באסל:Basel|רחלי:Racheli|עדנה:Edna|איליי:Ilay|עודאי:Odai|שליו:Shalev|שובל:Shoval|פלג:Peleg|אנוור:Anwar|מנשה:Menashe|בראאה:Baraa|מלאכי:Malachi|נחום:Nachum|יקיר:Yakir|גיטל:Gitel|רואי:Roei|אווה:Ava|איאד:Iyad|פארס:Fares|אודל:Odel|אליאור:Elior|ים:Yam|דועאא:Duaa|גריגורי:Grigori|דריה:Daria|יסכה:Yiska|אשרף:Ashraf|עאדל:Adel|יבגניה:Evgenia|נאסר:Nasser|נמרוד:Nimrod|עמיחי:Amichai|רותי:Ruti|יולי:Yuli|אנאל:Anael|רוית:Ravit|שניאור:Shneor|תאמר:Tamer|עיסא:Issa|איאת:Ayat|נאדיה:Nadia|אדהם:Adham|אלכסיי:Alexei|ליהיא:Lihia|הללי:Hallel|מרגריטה:Margarita|אילון:Ilon|זיין:Zein|לב:Lev|אלכס:Alex|מיכאלה:Michaela|יגל:Yagel|עאמר:Amer|עמאר:Ammar|רננה:Renana|ג'ואד:Jawad|מאהר:Maher|סיהאם:Siham|פרידה:Frida|איהאם:Ilham|אושרת:Osheret|פבל:Pavel|מוהנד:Muhannad|לורן:Loren|ארקדי:Arkadi|ולרי:Valeri|מיאל:Mial|רוברט:Robert|ליאו:Leo|שמשון:Shimshon|אמונה:Emuna|לודמילה:Ludmila|בני:Beni|סער:Saar|יפתח:Yiftach|רביע:Rabia|עמרם:Amram|אוסנת:Osnat|רוחמה:Ruhama|יקטרינה:Ekaterina|תאופיק:Tawfiq|עאטף:Atef|מייס:Mays|ריתאל:Ritel|הרצל:Herzl|עמליה:Amalia|ואיל:Wael|נואל:Noel|אודיה:Odeya|אליאן:Elian|דניס:Denis|סוזן:Suzan|גנאדי:Gennadi|ויטלי:Vitali|עיסאם:Issam|קורן:Koren|סמיון:Semyon|שרי:Sheri|ליודמילה:Lyudmila|זייד:Zaid|אלדד:Eldad|יאסר:Yasser|מיתר:Meitar|כוכבה:Kochava|היאם:Hiyam|תקוה:Tikva|פריאל:Peri-El|שניר:Snir|ענאן:Anan|יונס:Yunes|נאדר:Nader|נסים:Nissim|דוניא:Dunia|בשאר:Bashar|נרמין:Narmin|סגלית:Sigalit|אבתיסאם:Ibtisam|רביד:Ravid|דינא:Dina|רעיה:Raaya|אנדריי:Andrei|גבריאלה:Gabriela|אליזבט:Elizabeth|רפי:Rafi|אמיליה:Emilia|אחיה:Achiya|גידאא:Ghidaa|ליבא:Liba|עפרה:Ofra|אנסטסיה:Anastasia|עטרה:Atara|אלנה:Elena|חי:Chai|גרשון:Gershon|ברוריה:Bruria|בצלאל:Betzalel|יעלה:Yaela|יריב:Yariv|חדיגה:Khadija|ציונה:Tziona|צליל:Tzlil|ישעיהו:Yeshayahu|מאג'ד:Majed|ירדנה:Yardena|הינדא:Hinda|משי:Meshi|אחינועם:Ahinoam|לבנה:Levana|סטניסלב:Stanislav|ולדיסלב:Vladislav|ויאצ'סלב:Viacheslav|חני:Hani|חנניה:Hananya|אבינועם:Avinoam|איוב:Ayub|קייס:Qais|אכרם:Akram|עוזי:Uzi|לוטם:Lotem|דקל:Dekel|עז:Az|דקלה:Dikla|צור:Tzur|נח:Noah|עוביידה:Ubaida|סאמיה:Samia|טוביה:Tuvia|ארתור:Artur|שגית:Sagit|קלרה:Klara|ימית:Yamit|הלן:Helen|נלי:Nelly|לאון:Leon|ליובוב:Lyubov|אלהאם:Ilham|אבשלום:Avshalom|פליקס:Felix|ששון:Sasson|יפים:Yefim|עברי:Ivri|לידיה:Lidia|אמיל:Emil|סנדרה:Sandra|מג'די:Majdi|הניה:Hania|זכריא:Zakaria|יעקוב:Yaqub|קונסטנטין:Konstantin|ליית:Layth|מייסון:Maysun|הילל:Hillel|אמרי:Imri|אראל:Arel|תיים:Taym|ישעיה:Yeshaya|פאינה:Faina|ליאון:Leon|דאוד:Daoud|פתחיה:Fathia|יששכר:Yissachar|שגב:Segev|פני:Peni|אליענה:Eliana|מרסל:Marcel|מואמן:Muamen|נחמיה:Nehemia|ולריה:Valeria|עות'מאן:Othman|ורה:Vera|סלומון:Solomon|תפארת:Tiferet|אנדרי:Andrei|כנרת:Kinneret|אלדר:Eldar|איימי:Amy|נימר:Nimer|שיינדל:Sheindel|שדא:Shada|היא:Hiya|איב:Eve|רייזל:Raizel|בכר:Bakr|שבתאי:Shabtai|רוז:Rose|פיליפ:Philip|ניבין:Nivin|מתתיהו:Matityahu|מתנאל:Matanel|חאתם:Hatem|יקותיאל:Yekutiel|ודיע:Wadie|מיכה:Micha|תבל:Tevel|זהבית:Zehavit|מייקל:Michael|מנוחה:Menucha|סטלה:Stella|מועתסם:Muatasem|חננאל:Hananel|פאתן:Faten|מתניה:Matanya|אלקנה:Elkana|פאר:Pe'er|שמרית:Shimrit|אוקסנה:Oksana|רוואן:Rawan|בניהו:Benayahu|סטיבן:Steven|בת חן:Bat-Chen|תייסיר:Taysir|יזיד:Yazid|ולנטינה:Valentina|מסק:Misk|עזריאל:Azriel|אליעד:Eliad|אווס:Aws|שולה:Shula|הלנה:Helena|תרצה:Tirtza|רולא:Rula|בהאא:Bahaa|ליליה:Lilia|גבע:Geva|אורנית:Ornit|גבי:Gabi|עדה:Ada|בטי:Betty|קרינה:Karina|מוריס:Maurice|עמראן:Imran|יוסרא:Yusra|חנוך:Hanoch|גאולה:Geula|סילביה:Silvia|אנטולי:Anatoli|מריאנה:Mariana|יוחאי:Yochai|רונה:Rona|אילי:Eli|בלאל:Bilal|אסראא:Israa|חוסאם:Hussam|סאהר:Saher|נילי:Nili|מוחמד:Muhammad|יוסף:Yosef|דוד:David|משה:Moshe|דניאל:Daniel|אברהם:Avraham|שרה:Sarah|יעקב:Yaakov|מרים:Miriam|אסתר:Esther|יצחק:Yitzhak|רחל:Rachel|אורי:Uri|נועם:Noam|יעל:Yael|נועה:Noa|עומר:Omer|מיכאל:Michael|מיכל:Michal|אחמד:Ahmad|אריאל:Ariel|תמר:Tamar|חנה:Hannah|מאיה:Maya|חיים:Haim|רבקה:Rivka|עדי:Adi|ישראל:Israel|שירה:Shira|יובל:Yuval|שלמה:Shlomo|איתי:Itai|יהודה:Yehuda|עמית:Amit|שמואל:Shmuel|טל:Tal|שמעון:Shimon|ליאור:Lior|שי:Shai|מאיר:Meir|אליהו:Eliyahu|אור:Or|יהונתן:Yehonatan|מרדכי:Mordechai|אמיר:Amir|יונתן:Yonatan|רוני:Roni|רפאל:Refael|גיא:Guy|אדם:Adam|אהרון:Aharon|חיה:Haya|איתן:Eitan|רועי:Roy|רות:Ruth|עדן:Eden|שחר:Shahar|לאה:Leah|יאיר:Yair|אלכסנדר:Alexander|טליה:Talia|עידו:Ido|איילה:Ayala|אלון:Alon|הילה:Hila|אלה:Ella|מעיין:Maayan|אביגיל:Avigail|עבד:Abed|מחמוד:Mahmoud|בנימין:Binyamin|אייל:Eyal|אפרת:Efrat|נתנאל:Netanel|גל:Gal|יהודית:Yehudit|עלי:Ali|אליה:Elia|אסף:Asaf|אופיר:Ofir|איתמר:Itamar|בן:Ben|תומר:Tomer|הודיה:Hodaya|עידן:Idan|שרון:Sharon|שושנה:Shoshana|אבראהים:Ibrahim|שני:Shani|נעמי:Naomi|מנחם:Menachem|מלכה:Malka|רון:Ron|חן:Chen|הדר:Hadar|רותם:Rotem|דבורה:Devora|קרן:Keren|אביב:Aviv|ליאן:Lian|ענת:Anat|שיר:Shir|נעמה:Naama|יואב:Yoav|דנה:Dana|עומרי:Omri|ניר:Nir|הלל:Hillel|נדב:Nadav|בר:Bar|צבי:Tzvi|מאור:Maor|מתן:Matan|שלום:Shalom|פאטמה:Fatma|תהילה:Tehila|נטע:Neta|אלי:Eli|אילן:Ilan|אורן:Oren|ליה:Lia|אריה:Arye|אדל:Adel|נתן:Natan|שקד:Shaked|לביא:Lavi|אנה:Anna|נויה:Noya|הדס:Hadas|אילנה:Ilana|נור:Nur|אוריה:Oria|דן:Dan|צפורה:Tzipora|גבריאל:Gavriel|הראל:Harel|אלעד:Elad|אורית:Orit|יסמין:Yasmin|גיל:Gil|אורלי:Orly|אימאן:Iman|יניב:Yaniv|יהלי:Yahli|ליאל:Liel|מלאק:Malak|נגה:Noga|איה:Aya|ח'אלד:Khaled|מירב:Merav|זוהר:Zohar|ליאם:Liam|לירון:Liron|רומי:Romi|ליאת:Liat|רונית:Ronit|אגם:Agam|ירדן:Yarden|אירינה:Irina|יפה:Yafa|ישי:Yishai|עופר:Ofer|נטלי:Natalie|דור:Dor|הדסה:Hadassah|נהוראי:Nehorai|מאי:May|מור:Mor|זיו:Ziv|מורן:Moran|ניסים:Nissim|ילנה:Elena|מוריה:Moria|דורון:Doron|יהושע:Yehoshua|אבי:Avi|ורד:Vered|נחמה:Nechama|שולמית:Shulamit|שמחה:Simcha|מיטל:Meital|ארי:Ari|ברכה:Bracha|פנחס:Pinchas|אשר:Asher|ראובן:Reuven|אופק:Ofek|מזל:Mazal|ארז:Erez|רונן:Ronen|ספיר:Sapir|דליה:Dalia|סיון:Sivan|דינה:Dina|איריס:Iris|אביטל:Avital|אליעזר:Eliezer|אמל:Amal|ערן:Eran|גלית:Galit|מרינה:Marina|עילאי:Ilai|רעות:Reut|עלמה:Alma|מריה:Maria|ירון:Yaron|לימור:Limor|חוה:Hava|ירין:Yarin|ליבי:Libi|גלעד:Gilad|אלישבע:Elisheva|אוראל:Orel|ברוך:Baruch|סולימאן:Suleiman|תהל:Tahel|רן:Ran|פנינה:Pnina|בוריס:Boris|חסן:Hassan|אפרים:Efraim|שרית:Sarit|טלי:Tali|אמה:Emma|גאיה:Gaia|עופרי:Ofri|דניאלה:Daniela|בתיה:Batya|ענבל:Inbal|חגית:Hagit|אוריאל:Uriel|איגור:Igor|שירן:Shiran|טוהר:Tohar|ניצן:Nitzan|לין:Lin|מיקה:Mika|ענבר:Inbar|אלין:Alin|עליזה:Aliza|דרור:Dror|עבדאללה:Abdallah|מוסטפא:Mustafa|אלמוג:Almog|יגאל:Yigal|שלי:Shelly|אורטל:Ortal|רז:Raz|דביר:Dvir|יואל:Yoel|ניתאי:Nitai|ניב:Niv|רינה:Rina|גפן:Gefen|אביה:Aviya|לינוי:Linoy|סאלח:Saleh|אולגה:Olga|נוי:Noy|רויטל:Revital|אבישג:Avishag|סבטלנה:Svetlana|טובה:Tova|אביתר:Evyatar|בת שבע:Batsheva|נורית:Nurit|דמיטרי:Dmitri|ולדימיר:Vladimir|עמנואל:Emanuel|זהבה:Zehava|טטיאנה:Tatiana|אושר:Osher|סמר:Samar|גילה:Gila|איילת:Ayelet|אלחנן:Elhanan|תום:Tom|אוהד:Ohad|נופר:Nofar|ציון:Tzion|נטליה:Natalia|לירן:Liran|יחיאל:Yehiel|סימה:Sima|סופיה:Sofia|תמיר:Tamir|יבגני:Evgeni|אלעזר:Elazar|שגיא:Sagi|דפנה:Dafna|גילי:Gili|מרק:Mark|אדיר:Adir|ויקטוריה:Victoria|חוסין:Hussein|סתיו:Stav|יחזקאל:Yehezkel|דורית:Dorit|דיאנה:Diana|נחמן:Nachman|יוליה:Yulia|ליטל:Lital|ינון:Yinon|שאול:Shaul|עלאא:Alaa|חלא:Hala|מישל:Michel|אמילי:Emily|לאוניד:Leonid|לילך:Lilach|שיראל:Shirel|זאב:Zeev|כפיר:Kfir|ינאי:Yanai|אבישי:Avishai|אלירן:Eliran|מג'ד:Majd|אביאל:Aviel|יורם:Yoram|יוסי:Yossi|לביאה:Levia|הלני:Heleni|שילה:Shilo|ליב:Liv|יאר:Yaar|ריף:Rif|סאן:San|מיאן:Mian|ריי:Rei|ראמא:Rama|ריתאג:Ritaj|רימאס:Rimas|שירון:Shiron|יניב:Yaniv|סדין:Sadin|לירז:Liraz|אלעד:Elad|אסיה:Asia|לונה:Luna|תיא:Tia|קמר:Qamar|מאסה:Masa|ביאלא:Biala|בילא:Bila|שמס:Shams|הייל:Hail|היילי:Hailey|קיאן:Kian|מילי:Milly|שיינא:Shayna|קרני:Karni|תכלת:Tchelet|רנה:Rena|סלמא:Salma|סלאם:Salam|סאלם:Salem|אלימלך:Elimelech|יאסין:Yasin|סוניה:Sonia|ליליאן:Lilian|אלכסי:Alexei|מנחם:Menachem|לוי:Levi|בלומה:Bluma|יחיא:Yahya|ג'ונתן:Jonathan|דותן:Dotan|אלנתן:Elnatan|נתי:Nati|סמי:Sami|רמי:Rami|מוחמד:Muhammad|פאטמה:Fatma|כרמל:Carmel|כרמלה:Carmela|ג'ורי:Juri|סבלית:Sablit|ג'וד:Jud|גוד:Jud|אלרואי:Elroi|אילנית:Ilanit|אריאה:Aria|מאורי:Maori|הלני:Heleni|סילא:Sila|אילול:Ilul|עתי:Ati|ותין:Watin|קרלוס:Carlos|ג'ורג':George|אליאס:Elias|סמיר:Samir|ג'ני:Jenny|לוקאס:Lucas|מילה:Mila|אלמה:Alma|זואי:Zoey|ארבל:Arbel|ענהאל:Anhal|הלל:Hillel|אלישע:Elisha|אוהד:Ohad|שילת:Shilat|תהלה:Tehila|ליבנת:Livnat|עדיאל:Adiel|אגם:Agam|הראל:Harel|רפאלה:Rafaela|אלמוג:Almog|ספיר:Sapir|עדן:Eden|מורן:Moran|קרן:Keren|סיון:Sivan|גלית:Galit|רונית:Ronit|איריס:Iris|מיטל:Meital";
 const TRMAP=new Map(TR_RAW.split('|').map(p=>p.split(':')));
 const TRL={'א':'a','ב':'v','ג':'g','ד':'d','ה':'h','ו':'o','ז':'z','ח':'h','ט':'t','י':'i','כ':'kh','ך':'kh','ל':'l','מ':'m','ם':'m','נ':'n','ן':'n','ס':'s','ע':'a','פ':'f','ף':'f','צ':'tz','ץ':'tz','ק':'k','ר':'r','ש':'sh','ת':'t'};
@@ -25,6 +25,184 @@ function romanize(n,arab){if(TRMAP.has(n))return TRMAP.get(n);
   }
   o=o.replace(/aa+/g,'a').replace(/iy(?=[aeiou])/g,'iy').replace(/ii+/g,'i');
   return o.charAt(0).toUpperCase()+o.slice(1);}
+
+/* =========================================================
+   The full name: English spellings, how a first name sits with a surname, initials, roll call.
+   Pure functions, one source for two places:
+   - the app bundle (tools/build_bundle.py adds this file after p0_translit.js with "export " removed),
+     for the name page, the quick view and the FAQ answer exported to data/seo.json;
+   - the /tools/full-name page (tools/fullname.py joins p0_translit.js, this file and app/fullname.mjs into one module).
+   Tested in tests/fullname.test.mjs.
+   ========================================================= */
+
+/* the Hebrew final letters, so ם and מ count as the same letter */
+const FN_FIN = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+const fnLetters = s => [...String(s || '')].filter(c => c >= 'א' && c <= 'ת').map(c => FN_FIN[c] || c);
+
+/* ---------- English spellings ----------
+   Other ways to write a name in English, from the letters that are written in more than one way.
+   Each variant changes one thing in the main spelling and says why. Arabic names keep their main spelling,
+   since ח and כ are written differently there. */
+const FN_WHY = {
+  het: 'ח נכתבת Ch או H. בישראל מקובל Ch, אבל דוברי אנגלית קוראים אותו כמו ב-Chair, ולכן יש שמעדיפים H.',
+  khaf: 'כ בלי דגש נכתבת Kh או Ch.',
+  tsadi: 'צ נכתבת Tz או Ts.',
+  endHe: 'ה בסוף השם לא נשמעת, אז אפשר לכתוב אותה בסוף (h) או לוותר עליה.',
+  endYud: 'י בסוף השם נכתבת i או y.',
+};
+const fnCase = (src, rep) => (src[0] === src[0].toUpperCase() ? rep[0].toUpperCase() + rep.slice(1) : rep);
+function fnSwap(en, re, to) {
+  const m = re.exec(en);
+  if (!m) return null;
+  return en.slice(0, m.index) + fnCase(m[0], to(m[0].toLowerCase())) + en.slice(m.index + m[0].length);
+}
+/* names whose spelling is already the English one (Rachel, Michael): their ח and כ stay as they are */
+const FN_ENGLISH = new Set(['Rachel', 'Michael', 'Hannah', 'Nachman']);
+/* arab: an Arabic name; bib: a biblical name, the only kind where a final ה is often written as h when the main spelling has none (Rivka, Rivkah) */
+function spellVariants(he, en, arab, bib) {
+  he = String(he || ''); en = String(en || '');
+  if (!he || !en || /[\s-]/.test(he)) return [];
+  const out = [], add = (s, why) => { if (s && s !== en && !out.some(v => v.s === s)) out.push({ s, why }) };
+  const count = ch => [...he].filter(c => c === ch).length;
+  const endHe = he.endsWith('ה'), midHe = [...he.slice(0, -1)].includes('ה');
+  if (!arab && !FN_ENGLISH.has(en)) {
+    // ח, once, with no other letter that becomes h (a ה inside the name, or a כ)
+    if (count('ח') === 1 && !midHe && !/[כך]/.test(he)) {
+      const body = endHe && /ah$/i.test(en) ? en.slice(0, -1) : en;   // the h of a final ה is not the ח
+      const rest = en.slice(body.length);
+      let v = null;
+      if (/ch/i.test(body)) v = fnSwap(body, /ch/i, () => 'h');
+      else if (/kh/i.test(body)) v = fnSwap(body, /kh/i, () => 'ch');
+      else {   // a lone h: not the h of sh, ch, th or kh
+        const k = [...body].findIndex((c, j) => /h/i.test(c) && !/[sctk]/i.test(body[j - 1] || ''));
+        if (k >= 0) v = body.slice(0, k) + fnCase(body[k], 'ch') + body.slice(k + 1);
+      }
+      if (v) add(v + rest, FN_WHY.het);
+    }
+    // כ without a dagesh: anywhere but the start, and no ח to mix it with
+    if (/.[כך]/.test(he) && !he.includes('ח')) {
+      if (/kh/i.test(en)) add(fnSwap(en, /kh/i, () => 'ch'), FN_WHY.khaf);
+      else if (/ch/i.test(en)) add(fnSwap(en, /ch/i, () => 'kh'), FN_WHY.khaf);
+    }
+    if (/[צץ]/.test(he)) {
+      if (/tz/i.test(en)) add(fnSwap(en, /tz/i, () => 'ts'), FN_WHY.tsadi);
+      else if (/ts/i.test(en)) add(fnSwap(en, /ts/i, () => 'tz'), FN_WHY.tsadi);
+    }
+  }
+  if (endHe) {
+    if (/[^h]ah$/i.test(en)) add(en.slice(0, -1), FN_WHY.endHe);
+    else if (bib && /[^aeiouy]a$/i.test(en) && !/(.)\1a$/i.test(en)) add(en + 'h', FN_WHY.endHe);
+  }
+  // a final י after a vowel: Itai / Itay, Roi / Roy
+  if (he.endsWith('י') && !he.endsWith('יי')) {
+    if (/[aeou]i$/i.test(en)) add(en.slice(0, -1) + 'y', FN_WHY.endYud);
+    else if (/[aeou]y$/i.test(en)) add(en.slice(0, -1) + 'i', FN_WHY.endYud);
+  }
+  return out.slice(0, 3);
+}
+const fnOr = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' או ' + a[a.length - 1];
+/* the answer to "איך כותבים את השם X באנגלית?", on the name page and in its FAQ (data/seo.json "enq") */
+function enAnswer(he, en, curated, vars) {
+  const head = curated ? `השם ${he} נכתב באנגלית בדרך כלל ${en}.` : `כתיב מוצע לשם ${he} באנגלית: ${en}.`;
+  return vars && vars.length ? `${head} אפשר לכתוב אותו גם ${fnOr(vars.map(v => v.s))}.` : head;
+}
+
+/* ---------- syllables ----------
+   From the English spelling: vowel groups, where two vowels that are said apart (No-a, Ya-el, A-ri-el) count twice.
+   y is a vowel unless a vowel follows it (Yael, Aryeh). ai and ei before a last consonant are two syllables too
+   (Ya-ir, Me-ir, Cha-im), but one at the end or before more letters (I-tai, Ei-tan). */
+const FN_DIPH = new Set(['ai', 'ay', 'ei', 'ey', 'oi', 'oy', 'ui', 'uy', 'ou', 'ee', 'oo']);
+function sylCount(en) {
+  const s = String(en || '').toLowerCase().replace(/[^a-z]/g, '');
+  if (!s) return 0;
+  const V = (k) => 'aeiou'.includes(s[k]) || (s[k] === 'y' && !'aeiou'.includes(s[k + 1] || '') && k > 0);
+  let n = 0;
+  for (let k = 0; k < s.length; k++) {
+    if (!V(k)) continue;
+    n++;
+    if (k + 1 < s.length && V(k + 1) && FN_DIPH.has(s[k] + s[k + 1])) {
+      if (/[ae]i/.test(s[k] + s[k + 1]) && k + 3 === s.length && !V(k + 2)) continue;   // Ya-ir, Cha-im
+      k++;
+    }
+  }
+  return Math.max(n, 1);
+}
+
+/* ---------- surnames in English ----------
+   Common Israeli surnames with their usual spelling; for any other surname the page suggests a spelling
+   from the rules (romanize in p0_translit.js) and lets you correct it. */
+const SURNAMES_EN = {
+  'כהן': 'Cohen', 'לוי': 'Levi', 'מזרחי': 'Mizrahi', 'פרץ': 'Peretz', 'ביטון': 'Biton', 'דהן': 'Dahan', 'אברהם': 'Avraham',
+  'פרידמן': 'Friedman', 'מלכה': 'Malka', 'אזולאי': 'Azoulay', 'כץ': 'Katz', 'יוסף': 'Yosef', 'דוד': 'David', 'אוחיון': 'Ohayon',
+  'עמר': 'Amar', 'חדד': 'Hadad', 'גבאי': 'Gabay', 'בן דוד': 'Ben David', 'שפירא': 'Shapira', 'חזן': 'Hazan', 'אלבז': 'Elbaz',
+  'אשכנזי': 'Ashkenazi', 'ששון': 'Sasson', 'מימון': 'Maimon', 'שלום': 'Shalom', 'יעקב': 'Yaakov', 'אליהו': 'Eliyahu',
+  'בן חיים': 'Ben Haim', 'רוזנברג': 'Rosenberg', 'גולדברג': 'Goldberg', 'גולדשטיין': 'Goldstein', 'ויס': 'Weiss',
+  'שוורץ': 'Schwartz', 'קליין': 'Klein', 'ברק': 'Barak', 'טל': 'Tal', 'שמעוני': 'Shimoni', 'נחום': 'Nahum', 'חיים': 'Haim',
+  'אוחנה': 'Ohana', 'אדלר': 'Adler', 'קורן': 'Koren', 'שגיא': 'Sagi', 'ישראלי': 'Israeli', 'אלון': 'Alon', 'גל': 'Gal',
+  'בר': 'Bar', 'שחר': 'Shahar', 'אהרון': 'Aharon', 'אהרוני': 'Aharoni', 'יצחק': 'Yitzhak', 'משה': 'Moshe', 'בירנבאום': 'Birnbaum',
+  'רבינוביץ': 'Rabinovich', 'ברגר': 'Berger', 'וייס': 'Weiss', 'הורוביץ': 'Horowitz', 'סעדה': 'Saada', 'בוזגלו': 'Bozaglo',
+};
+
+/* ---------- the first name next to the surname ----------
+   Notes on how the two sound together: k is 'good', 'warn' or 'info', id names the rule (balanceOK filters by it). */
+function fullNotes(first, last, firstEn, lastEn) {
+  const A = fnLetters(first), B = fnLetters(last), out = [];
+  if (!A.length || !B.length) return out;
+  const a = A.join(''), b = B.join('');
+  if (a === b) return [{ id: 'same', k: 'warn', t: 'השם הפרטי זהה לשם המשפחה. זה קורה, אבל כדאי לדעת שתצטרכו להסביר אותו לא מעט.' }];
+  if (a.length >= 3 && b.includes(a) || b.length >= 3 && a.includes(b))
+    out.push({ id: 'inside', k: 'info', t: 'אחד השמות נמצא בתוך השני. יש שאוהבים את המשחק הזה, ויש שזה מבלבל.' });
+  if (A[A.length - 1] === B[0])
+    out.push({ id: 'blur', k: 'warn', t: `השם נגמר באות ${B[0]}, ושם המשפחה מתחיל בה. כשאומרים אותם ברצף, האות הזאת עלולה להיבלע.` });
+  else if (/[aeiouy]$/i.test(firstEn || '') && /^[aeiou]/i.test(lastEn || ''))
+    out.push({ id: 'vowel', k: 'info', t: 'השם נגמר בתנועה ושם המשפחה מתחיל בתנועה, אז ברצף הם עלולים להישמע כמו מילה אחת. שווה להגיד בקול.' });
+  if (A[0] === B[0]) out.push({ id: 'alit', k: 'info', t: `שני השמות פותחים באות ${A[0]}. צליל חוזר כזה קל לזכור, אבל לא כולם אוהבים אותו.` });
+  if (A.length >= 2 && B.length >= 2 && A.slice(-2).join('') === B.slice(-2).join(''))
+    out.push({ id: 'rhyme', k: 'warn', t: 'השם ושם המשפחה מתחרזים בסוף. בגן זה חמוד, ובהמשך יש מי שמתעייף מזה.' });
+  const s1 = sylCount(firstEn), s2 = sylCount(lastEn);
+  if (s1 && s2) {
+    const tot = s1 + s2;
+    if (tot <= 2) out.push({ id: 'short', k: 'info', t: 'שתי הברות בסך הכול: שם קצר וחד, שנשמע כמו קריאה אחת.' });
+    else if (tot >= 7) out.push({ id: 'long', k: 'warn', t: `${tot} הברות בסך הכול, צירוף ארוך. שם פרטי קצר יותר יאזן אותו.` });
+    else if (s1 < s2) out.push({ id: 'rise', k: 'good', t: `שם קצר לפני שם משפחה ארוך יותר (${s1}+${s2} הברות): בדרך כלל זה הקצב שהכי נוח להגיד.` });
+    else if (s1 === s2) out.push({ id: 'even', k: 'good', t: `לשני השמות אותו מספר הברות (${s1}+${s2}): קצב אחיד.` });
+    else out.push({ id: 'fall', k: 'info', t: `השם הפרטי ארוך משם המשפחה (${s1}+${s2} הברות). זה עובד, רק שווה להגיד אותו בקול כמה פעמים.` });
+  }
+  return out;
+}
+
+/* a first name that sits well with the surname: nothing swallowed, no vowel clash, no rhyme or shared first letter,
+   not too long, and a rhythm that rises or stays even */
+const balanceOK = (first, last, firstEn, lastEn) => {
+  const ids = fullNotes(first, last, firstEn, lastEn).map(x => x.id);
+  return !ids.some(id => ['same', 'inside', 'blur', 'vowel', 'alit', 'rhyme', 'long'].includes(id)) && ids.some(id => id === 'rise' || id === 'even');
+};
+
+/* ---------- initials, roll call and passport ---------- */
+/* three-letter initials that spell an English word nobody wants on a monogram */
+const FN_BAD = new Set(['ASS', 'BAD', 'BUM', 'COW', 'DIE', 'DUD', 'FAT', 'HAG', 'LOL', 'OMG', 'PEE', 'PIG', 'POO', 'RAT', 'SAD', 'SOS', 'WTF', 'ZIT', 'FBI', 'CIA', 'IRS']);
+function initials(parts, partsEn) {
+  const he = parts.filter(Boolean).map(p => fnLetters(p)[0] || '').filter(Boolean);
+  const en = partsEn.filter(Boolean).map(p => (String(p).match(/[a-z]/i) || [''])[0].toUpperCase()).filter(Boolean);
+  const word = en.join('');
+  return { he: he.join('.') + (he.length ? '.' : ''), en: en.join('.') + (en.length ? '.' : ''), bad: en.length === 3 && FN_BAD.has(word) ? word : '' };
+}
+/* the machine-readable line of a passport (ICAO 9303): SURNAME<<GIVEN<NAMES, letters only */
+function mrz(lastEn, givenEn) {
+  const f = s => String(s || '').toUpperCase().replace(/[^A-Z\s-]/g, '').trim().replace(/[\s-]+/g, '<');
+  return `${f(lastEn)}<<${givenEn.filter(Boolean).map(f).join('<')}`;
+}
+const email = (firstEn, lastEn) => [firstEn, lastEn].map(s => String(s || '').toLowerCase().replace(/[^a-z]/g, '')).filter(Boolean).join('.') + '@';
+
+/* ---------- how many in a class ----------
+   babies of that name in the last year, out of all births that year, in a class of 30 */
+const perClass = (n, births) => births ? n / births * 30 : 0;
+function classLine(v) {
+  if (v >= 1.95) return `בערך ${Math.round(v)} ילדים בשם הזה בכל כיתה`;
+  if (v >= 1) return 'בערך ילד אחד בשם הזה בכל כיתה';
+  if (v > 0) return `ילד אחד בשם הזה בכל ${Math.round(1 / v).toLocaleString('he-IL')} כיתות, בערך`;
+  return 'כמעט אף ילד בשם הזה';
+}
 
 /* meanings, stories and origins of names. The content lives in data/meanings.json (see tools/meanings.py);
    the build serves it as its own asset, const MEANINGS={name:[meaning, story, origin]}, loaded before the app */
@@ -104,7 +282,10 @@ function seoMeta(i){const x=seoFacts(i),n=x.n;
   const rest=[`${fmt(x.tot)} תינוקות נקראו ${n} בישראל מאז ${Y0}.`,peak,`בנות ${x.g}% · בנים ${100-x.g}%.`,`גימטריה: ${gem(n)}.`];
   return x.mean?{title:`משמעות השם ${n} – מקור, פופולריות וגימטריה | השמות של ישראל`,desc:fitDesc([`משמעות השם ${n}: ${endDot(x.mean)}`,...rest])}
     :{title:`השם ${n} – פופולריות בישראל, סטטיסטיקה וגימטריה | השמות של ישראל`,desc:fitDesc(rest)}}
+/* the name in English (app/fullname-core.mjs): the main spelling, other ways to write it, and the FAQ answer ("enq" in data/seo.json) */
+function enOf(i){const n=NAMES[i],en=rom(i),vars=spellVariants(n,en,arabOf(i),ORIGIN.get(n)==='מקראי');return{en,vars,ans:enAnswer(n,en,TRMAP.has(n),vars)}}
 function seoFAQ(i){const x=seoFacts(i),n=x.n,q=x.mean?[[`מה המשמעות של השם ${n}?`,endDot(x.mean)]]:[];
+  q.push([`איך כותבים את השם ${n} באנגלית?`,enOf(i).ans]);
   const last=x.last?`ב-${Y1} נקראו כך ${fmt(x.last)} תינוקות`+(x.rk?`, מקום ${x.rk} ${x.x===0?'בבנות':'בבנים'}.`:'.'):`ב-${Y1} השם לא ניתן, או שניתן לפחות מ-5 תינוקות.`;
   q.push([`כמה תינוקות נקראו ${n} בישראל?`,`מאז ${Y0} קיבלו את השם ${n} ${fmt(x.tot)} תינוקות בישראל. ${last}`]);
   q.push([`האם ${n} הוא שם לבן או לבת?`,sexAnswer(n,x.g)]);
@@ -182,7 +363,9 @@ DATA.txt.split('\n').forEach((line,i)=>{
   SER.push(slots);
 });
 const N=NAMES.length;
-let ROM=null;const rom=i=>{if(!ROM)ROM=NAMES.map((n,j)=>{const w=SECTOT[j],tt=w[0]+w[1]+w[2]+w[3];return romanize(n,tt>0&&(w[1]+w[2]+w[3])/tt>.5)});return ROM[i]};
+/* an Arabic name: most of its babies are from the Muslim, Christian-Arab and Druze sectors (romanize and spellVariants spell it differently) */
+const arabOf=j=>{const w=SECTOT[j],tt=w[0]+w[1]+w[2]+w[3];return tt>0&&(w[1]+w[2]+w[3])/tt>.5};
+let ROM=null;const rom=i=>{if(!ROM)ROM=NAMES.map((n,j)=>romanize(n,arabOf(j)));return ROM[i]};
 const NM=i=>LANG==='en'?rom(i):NAMES[i];
 const nmh=i=>esc(NM(i));
 function den(x,F){const out=new Float64Array(NY);for(let s=0;s<4;s++){if(F>=0&&s!==F)continue;const a=DATA.T[s][x];for(let i=0;i<NY;i++)out[i]+=a[i];}return out}
@@ -621,6 +804,7 @@ function renderName(){
     <div class="card"><div class="head"><div><h2>${t('בני כמה הם היום?','How old are they today?')}</h2><div class="sub">${t(`כל מי שנקרא ${esc(nm)}, לפי שלב בחיים`,`Everyone named ${dn}, by life stage`)}</div></div></div><div id="lstage"></div></div>
     ${S?'':`<div class="card"><div class="head"><div><h2>${t('מקום בדירוג','Rank over time')}</h2><div class="sub">${dom?t('בין שמות הבנים','Among boys’ names'):t('בין שמות הבנות','Among girls’ names')} · ${t('למעלה זה טוב · קו מקווקו: מתחת לסף הרישום','higher is better · dashed: below the listing threshold')}</div></div></div><div class="cw sm"><canvas id="cRank"></canvas></div></div>
     <div class="card"><div class="head"><div><h2>${t('מדד נוכחות בכיתה','Class presence')}</h2><div class="sub">${t('מה הסיכוי לפגוש עוד ילד בשם הזה בכיתה, היום ובשיא','How likely another child in the class shares the name, today and at its peak')}</div></div></div><div id="classbox"></div></div>
+    ${LANG==='en'?'':`<div class="card"><div class="head"><div><h2>השם המלא שלכם</h2><div class="sub">איך כותבים ${esc(nm)} באנגלית, ואיך הוא נשמע עם שם המשפחה</div></div></div><div id="fullbox"></div></div>`}
     <div class="card"><div class="head"><div><h2>${t('באיזה מגזר?','Which community?')}</h2><div class="sub">${t('כל התינוקות בשם, בכל המגזרים','All babies with this name, all communities')}</div></div></div><div class="hb" id="secs"></div></div>`}
     <div class="card ${S?'wide':''}"><div class="head"><div><h2>${t('השנה שלך','Your year')}</h2><div class="sub">${t(`בחרו שנת לידה וגלו כמה ${esc(nm)} נולדו איתכם`,`Pick a birth year to see how many were born with you`)}</div></div></div>
       <div class="yr"><select id="ysel" aria-label="${t('שנת לידה','Birth year')}">${YEARS.slice().reverse().map(y=>`<option ${y===store.get('yr',1990)?'selected':''}>${y}</option>`).join('')}</select></div><div class="yrout" id="yout"></div></div>
@@ -689,7 +873,7 @@ function renderName(){
      else if(v>0){const k=Math.round(1/v);head=t(`${gw('ילדה אחת','ילד אחד','ילד/ה אחד/ת')} בכל <b>${fmt(k)}</b> כיתות`,`One in every <b>${fmt(k)}</b> classes`);viz=k<=24?`<div class="classes" aria-hidden="true">${Array.from({length:k},(_,j)=>`<i class="${j===0?'on':''}"></i>`).join('')}</div>`:`<div class="sub">${t('פחות מכיתה אחת בכל בית ספר','Less than one per school')}</div>`}
      else head=t('כמעט אף ילד בשם הזה','Almost no one');
      return `<div class="ctile"><div class="ck">${lab}</div><div class="cv">${head}</div>${viz}</div>`};
-   {const pf=$('#prof');if(pf)pf.innerHTML=profileHTML(i);const ls=$('#lstage');if(ls)ls.innerHTML=lifeStagesHTML(nm,c);}
+   {const pf=$('#prof');if(pf)pf.innerHTML=profileHTML(i);drawFullBox(i);const ls=$('#lstage');if(ls)ls.innerHTML=lifeStagesHTML(nm,c);}
    $('#classbox').innerHTML=classHTML(nm,c,st,pk,gw,dom);}
   {const q=LANG==='en'?[]:seoFAQ(i).map(([a,b])=>[esc(a),esc(b)]);let my=0;for(let y=1;y<NY;y++)if(c[y]>c[my])my=y;
    q.push([t(`באיזו שנה נולדו הכי הרבה ${esc(nm)}?`,`Which year had the most babies named ${dn}?`),my===pk?t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. זו גם שנת השיא שלו.`,`${Y0+my}, with ${fmt(c[my])} babies, also its peak year.`):t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. ${atStart(pk)?`אבל ביחס למספר התינוקות שנולדו, הוא היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא היא ${Y0+pk}, כי אז הוא היה הכי נפוץ ביחס למספר התינוקות שנולדו באותה שנה.`}`,`${Y0+my}, with ${fmt(c[my])} babies. Its peak year is ${Y0+pk}, when it was most common relative to all births that year.`)]);
@@ -1076,11 +1260,22 @@ function rerenderCards(){if(TAB==='gen')drawGenResults()}
    QUICK VIEW
    ========================================================= */
 let SURNAME=store.get('surname','');
-function surnameNotes(n,sn){const A=lettersOf(n),B=lettersOf(sn);if(!B.length)return[];const out=[];
-  if(A[0]===B[0])out.push(t('שני השמות פותחים באותה אות: צליל חוזר שקל לזכור.','Both start with the same letter: a catchy repeat.'));
-  if(A[A.length-1]===B[0])out.push(t('השם נגמר באות שבה מתחיל שם המשפחה, ולכן הם עלולים להתחבר בדיבור.','The name ends with the surname’s first letter, so they may blur together when spoken.'));
-  const L=A.length+B.length;out.push(L<=7?t('צירוף קצר וקליט.','A short, snappy combination.'):L>=12?t('צירוף ארוך. שם פרטי קצר יכול לאזן אותו.','A long combination; a shorter first name can balance it.'):t('אורך מאוזן.','A balanced length.'));
-  if(A.slice(-2).join('')===B.slice(-2).join(''))out.push(t('שני השמות מתחרזים בסוף.','The two rhyme at the end.'));return out}
+/* the full name (app/fullname-core.mjs, the same rules as /tools/full-name). The surname is saved on this device only;
+   its English spelling too when it was corrected on /tools/full-name (surname_en), dropped once the surname changes */
+const surEn=sn=>SURNAMES_EN[sn]||sn.split(' ').map(p=>romanize(p,false)).join(' ');
+function setSurname(v){if(v===SURNAME)return;store.del('surname_en');SURNAME=v;store.set('surname',v)}
+const toolURL=i=>`${SITE.base}/tools/full-name?n=${encodeURIComponent(NAMES[i])}`;
+function fullNameHTML(i,sn){if(!sn)return'';const n=NAMES[i],en=rom(i),sen=store.get('surname_en','')||surEn(sn),notes=LANG==='en'?[]:fullNotes(n,sn,en,sen);
+  return `<div class="qvfull">${esc(n)} ${esc(sn)}</div>
+  <dl class="fnl"><div><dt>${t('ברשימת הכיתה ובצבא','In class and army lists')}</dt><dd>${esc(sn)} ${esc(n)}</dd></div><div><dt>${t('באנגלית','In English')}</dt><dd dir="ltr">${esc(en)} ${esc(sen)}</dd></div></dl>
+  ${notes.length?`<ul>${notes.map(x=>`<li>${esc(x.t)}</li>`).join('')}</ul>`:''}`}
+const FN_LINK=()=>t('לבדיקה המלאה: דרכון, ראשי תיבות ושמות שמתאימים לשם המשפחה','The full check: passport, initials and names that suit the surname');
+/* the name page card: the name in English, and with your surname */
+function drawFullBox(i){const box=$('#fullbox');if(!box)return;const E=enOf(i),n=NAMES[i];
+  box.innerHTML=`<p class="fnen">${t('באנגלית','In English')}: <b dir="ltr">${esc(E.en)}</b>${E.vars.length?` <span>${t('או','or')} ${E.vars.map(v=>`<bdi dir="ltr">${esc(v.s)}</bdi>`).join(` ${t('או','or')} `)}</span>`:''}</p>
+  <div class="qvsur"><label for="fbs">${t(`איך ${esc(n)} נשמע עם שם המשפחה שלכם?`,'How does it sound with your surname?')}</label><input class="inp" id="fbs" value="${esc(SURNAME)}" placeholder="${t('שם משפחה','Surname')}" autocomplete="off"><div id="fbsout"></div>
+  <a class="fnlink" href="${toolURL(i)}">${FN_LINK()}</a></div>`;
+  const draw=()=>{const v=$('#fbs').value.trim();setSurname(v);$('#fbsout').innerHTML=fullNameHTML(i,v)};$('#fbs').oninput=draw;draw()}
 function quickView(i){const st=stats(-1),n=NAMES[i],inf=nameInfo(st,i),tag=charTag(st,i,inf);const s=T(st,i),gp=st.tot[0][i]/s;const x=gp>=.5?0:1;
   const rk=st.rank[x][i*NY+NY-1];const sh=share(st,i);let pk=0;for(let y=1;y<NY;y++)if(sh[y]>sh[pk])pk=y;const syl=syllables(i);
   const th=[...themesOf(i)].map(k=>THEME_LAB()[k]);
@@ -1092,10 +1287,10 @@ function quickView(i){const st=stats(-1),n=NAMES[i],inf=nameInfo(st,i),tag=charT
     <div class="qvchart">${spark(sh,320,64)}<div class="heatlab"><span>${Y0}</span><span>${Y1}</span></div></div>
     <div class="endst"><div><b>${fmt(inf.c[NY-1])}</b><span>${t(`תינוקות ב-${Y1}`,`babies in ${Y1}`)}${rk?` · ${t('מקום ','#')}${rk}`:''}</span></div><div><b>${Y0+pk}</b><span>${t('שנת השיא','peak year')}</span></div><div><b>${st.med[i]||'—'}</b><span>${t('שנת לידה טיפוסית','typical birth year')}</span></div></div>
     <div class="qvfacts"><span>${LEN[i]} ${t('אותיות','letters')}</span>${syl?`<span>${t(`בערך ${syl} הברות`,`~${syl} syllables`)}</span>`:''}<span>${t('גימטריה','Gematria')} ${GEMS[i]}</span><span>${kfmt(s)} ${t('מאז 1949','since 1949')}</span></div>
-    <div class="qvsur"><label for="qvs">${t('איך זה נשמע עם שם המשפחה?','How does it sound with your surname?')}</label><input class="inp" id="qvs" value="${esc(SURNAME)}" placeholder="${t('שם משפחה','Surname')}" autocomplete="off"><div id="qvsout"></div></div>
+    <div class="qvsur"><label for="qvs">${t('איך זה נשמע עם שם המשפחה?','How does it sound with your surname?')}</label><input class="inp" id="qvs" value="${esc(SURNAME)}" placeholder="${t('שם משפחה','Surname')}" autocomplete="off"><div id="qvsout"></div><a class="fnlink" href="${toolURL(i)}">${FN_LINK()}</a></div>
     <div class="mrow"><button class="next" id="qvopen">${t('לתיק השם המלא','Open full name file')}</button><button class="copybtn" id="qvcmp">${icon('chart')}${t(' הוספה להשוואה',' Add to compare')}</button></div></div>`;
   const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};
-  const drawS=()=>{const v=$('#qvs').value.trim();SURNAME=v;store.set('surname',v);$('#qvsout').innerHTML=v?`<div class="qvfull">${esc(n)} ${esc(v)}</div><ul>${surnameNotes(n,v).map(x=>`<li>${x}</li>`).join('')}</ul>`:''};
+  const drawS=()=>{const v=$('#qvs').value.trim();setSurname(v);$('#qvsout').innerHTML=fullNameHTML(i,v)};
   $('#qvs').oninput=drawS;drawS();
   $('#qvopen').onclick=()=>{close();pick(i)};
   $('#qvcmp').onclick=()=>{if(!CMP.includes(n)){if(CMP.length>=4)CMP.shift();CMP.push(n);store.set('cmp',CMP)}close();setTab('names','compare')};}
@@ -1882,10 +2077,10 @@ if(window.SITE_CONFIG&&window.SITE_CONFIG.exportSEO)window.__bnilExport=()=>{con
   Object.values(byDec).forEach(a=>a.sort((x,y)=>T(st,y)-T(st,x)));
   for(let i=0;i<N;i++){const c=comb(st,i);let tot=0,my=0;for(let y=0;y<NY;y++){tot+=c[y];if(c[y]>c[my])my=y}const pk=peakOf(st,i);
     const g=tot?st.tot[0][i]/tot:.5;const sx=g>=.7?0:g<=.3?1:2;const x=g>=.5?0:1;const rk=st.rank[x][i*NY+NY-1]||0;
-    const rel=(byDec[peakDec(st,i)+'_'+sx]||[]).filter(j=>j!==i).slice(0,8).map(j=>NAMES[j]);
+    const rel=(byDec[peakDec(st,i)+'_'+sx]||[]).filter(j=>j!==i).slice(0,8).map(j=>NAMES[j]);const E=enOf(i);
     out.push({n:NAMES[i],en:rom(i),tot:Math.round(tot),pk:Y0+pk,pkc:Math.round(c[pk]),start:pk===0,oneIn:c[pk]?Math.round(st.DD[pk]/c[pk]):0,my:Y0+my,myc:Math.round(c[my]),desc:peakDesc(i),last:Math.round(c[NY-1]),rk,x,g:Math.round(g*100),med:st.med[i],first:Y0+c.findIndex(v=>v>0),
-      sec:secShort(i),mean:MEAN.get(NAMES[i])||'',story:STORY.get(NAMES[i])||'',rel})}
-  return{y0:Y0,y1:Y1,names:out}};
+      sec:secShort(i),mean:MEAN.get(NAMES[i])||'',story:STORY.get(NAMES[i])||'',rel,enq:E.ans,env:E.vars.map(v=>[v.s,v.why]),ar:arabOf(i)?1:0})}
+  return{y0:Y0,y1:Y1,dd:Math.round(st.DD[NY-1]),names:out}};
 
 /* =========================================================
    Info pages: about / privacy / terms (content in data/pages.json -> PAGES).

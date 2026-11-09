@@ -69,11 +69,22 @@ function rerenderCards(){if(TAB==='gen')drawGenResults()}
    QUICK VIEW
    ========================================================= */
 let SURNAME=store.get('surname','');
-function surnameNotes(n,sn){const A=lettersOf(n),B=lettersOf(sn);if(!B.length)return[];const out=[];
-  if(A[0]===B[0])out.push(t('שני השמות פותחים באותה אות: צליל חוזר שקל לזכור.','Both start with the same letter: a catchy repeat.'));
-  if(A[A.length-1]===B[0])out.push(t('השם נגמר באות שבה מתחיל שם המשפחה, ולכן הם עלולים להתחבר בדיבור.','The name ends with the surname’s first letter, so they may blur together when spoken.'));
-  const L=A.length+B.length;out.push(L<=7?t('צירוף קצר וקליט.','A short, snappy combination.'):L>=12?t('צירוף ארוך. שם פרטי קצר יכול לאזן אותו.','A long combination; a shorter first name can balance it.'):t('אורך מאוזן.','A balanced length.'));
-  if(A.slice(-2).join('')===B.slice(-2).join(''))out.push(t('שני השמות מתחרזים בסוף.','The two rhyme at the end.'));return out}
+/* the full name (app/fullname-core.mjs, the same rules as /tools/full-name). The surname is saved on this device only;
+   its English spelling too when it was corrected on /tools/full-name (surname_en), dropped once the surname changes */
+const surEn=sn=>SURNAMES_EN[sn]||sn.split(' ').map(p=>romanize(p,false)).join(' ');
+function setSurname(v){if(v===SURNAME)return;store.del('surname_en');SURNAME=v;store.set('surname',v)}
+const toolURL=i=>`${SITE.base}/tools/full-name?n=${encodeURIComponent(NAMES[i])}`;
+function fullNameHTML(i,sn){if(!sn)return'';const n=NAMES[i],en=rom(i),sen=store.get('surname_en','')||surEn(sn),notes=LANG==='en'?[]:fullNotes(n,sn,en,sen);
+  return `<div class="qvfull">${esc(n)} ${esc(sn)}</div>
+  <dl class="fnl"><div><dt>${t('ברשימת הכיתה ובצבא','In class and army lists')}</dt><dd>${esc(sn)} ${esc(n)}</dd></div><div><dt>${t('באנגלית','In English')}</dt><dd dir="ltr">${esc(en)} ${esc(sen)}</dd></div></dl>
+  ${notes.length?`<ul>${notes.map(x=>`<li>${esc(x.t)}</li>`).join('')}</ul>`:''}`}
+const FN_LINK=()=>t('לבדיקה המלאה: דרכון, ראשי תיבות ושמות שמתאימים לשם המשפחה','The full check: passport, initials and names that suit the surname');
+/* the name page card: the name in English, and with your surname */
+function drawFullBox(i){const box=$('#fullbox');if(!box)return;const E=enOf(i),n=NAMES[i];
+  box.innerHTML=`<p class="fnen">${t('באנגלית','In English')}: <b dir="ltr">${esc(E.en)}</b>${E.vars.length?` <span>${t('או','or')} ${E.vars.map(v=>`<bdi dir="ltr">${esc(v.s)}</bdi>`).join(` ${t('או','or')} `)}</span>`:''}</p>
+  <div class="qvsur"><label for="fbs">${t(`איך ${esc(n)} נשמע עם שם המשפחה שלכם?`,'How does it sound with your surname?')}</label><input class="inp" id="fbs" value="${esc(SURNAME)}" placeholder="${t('שם משפחה','Surname')}" autocomplete="off"><div id="fbsout"></div>
+  <a class="fnlink" href="${toolURL(i)}">${FN_LINK()}</a></div>`;
+  const draw=()=>{const v=$('#fbs').value.trim();setSurname(v);$('#fbsout').innerHTML=fullNameHTML(i,v)};$('#fbs').oninput=draw;draw()}
 function quickView(i){const st=stats(-1),n=NAMES[i],inf=nameInfo(st,i),tag=charTag(st,i,inf);const s=T(st,i),gp=st.tot[0][i]/s;const x=gp>=.5?0:1;
   const rk=st.rank[x][i*NY+NY-1];const sh=share(st,i);let pk=0;for(let y=1;y<NY;y++)if(sh[y]>sh[pk])pk=y;const syl=syllables(i);
   const th=[...themesOf(i)].map(k=>THEME_LAB()[k]);
@@ -85,10 +96,10 @@ function quickView(i){const st=stats(-1),n=NAMES[i],inf=nameInfo(st,i),tag=charT
     <div class="qvchart">${spark(sh,320,64)}<div class="heatlab"><span>${Y0}</span><span>${Y1}</span></div></div>
     <div class="endst"><div><b>${fmt(inf.c[NY-1])}</b><span>${t(`תינוקות ב-${Y1}`,`babies in ${Y1}`)}${rk?` · ${t('מקום ','#')}${rk}`:''}</span></div><div><b>${Y0+pk}</b><span>${t('שנת השיא','peak year')}</span></div><div><b>${st.med[i]||'—'}</b><span>${t('שנת לידה טיפוסית','typical birth year')}</span></div></div>
     <div class="qvfacts"><span>${LEN[i]} ${t('אותיות','letters')}</span>${syl?`<span>${t(`בערך ${syl} הברות`,`~${syl} syllables`)}</span>`:''}<span>${t('גימטריה','Gematria')} ${GEMS[i]}</span><span>${kfmt(s)} ${t('מאז 1949','since 1949')}</span></div>
-    <div class="qvsur"><label for="qvs">${t('איך זה נשמע עם שם המשפחה?','How does it sound with your surname?')}</label><input class="inp" id="qvs" value="${esc(SURNAME)}" placeholder="${t('שם משפחה','Surname')}" autocomplete="off"><div id="qvsout"></div></div>
+    <div class="qvsur"><label for="qvs">${t('איך זה נשמע עם שם המשפחה?','How does it sound with your surname?')}</label><input class="inp" id="qvs" value="${esc(SURNAME)}" placeholder="${t('שם משפחה','Surname')}" autocomplete="off"><div id="qvsout"></div><a class="fnlink" href="${toolURL(i)}">${FN_LINK()}</a></div>
     <div class="mrow"><button class="next" id="qvopen">${t('לתיק השם המלא','Open full name file')}</button><button class="copybtn" id="qvcmp">${icon('chart')}${t(' הוספה להשוואה',' Add to compare')}</button></div></div>`;
   const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};
-  const drawS=()=>{const v=$('#qvs').value.trim();SURNAME=v;store.set('surname',v);$('#qvsout').innerHTML=v?`<div class="qvfull">${esc(n)} ${esc(v)}</div><ul>${surnameNotes(n,v).map(x=>`<li>${x}</li>`).join('')}</ul>`:''};
+  const drawS=()=>{const v=$('#qvs').value.trim();setSurname(v);$('#qvsout').innerHTML=fullNameHTML(i,v)};
   $('#qvs').oninput=drawS;drawS();
   $('#qvopen').onclick=()=>{close();pick(i)};
   $('#qvcmp').onclick=()=>{if(!CMP.includes(n)){if(CMP.length>=4)CMP.shift();CMP.push(n);store.set('cmp',CMP)}close();setTab('names','compare')};}

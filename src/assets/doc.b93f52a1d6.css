@@ -259,3 +259,25 @@
 .docbody .gsteps{margin:0 0 12px;padding-inline-start:20px}.docbody .gsteps li{margin-bottom:8px}
 @media (prefers-reduced-motion:reduce){.docbody .gcards a,.docbody .gcards .gfoot .ic,.docbody .cover,.docbody .gfilt button{transition:none}
   .docbody .gcards a:hover,.docbody .gcards a:focus-visible,.docbody .gcards a:hover .gfoot .ic,.docbody .gcards a:hover .cover{transform:none}}
+
+.docbody .fn-row{display:flex;flex-wrap:wrap;gap:12px 16px}.docbody .fn-row .pfield{flex:1 1 180px}
+.docbody .fn-more summary{cursor:pointer;font-size:14px;color:var(--accent);min-height:36px;display:flex;align-items:center}
+.docbody .fn-more[open] summary{margin-bottom:8px}
+.docbody .fn-big{font-family:'Karantina',system-ui;font-size:52px;line-height:1;color:var(--ink);overflow-wrap:anywhere}
+.docbody .fn-en{font-size:18px;color:var(--ink-2);text-align:end;margin:4px 0 6px;overflow-wrap:anywhere}
+.docbody .fn-say[hidden]{display:none}
+.docbody .fn-dl{display:grid;gap:0;margin:14px 0 6px}
+.docbody .fn-dl div{display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:4px 14px;padding:8px 0;border-bottom:1px solid var(--line)}
+.docbody .fn-dl dt{color:var(--muted);font-size:13.5px}.docbody .fn-dl dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.docbody .fn-also,.docbody .fn-warn{display:block;font-weight:400;font-size:13.5px;color:var(--muted);margin-top:2px}
+.docbody .fn-warn{color:var(--bad)}
+.docbody .fn-notes{list-style:none;padding:0;margin:6px 0 12px}
+.docbody .fn-notes li{display:flex;gap:10px;margin:0 0 8px;font-size:15px}
+.docbody .fn-notes li span{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font-size:13px;font-weight:700;background:var(--surface-2);color:var(--ink-2)}
+.docbody .fn-notes .fn-good span{background:var(--accent-soft);color:var(--accent)}
+.docbody .fn-notes .fn-warn{color:var(--ink)}.docbody .fn-notes .fn-warn span{color:var(--bad)}
+.docbody .fn-sub{color:var(--muted);font-size:14px}
+.docbody .fn-share{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:14px 0 0}.docbody .fn-share .pfav{margin:0}
+.docbody .fn-tab td,.docbody .fn-tab th{vertical-align:top}
+.docbody .fn-sur span{display:inline-flex;align-items:center;min-height:32px;padding:2px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px}
+@media (max-width:520px){.docbody .fn-dl div{grid-template-columns:1fr}.docbody .fn-big{font-size:44px}}
