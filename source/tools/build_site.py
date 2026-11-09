@@ -7,7 +7,8 @@ Writes: <repo>/src/   (pages with the __BASE_URL__ placeholder, filled at deploy
 Only src/ is replaced; the other repo-root files (vercel.json, finalize.mjs, supabase/...) are kept as they are.
 """
 import gzip, base64, json, hashlib, os, shutil, html as H
-import meanings, guides, pregnancy
+import meanings, guides, pregnancy, fullname
+FULLNAME = fullname.PATH
 
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 D = S
@@ -334,6 +335,32 @@ doc_css = """
 """
 
 
+# the full-name tool (/tools/full-name, tools/fullname.py); the form and the result box are the calculator's (.pform, .pres)
+doc_css += """
+.docbody .fn-row{display:flex;flex-wrap:wrap;gap:12px 16px}.docbody .fn-row .pfield{flex:1 1 180px}
+.docbody .fn-more summary{cursor:pointer;font-size:14px;color:var(--accent);min-height:36px;display:flex;align-items:center}
+.docbody .fn-more[open] summary{margin-bottom:8px}
+.docbody .fn-big{font-family:'Karantina',system-ui;font-size:52px;line-height:1;color:var(--ink);overflow-wrap:anywhere}
+.docbody .fn-en{font-size:18px;color:var(--ink-2);text-align:end;margin:4px 0 6px;overflow-wrap:anywhere}
+.docbody .fn-say[hidden]{display:none}
+.docbody .fn-dl{display:grid;gap:0;margin:14px 0 6px}
+.docbody .fn-dl div{display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:4px 14px;padding:8px 0;border-bottom:1px solid var(--line)}
+.docbody .fn-dl dt{color:var(--muted);font-size:13.5px}.docbody .fn-dl dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.docbody .fn-also,.docbody .fn-warn{display:block;font-weight:400;font-size:13.5px;color:var(--muted);margin-top:2px}
+.docbody .fn-warn{color:var(--bad)}
+.docbody .fn-notes{list-style:none;padding:0;margin:6px 0 12px}
+.docbody .fn-notes li{display:flex;gap:10px;margin:0 0 8px;font-size:15px}
+.docbody .fn-notes li span{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font-size:13px;font-weight:700;background:var(--surface-2);color:var(--ink-2)}
+.docbody .fn-notes .fn-good span{background:var(--accent-soft);color:var(--accent)}
+.docbody .fn-notes .fn-warn{color:var(--ink)}.docbody .fn-notes .fn-warn span{color:var(--bad)}
+.docbody .fn-sub{color:var(--muted);font-size:14px}
+.docbody .fn-share{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:14px 0 0}.docbody .fn-share .pfav{margin:0}
+.docbody .fn-tab td,.docbody .fn-tab th{vertical-align:top}
+.docbody .fn-sur span{display:inline-flex;align-items:center;min-height:32px;padding:2px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px}
+@media (max-width:520px){.docbody .fn-dl div{grid-template-columns:1fr}.docbody .fn-big{font-size:44px}}
+"""
+
+
 def hashed(name, ext, content):
     h = hashlib.sha1(content.encode()).hexdigest()[:10]
     fn = f'{name}.{h}.{ext}'
@@ -477,7 +504,7 @@ KIND_HUB = {('שם מקראי', 1): 'biblical-boys', ('שם מקראי', 0): 'bi
 
 
 def nav_links():
-    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">' + guides.SECTION + '</a> · <a href="/pregnancy/calculator">מחשבון הריון</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
+    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">' + guides.SECTION + '</a> · <a href="/pregnancy/calculator">מחשבון הריון</a> · <a href="/tools/full-name">בדיקת שם מלא</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
             '<p>' + ' · '.join(f'<a href="/names/{k}">{v}</a>' for k, v in COLLS + HUBS) + '</p>')
 
 
@@ -519,6 +546,8 @@ def name_meta(x):
 def name_faq(x):
     n = x['n']
     q = [(f'מה המשמעות של השם {n}?', dot(x['mean']))] if x['mean'] else []
+    # the answer comes from the app (enOf in app/p0f_url.js, exported to seo.json), so both pages say exactly the same
+    q.append((f'איך כותבים את השם {n} באנגלית?', x['enq']))
     last = ((f'ב-{Y1} נקראו כך {fmt(x["last"])} תינוקות' + (f', מקום {x["rk"]} {"בבנות" if x["x"] == 0 else "בבנים"}.' if x['rk'] else '.'))
             if x['last'] else f'ב-{Y1} השם לא ניתן, או שניתן לפחות מ-5 תינוקות.')
     q.append((f'כמה תינוקות נקראו {n} בישראל?', f'מאז {Y0} קיבלו את השם {n} {fmt(x["tot"])} תינוקות בישראל. {last}'))
@@ -564,6 +593,7 @@ def chips(names):
     return '<ul class="rel">' + ''.join(f'<li><a href="/names/{enc(r)}">{H.escape(r)}</a></li>' for r in names) + '</ul>'
 
 
+assert all('enq' in x and 'env' in x for x in NAMES) and 'dd' in seo, 'seo.json is older than the app: run npm run seo'
 for x in NAMES:
     n = x['n']
     sexw = 'בנות' if x['x'] == 0 else 'בנים'
@@ -594,6 +624,10 @@ for x in NAMES:
 {f'<p>{e(x["story"])}</p>' if x['story'] and x['story'] != x['mean'] else ''}
 <h2>{e(n)} במספרים</h2>
 <ul>{''.join(f'<li>{e(f)}</li>' for f in facts)}</ul>
+<h2>איך כותבים {e(n)} באנגלית</h2>
+<p>{e(x['enq'])}</p>
+{('<ul>' + ''.join(f'<li><bdi dir="ltr">{e(s)}</bdi>: {e(w)}</li>' for s, w in x['env']) + '</ul>') if x['env'] else ''}
+<p><a href="{FULLNAME}?n={enc(n)}">איך {e(n)} נשמע עם שם המשפחה שלכם? לבדיקת השם המלא</a></p>
 <h2>שאלות נפוצות על השם {e(n)}</h2>
 {''.join(f'<h3>{e(a)}</h3><p>{e(b)}</p>' for a, b in faq)}
 {f'<h2>שמות מאותה תקופה</h2>{chips(rel)}' if rel else ''}
@@ -1152,6 +1186,11 @@ GUIDE_PATHS, GUIDES = guides.build({'page': page, 'static_shell': static_shell, 
 TOOL_PATHS, TOOLS = pregnancy.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'enc': enc, 'fit': fit, 'YC': YC,
                                      'ny': ny, 'short_mean': short_mean, 'fmt': fmt, 'Y1': Y1,
                                      'SRC': SRC, 'PH': PH, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
+
+# ---- the full-name tool: /tools/full-name (tools/fullname.py) ----
+FN_PATHS, FN_TOOLS = fullname.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'NAMES': NAMES,
+                                     'dd': seo['dd'], 'Y1': Y1, 'SRC': SRC, 'PH': PH, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
+TOOL_PATHS, TOOLS = TOOL_PATHS + FN_PATHS, TOOLS + FN_TOOLS
 
 # ---- home + 404 ----
 top = [x['n'] for x in sorted(NAMES, key=lambda x: -x['last'])[:40]]

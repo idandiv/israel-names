@@ -47,7 +47,9 @@ DATA.txt.split('\n').forEach((line,i)=>{
   SER.push(slots);
 });
 const N=NAMES.length;
-let ROM=null;const rom=i=>{if(!ROM)ROM=NAMES.map((n,j)=>{const w=SECTOT[j],tt=w[0]+w[1]+w[2]+w[3];return romanize(n,tt>0&&(w[1]+w[2]+w[3])/tt>.5)});return ROM[i]};
+/* an Arabic name: most of its babies are from the Muslim, Christian-Arab and Druze sectors (romanize and spellVariants spell it differently) */
+const arabOf=j=>{const w=SECTOT[j],tt=w[0]+w[1]+w[2]+w[3];return tt>0&&(w[1]+w[2]+w[3])/tt>.5};
+let ROM=null;const rom=i=>{if(!ROM)ROM=NAMES.map((n,j)=>romanize(n,arabOf(j)));return ROM[i]};
 const NM=i=>LANG==='en'?rom(i):NAMES[i];
 const nmh=i=>esc(NM(i));
 function den(x,F){const out=new Float64Array(NY);for(let s=0;s<4;s++){if(F>=0&&s!==F)continue;const a=DATA.T[s][x];for(let i=0;i<NY;i++)out[i]+=a[i];}return out}
