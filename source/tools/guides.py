@@ -39,6 +39,15 @@ Sources:
       {{top:<end>:<s>:<year>:<name>}}  link to <name>, checked to be the most common name ending with <end> that year
                               for each sex in <s> ("0,1": for girls and for boys)
       {{Y0}} {{Y1}}           first and last year of the data (a <year> argument can also be Y0 or Y1)
+      <!--forecast:<key>-->   a table of the names forecast (tools/forecast.py, data/forecast-<year>.json) by forecast[<key>]:
+                              sector (all, Jewish), sex, kind: top (the first n, 10 by default, with the base year and the
+                              Population Authority's rank; names that leave the top n are listed under it), up or down (the names
+                              of 100 babies or more the forecast moves most)
+      <!--backtest-->         how the same method did in earlier years (the file's backtest)
+      {{fc:<name>:<s>:<sector>}} {{fcbase:<name>:<s>:<sector>}}  the forecast for the name, and its babies in the base year
+      {{pa:<name>:<s>:<sector>}}  babies in the Population Authority's 2025 list (data/pa.json), checked to be in it
+      {{bt:<key>}}            the backtest in one number: top (names of the real top 10 in the forecast's, on average), model and
+                              naive (the median error, %), up and down (rising and falling names that went that way, %)
 Every name in a guide is checked: it exists, and a pair name was given to at least 20 babies of that sex in Y1,
 most of them of that sex (with "different_start": true, two names that do not start with the same letter); a list or forms name to at least 20 babies of that sex in Y1. A names list with ends must sort
 every name with its ending and at least 20 babies of that sex in Y1 into names (listed) or other (left out), so a new
@@ -46,6 +55,7 @@ name in the data stops the build until it is sorted.
 A failed check stops the build, like meanings.py.
 """
 import json, os, re, html as H
+import forecast
 
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 GROUPS = {'girls': (0, 0), 'boys': (1, 1), 'mixed': (0, 1)}  # sexes of the first and second name
@@ -58,7 +68,8 @@ SHARED_MIN = 20                     # shared names: babies in Y1 in the Jewish s
 ERA_YEARS, ERA_MIN = (1984, 2004), 150   # names of an era: the years shown before Y1, and babies needed in each (classic)
 ARAB = ('Muslim', 'Christian-Arab', 'Druze')
 # marker kind -> the guide's data it shows: every key of that data needs its <!--kind:key--> marker in the body
-BLOCKS = {'pairs': 'pairs', 'names': 'lists', 'forms': 'forms', 'switch': 'switch', 'faded': 'faded', 'new': 'new', 'shared': 'shared', 'era': 'era'}
+BLOCKS = {'pairs': 'pairs', 'names': 'lists', 'forms': 'forms', 'switch': 'switch', 'faded': 'faded', 'new': 'new', 'shared': 'shared', 'era': 'era',
+          'forecast': 'forecast'}
 SECTION = 'מדריכים ומאמרים'  # the section's name: hub h1, footer, /names group, breadcrumbs
 
 
@@ -229,11 +240,33 @@ def _mirror(g, D):
             + ''.join(_t(x, 330, 30, f'{p} · {q}', 'cv-l cv-m') for x, p, q in zip((462, 178), more[::2], more[1::2])))
 
 
+def _spark(g, D):
+    """a forecast: each name in a lane, its share of the babies of its sex year by year (left to right, as the charts of the
+    name pages) and a dashed step to the forecast; every line is scaled to its own lowest and highest point"""
+    names = g['cover']['names']
+    (y0, y1), (x0, x1) = D['spark_years'](), (60, 420)
+    step = (x1 - x0) / (y1 - y0)
+    ltr = ' direction="ltr"'
+    out = _t(x0, 44, 18, y0, 'cv-l cv-m', extra=ltr) + _t(x1, 44, 18, f'{y1}?', 'cv-l cv-lt', extra=ltr)
+    for i, n in enumerate(names):
+        v = D['spark'](n)
+        assert len(v) == y1 - y0 + 1, f'guides: {g["slug"]} cover: {n} needs a value for each year {y0}-{y1}'
+        lo, hi, mid = min(v), max(v), 90 + i * 74
+        Y = lambda t: round(mid + 20 - 40 * (t - lo) / ((hi - lo) or 1), 1)
+        pts = [(round(x0 + k * step, 1), Y(t)) for k, t in enumerate(v)]
+        line = lambda P: ' '.join(f'{x},{y}' for x, y in P)
+        out += (f'<polyline points="{line(pts[:-1])}" class="cv-s" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" fill="none"/>'
+                f'<polyline points="{line(pts[-2:])}" class="cv-s" stroke-width="3" stroke-dasharray="3 7" stroke-linecap="round" fill="none"/>'
+                f'<circle cx="{pts[-1][0]}" cy="{pts[-1][1]}" r="8" class="cv-t"/>'
+                + _t(598, mid + 18, 50, n, 'cv-n cv-tn' if v[-1] > v[-2] else 'cv-n', 'start'))
+    return out
+
+
 MOTIFS = {'calendar': _calendar, 'script': _script, 'height': _height, 'switch': _switch, 'fade': _fade, 'timeline': _timeline,
-          'scene': _scene, 'ticket': _ticket, 'endings': _endings, 'mirror': _mirror}
+          'scene': _scene, 'ticket': _ticket, 'endings': _endings, 'mirror': _mirror, 'spark': _spark}
 # how many names each drawing holds
 COVER_NAMES = {'calendar': (4, 4), 'script': (4, 4), 'height': (4, 4), 'switch': (5, 5), 'fade': (6, 6), 'timeline': (4, 7),
-               'scene': (5, 5), 'ticket': (2, 2), 'endings': (6, 6), 'mirror': (6, 6)}
+               'scene': (5, 5), 'ticket': (2, 2), 'endings': (6, 6), 'mirror': (6, 6), 'spark': (4, 4)}
 
 
 def check_covers(G, need):
@@ -352,6 +385,20 @@ def build(c):
                 need(n, where)
                 k = SC.get((n, int(sx), sec, Y1), 0)
                 assert k, f'guides: {where}: {n} was not given to {SEX_HE[int(sx)]} babies of the {sec} sector in {Y1}'
+                return fmt(k)
+            if kind in ('fc', 'fcbase'):
+                n, sx, sec = arg.split(':')
+                need(n, where)
+                r = fc()['forecast'].get(sec, {}).get(sx, {}).get(n)
+                assert r, f'guides: {where}: no {sec} forecast for {n} ({SEX_HE[int(sx)]})'
+                return fmt(r[1] if kind == 'fc' else r[0])
+            if kind == 'bt':
+                return bt(arg, where)
+            if kind == 'pa':
+                n, sx, sec = arg.split(':')
+                need(n, where)
+                k = dict(forecast.pa_lists()[(sec, int(sx))]).get(n)
+                assert k, f'guides: {where}: {n} is not in the Population Authority {sec} list ({SEX_HE[int(sx)]})'
                 return fmt(k)
             if kind == 'share':
                 end, sx, y = arg.split(':')
@@ -480,6 +527,68 @@ def build(c):
         return ('<table class="gtbl gvals"><thead><tr><th scope="col">השם</th>' + ''.join(f'<th scope="col">{kids} ב-{y}</th>' for y in years)
                 + f'</tr></thead><tbody>{body}</tbody></table>')
 
+    # the forecast: the file made from the data up to its base year (checked against the data while it ends there)
+    FC = {}
+
+    def fc():
+        if not FC:
+            FC.update(c.get('FC') or forecast.load())
+            if 'FC' not in c:
+                forecast.check(FC, YC, SC, Y1)
+        return FC
+
+    def bt(key, where):
+        B = list(fc()['backtest'].values())
+        mean = lambda k: sum(b[k] for b in B) / len(B)
+        out = {'top': lambda: f'{mean("top"):.1f}', 'model': lambda: f'{mean("model"):.1f}%', 'naive': lambda: f'{mean("naive"):.1f}%',
+               'up': lambda: f'{round(10 * mean("up"))}%', 'down': lambda: f'{round(10 * mean("down"))}%'}.get(key)
+        assert out, f'guides: {where}: unknown {{{{bt:{key}}}}}'
+        return out()
+
+    def fc_block(g, key):
+        W, F = g['forecast'][key], fc()
+        sec, s, kind, where = W.get('sector'), W.get('sex'), W.get('kind'), f'{g["slug"]} forecast {key}'
+        assert sec in forecast.SECTORS and s in (0, 1) and kind in ('top', 'up', 'down'), f'guides: {where}: sector, sex or kind'
+        d, by, fy = F['forecast'][sec][str(s)], F['base'], F['target']
+        kids = 'בנות' if s == 0 else 'בנים'
+        order = lambda i: sorted(d, key=lambda n: (-d[n][i], n))
+        base_rank = {n: i for i, n in enumerate(order(0), 1)}
+        if kind == 'top':
+            k = W.get('n', forecast.TOP)
+            top, pa = order(1)[:k], {n: i for i, (n, _) in enumerate(forecast.pa_lists()[(sec, s)], 1)}
+            for n in top:
+                need(n, where)
+            body = ''.join(f'<tr><td><span class="grk">{i}</span><a href="/names/{enc(n)}">{e(n)}</a></td><td class="gv"><b>{fmt(d[n][1])}</b></td>'
+                           f'<td class="gv">{fmt(d[n][0])}<span class="cn">מקום {base_rank[n]}</span></td><td class="gv">{pa.get(n, "–")}</td></tr>'
+                           for i, n in enumerate(top, 1))
+            gone = [n for n in order(0)[:k] if n not in top]
+            for n in gone:
+                need(n, where)
+            return (f'<table class="gtbl gvals gfc"><thead><tr><th scope="col">השם</th><th scope="col">תחזית ל-{fy}</th><th scope="col">ב-{by}</th>'
+                    f'<th scope="col">רשות האוכלוסין {fy}</th></tr></thead><tbody>{body}</tbody></table>'
+                    + (f'<p class="k">יוצאים מה-{k} הראשונים: ' + ', '.join(f'<a href="/names/{enc(n)}">{e(n)}</a> (מקום {base_rank[n]} ב-{by})'
+                                                                          for n in gone) + '</p>' if gone else ''))
+        rows = forecast.movers({n: v[1] for n, v in d.items()}, lambda n: d[n][0], kind == 'up')[:W.get('n', forecast.TOP)]
+        for n in rows:
+            need(n, where)
+        body = ''.join(f'<tr>{name_td(n)}<td class="gv">{fmt(d[n][0])}</td><td class="gv"><b>{fmt(d[n][1])}</b></td>'
+                       f'<td class="gv" dir="ltr">{100 * (d[n][1] / d[n][0] - 1):+.0f}%</td></tr>' for n in rows)
+        return (f'<table class="gtbl gvals"><thead><tr><th scope="col">השם</th><th scope="col">{kids} ב-{by}</th><th scope="col">תחזית ל-{fy}</th>'
+                f'<th scope="col">שינוי</th></tr></thead><tbody>{body}</tbody></table>')
+
+    def backtest_table():
+        B = fc()['backtest']
+        years = sorted({int(k.split(':')[0]) for k in B})
+        rows = ''
+        for y in years:
+            a, b = B[f'{y}:0'], B[f'{y}:1']
+            rows += (f'<tr><th scope="row">{y}</th><td>{a["top"] + b["top"]}/{2 * forecast.TOP}</td>'
+                     f'<td>{(a["model"] + b["model"]) / 2:.1f}%</td><td>{(a["naive"] + b["naive"]) / 2:.1f}%</td>'
+                     f'<td>{a["up"] + b["up"] + a["down"] + b["down"]}/{4 * forecast.TOP}</td></tr>')
+        return ('<table class="gtbl gnum"><thead><tr><th scope="col">השנה</th><th scope="col">בעשיריות</th><th scope="col">סטיית התחזית</th>'
+                '<th scope="col">סטייה בלי מגמה</th><th scope="col">זזו בכיוון שחזינו</th></tr></thead>'
+                f'<tbody>{rows}</tbody></table>')
+
     def month(m, where):
         M = next((x for x in PREG['months'] if x['month'] == m), None)
         assert M, f'guides: {where}: {m} is not a month of pregnancy.json'
@@ -599,7 +708,21 @@ def build(c):
         assert D_, f'guides: cover: {h} is not a holiday of pregnancy.json'
         return D_
 
-    DRAW = {'holiday': holiday_of, 'peak': peak_year, 'first': first_any, 'form': form_of,
+    def spark_years():
+        F = fc()
+        return F['base'] - forecast.SPAN + 1, F['target']
+
+    def spark_of(n):
+        """the name's share of the babies of its sex (the sex of most of its babies in the base year), all sectors, in the years of
+        the trend, and the forecast"""
+        F = fc()
+        y0, _ = spark_years()
+        s = max((0, 1), key=lambda t: YC.get((n, t, F['base']), 0))
+        r = F['forecast']['all'][str(s)].get(n)
+        assert r, f'guides: cover: no forecast for {n}'
+        return [YC.get((n, s, y), 0) / total[(s, y)] for y in range(y0, F['base'] + 1)] + [r[1] / total[(s, F['base'])]]
+
+    DRAW = {'spark': spark_of, 'spark_years': spark_years, 'holiday': holiday_of, 'peak': peak_year, 'first': first_any, 'form': form_of,
             'switch': lambda g, n: (girls(n, *g['periods'][0], g['slug'] + ' cover'), girls(n, *g['periods'][1], g['slug'] + ' cover'))}
     for g in G:
         for n, h in zip(g['cover']['names'], g['cover'].get('holidays', [])):
@@ -626,6 +749,9 @@ def build(c):
         body = re.sub(r'<!--new:([\w-]+)-->', lambda m: new(g, m.group(1)), body)
         body = re.sub(r'<!--shared:([\w-]+)-->', lambda m: shared(g, m.group(1)), body)
         body = re.sub(r'<!--era:([\w-]+)-->', lambda m: era(g, m.group(1)), body)
+        body = re.sub(r'<!--forecast:([\w-]+)-->', lambda m: fc_block(g, m.group(1)), body)
+        if '<!--backtest-->' in body:
+            body = body.replace('<!--backtest-->', backtest_table())
         # the calendar: every month and every holiday once, or none
         ms, hs = re.findall(r'<!--month:([\w-]+)-->', body), re.findall(r'<!--holiday:([\w-]+)-->', body)
         if ms or hs:
