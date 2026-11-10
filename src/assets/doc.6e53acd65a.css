@@ -281,3 +281,17 @@
 .docbody .fn-tab td,.docbody .fn-tab th{vertical-align:top}
 .docbody .fn-sur span{display:inline-flex;align-items:center;min-height:32px;padding:2px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px}
 @media (max-width:520px){.docbody .fn-dl div{grid-template-columns:1fr}.docbody .fn-big{font-size:44px}}
+
+.docbody .sib-names .pfield{flex:1 1 150px}
+.docbody .sib-add{background:none;border:0;padding:0;min-height:40px;color:var(--accent);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
+.docbody .sib-add[hidden]{display:none}
+.docbody .sib-style{display:grid;gap:2px;margin:0 0 14px;padding:12px 14px;border-radius:14px;background:var(--surface-2)}
+.docbody .sib-style span{color:var(--muted);font-size:13.5px}.docbody .sib-style b{font-size:18px}
+.docbody .sib-list{list-style:none;padding:0;margin:6px 0 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.docbody .sib-list>li{border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.docbody .sib-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.docbody .sib-top a{border:0;font-size:21px;font-weight:700;color:var(--ink)}.docbody .sib-top a:hover{color:var(--accent)}
+.docbody .sib-fav{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--accent);font-size:19px;cursor:pointer}
+.docbody .sib-fav[aria-pressed="true"]{background:var(--accent-soft)}
+.docbody .sib-n{display:block;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.docbody .sib-why{margin:6px 0 0;padding-inline-start:18px;font-size:13.5px;color:var(--ink-2)}.docbody .sib-why li{margin:2px 0}
