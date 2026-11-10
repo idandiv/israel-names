@@ -41,5 +41,5 @@ if(window.SITE_CONFIG&&window.SITE_CONFIG.exportSEO)window.__bnilExport=()=>{con
     const g=tot?st.tot[0][i]/tot:.5;const sx=g>=.7?0:g<=.3?1:2;const x=g>=.5?0:1;const rk=st.rank[x][i*NY+NY-1]||0;
     const rel=(byDec[peakDec(st,i)+'_'+sx]||[]).filter(j=>j!==i).slice(0,8).map(j=>NAMES[j]);const E=enOf(i);
     out.push({n:NAMES[i],en:rom(i),tot:Math.round(tot),pk:Y0+pk,pkc:Math.round(c[pk]),start:pk===0,oneIn:c[pk]?Math.round(st.DD[pk]/c[pk]):0,my:Y0+my,myc:Math.round(c[my]),desc:peakDesc(i),last:Math.round(c[NY-1]),rk,x,g:Math.round(g*100),med:st.med[i],first:Y0+c.findIndex(v=>v>0),
-      sec:secShort(i),mean:MEAN.get(NAMES[i])||'',story:STORY.get(NAMES[i])||'',rel,enq:E.ans,env:E.vars.map(v=>[v.s,v.why]),ar:arabOf(i)?1:0})}
+      sec:secShort(i),mean:MEAN.get(NAMES[i])||'',story:STORY.get(NAMES[i])||'',rel,enq:E.ans,env:E.vars.map(v=>[v.s,v.why]),ar:arabOf(i)?1:0,dna:dnaRec(i),sib:siblingsOf(i).map(L=>L.map(x=>x.n))})}
   return{y0:Y0,y1:Y1,dd:Math.round(st.DD[NY-1]),names:out}};

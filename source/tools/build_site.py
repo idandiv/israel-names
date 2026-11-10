@@ -7,8 +7,8 @@ Writes: <repo>/src/   (pages with the __BASE_URL__ placeholder, filled at deploy
 Only src/ is replaced; the other repo-root files (vercel.json, finalize.mjs, supabase/...) are kept as they are.
 """
 import gzip, base64, json, hashlib, os, shutil, html as H
-import meanings, guides, pregnancy, fullname
-FULLNAME = fullname.PATH
+import meanings, guides, pregnancy, fullname, siblings
+FULLNAME, SIBLINGS = fullname.PATH, siblings.PATH
 
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 D = S
@@ -359,6 +359,22 @@ doc_css += """
 .docbody .fn-sur span{display:inline-flex;align-items:center;min-height:32px;padding:2px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px}
 @media (max-width:520px){.docbody .fn-dl div{grid-template-columns:1fr}.docbody .fn-big{font-size:44px}}
 """
+# the siblings tool (/tools/siblings, tools/siblings.py)
+doc_css += """
+.docbody .sib-names .pfield{flex:1 1 150px}
+.docbody .sib-add{background:none;border:0;padding:0;min-height:40px;color:var(--accent);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
+.docbody .sib-add[hidden]{display:none}
+.docbody .sib-style{display:grid;gap:2px;margin:0 0 14px;padding:12px 14px;border-radius:14px;background:var(--surface-2)}
+.docbody .sib-style span{color:var(--muted);font-size:13.5px}.docbody .sib-style b{font-size:18px}
+.docbody .sib-list{list-style:none;padding:0;margin:6px 0 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.docbody .sib-list>li{border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.docbody .sib-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.docbody .sib-top a{border:0;font-size:21px;font-weight:700;color:var(--ink)}.docbody .sib-top a:hover{color:var(--accent)}
+.docbody .sib-fav{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--accent);font-size:19px;cursor:pointer}
+.docbody .sib-fav[aria-pressed="true"]{background:var(--accent-soft)}
+.docbody .sib-n{display:block;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.docbody .sib-why{margin:6px 0 0;padding-inline-start:18px;font-size:13.5px;color:var(--ink-2)}.docbody .sib-why li{margin:2px 0}
+"""
 
 
 def hashed(name, ext, content):
@@ -504,7 +520,7 @@ KIND_HUB = {('שם מקראי', 1): 'biblical-boys', ('שם מקראי', 0): 'bi
 
 
 def nav_links():
-    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">' + guides.SECTION + '</a> · <a href="/pregnancy/calculator">מחשבון הריון</a> · <a href="/tools/full-name">בדיקת שם מלא</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
+    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">' + guides.SECTION + '</a> · <a href="/pregnancy/calculator">מחשבון הריון</a> · <a href="/tools/full-name">בדיקת שם מלא</a> · <a href="/tools/siblings">שם לאח או לאחות</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
             '<p>' + ' · '.join(f'<a href="/names/{k}">{v}</a>' for k, v in COLLS + HUBS) + '</p>')
 
 
@@ -555,7 +571,17 @@ def name_faq(x):
     q.append((f'מתי השם {n} היה הכי פופולרי?', f'השם היה הכי נפוץ כבר בתחילת הרישום, ב-{Y0}.' if x['start']
               else f'שנת השיא של השם הייתה {x["pk"]}, כשאחד מכל {fmt(x["oneIn"])} תינוקות נקרא {n}.'))
     q.append((f'מה הגימטריה של השם {n}?', f'הגימטריה של השם {n} היא {gem(n)}.'))
+    # the names come from the app (siblingsOf in app/p5b_dna.js, exported to seo.json); the app's FAQ says the same (sibAnswer)
+    b, g = (L[:3] for L in x['sib'])
+    if b or g:
+        q.append((f'אילו שמות מתאימים לאח או לאחות של {n}?',
+                  'שמות מאותו דור ומגזר ובסגנון דומה: ' + ', ו'.join(p for p in (f'לאח {he_list(b)}' if b else '', f'לאחות {he_list(g)}' if g else '') if p) + '.'))
     return q
+
+
+def he_list(a):
+    """א, ב וג"""
+    return ''.join(a) if len(a) < 2 else ', '.join(a[:-1]) + ' ו' + a[-1]
 
 
 def sex_kind(g, origin=''):
@@ -589,11 +615,23 @@ def neighbours(L, me, skip=(), k=8):
     return [n for n in L[a:a + k + 1] if n != me][:k]
 
 
+def sib_block(x):
+    """names for a brother or a sister of x (siblingsOf in app/p5b_dna.js, through seo.json), and the siblings tool"""
+    b, g = ([r for r in L if r in by_name] for L in x['sib'])
+    if not b and not g:
+        return ''
+    e, n = H.escape, x['n']
+    row = lambda lab, L: f'<h3>{lab}</h3>{chips(L)}' if L else ''
+    return (f'<h2>שמות שמתאימים לאח או לאחות של {e(n)}</h2>'
+            '<p>שמות שניתנים היום, מאותו דור ומאותו מגזר כמו השם, ובמקור, באורך ובנדירות דומים. בלי שמות שנשמעים כמעט אותו דבר.</p>'
+            f'{row("לאח", b)}{row("לאחות", g)}<p><a href="{SIBLINGS}?n={enc(n)}">יש עוד אחים? לכלי ההתאמה לאחים ואחיות</a></p>')
+
+
 def chips(names):
     return '<ul class="rel">' + ''.join(f'<li><a href="/names/{enc(r)}">{H.escape(r)}</a></li>' for r in names) + '</ul>'
 
 
-assert all('enq' in x and 'env' in x for x in NAMES) and 'dd' in seo, 'seo.json is older than the app: run npm run seo'
+assert all('enq' in x and 'env' in x and 'sib' in x and 'dna' in x for x in NAMES) and 'dd' in seo, 'seo.json is older than the app: run npm run seo'
 for x in NAMES:
     n = x['n']
     sexw = 'בנות' if x['x'] == 0 else 'בנים'
@@ -630,6 +668,7 @@ for x in NAMES:
 <p><a href="{FULLNAME}?n={enc(n)}">איך {e(n)} נשמע עם שם המשפחה שלכם? לבדיקת השם המלא</a></p>
 <h2>שאלות נפוצות על השם {e(n)}</h2>
 {''.join(f'<h3>{e(a)}</h3><p>{e(b)}</p>' for a, b in faq)}
+{sib_block(x)}
 {f'<h2>שמות מאותה תקופה</h2>{chips(rel)}' if rel else ''}
 {f'<h2>{KIND_PL[k]} נוספים ל{sexw}</h2>{chips(same)}' if same else ''}
 {f'<p><a href="/names/{KIND_HUB[(k, x["x"])]}">לרשימת השמות ה{KIND_ADJ[k]} ל{sexw}</a></p>' if same and (k, x['x']) in KIND_HUB else ''}
@@ -1191,6 +1230,10 @@ TOOL_PATHS, TOOLS = pregnancy.build({'page': page, 'static_shell': static_shell,
 FN_PATHS, FN_TOOLS = fullname.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'NAMES': NAMES,
                                      'dd': seo['dd'], 'Y1': Y1, 'SRC': SRC, 'PH': PH, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
 TOOL_PATHS, TOOLS = TOOL_PATHS + FN_PATHS, TOOLS + FN_TOOLS
+# ---- the siblings tool: /tools/siblings (tools/siblings.py) ----
+SB_PATHS, SB_TOOLS = siblings.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'NAMES': NAMES, 'enc': enc,
+                                     'Y1': Y1, 'SRC': SRC, 'PH': PH, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
+TOOL_PATHS, TOOLS = TOOL_PATHS + SB_PATHS, TOOLS + SB_TOOLS
 
 # ---- home + 404 ----
 top = [x['n'] for x in sorted(NAMES, key=lambda x: -x['last'])[:40]]

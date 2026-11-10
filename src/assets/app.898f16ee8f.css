@@ -743,6 +743,10 @@ body.matchmode{overscroll-behavior:none}
 .wzworld{margin:6px 0 14px}
 .wizard.done .wzq{margin-bottom:10px;line-height:1}
 .pill.new25{background:color-mix(in srgb,var(--c3) 16%,transparent);color:color-mix(in srgb,var(--c3) 80%,#fff);cursor:help}
+/* names for a sibling (the name page card, p5b_dna.js) */
+.sibrow{display:flex;gap:10px;align-items:baseline;margin:6px 0}.sibrow .chips{margin:0}
+.sibl{flex:none;min-width:3.4em;font-size:13px;color:var(--muted);font-weight:600}
+.sibwhy{margin:8px 0 6px}
 /* ---- v12: always dark, decades grid ---- */
 :root,:root[data-theme="light"],:root[data-theme="dark"]{
   --bg:#101119; --surface:#1a1c28; --surface-2:#232637; --ink:#f0f1f8; --ink-2:#b9bcd3; --muted:#8a8ea8;

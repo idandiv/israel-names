@@ -67,6 +67,7 @@ function seoFAQ(i){const x=seoFacts(i),n=x.n,q=x.mean?[[`מה המשמעות ש�
   q.push([`האם ${n} הוא שם לבן או לבת?`,sexAnswer(n,x.g)]);
   q.push([`מתי השם ${n} היה הכי פופולרי?`,x.start?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא של השם הייתה ${x.pk}, כשאחד מכל ${fmt(x.oneIn)} תינוקות נקרא ${n}.`]);
   q.push([`מה הגימטריה של השם ${n}?`,`הגימטריה של השם ${n} היא ${gem(n)}.`]);
+  {const a=sibAnswer(i);if(a)q.push([`אילו שמות מתאימים לאח או לאחות של ${n}?`,a])}
   return q}
 function nameMeta(i){const nm=NAMES[i];
   return LANG==='en'?{title:`The name ${NM(i)} (${nm}) – meaning, origin and statistics | Names of Israel`,desc:peakDesc(i)}:seoMeta(i)}

@@ -291,6 +291,7 @@ function seoFAQ(i){const x=seoFacts(i),n=x.n,q=x.mean?[[`מה המשמעות ש�
   q.push([`האם ${n} הוא שם לבן או לבת?`,sexAnswer(n,x.g)]);
   q.push([`מתי השם ${n} היה הכי פופולרי?`,x.start?`השם היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא של השם הייתה ${x.pk}, כשאחד מכל ${fmt(x.oneIn)} תינוקות נקרא ${n}.`]);
   q.push([`מה הגימטריה של השם ${n}?`,`הגימטריה של השם ${n} היא ${gem(n)}.`]);
+  {const a=sibAnswer(i);if(a)q.push([`אילו שמות מתאימים לאח או לאחות של ${n}?`,a])}
   return q}
 function nameMeta(i){const nm=NAMES[i];
   return LANG==='en'?{title:`The name ${NM(i)} (${nm}) – meaning, origin and statistics | Names of Israel`,desc:peakDesc(i)}:seoMeta(i)}
@@ -805,6 +806,7 @@ function renderName(){
     ${S?'':`<div class="card"><div class="head"><div><h2>${t('מקום בדירוג','Rank over time')}</h2><div class="sub">${dom?t('בין שמות הבנים','Among boys’ names'):t('בין שמות הבנות','Among girls’ names')} · ${t('למעלה זה טוב · קו מקווקו: מתחת לסף הרישום','higher is better · dashed: below the listing threshold')}</div></div></div><div class="cw sm"><canvas id="cRank"></canvas></div></div>
     <div class="card"><div class="head"><div><h2>${t('מדד נוכחות בכיתה','Class presence')}</h2><div class="sub">${t('מה הסיכוי לפגוש עוד ילד בשם הזה בכיתה, היום ובשיא','How likely another child in the class shares the name, today and at its peak')}</div></div></div><div id="classbox"></div></div>
     ${LANG==='en'?'':`<div class="card"><div class="head"><div><h2>השם המלא שלכם</h2><div class="sub">איך כותבים ${esc(nm)} באנגלית, ואיך הוא נשמע עם שם המשפחה</div></div></div><div id="fullbox"></div></div>`}
+    ${LANG==='en'?'':`<div class="card"><div class="head"><div><h2>שמות לאח או לאחות של ${esc(nm)}</h2><div class="sub">שמות מאותו דור ומגזר, באורך ובסגנון דומים</div></div></div><div id="sibbox"></div></div>`}
     <div class="card"><div class="head"><div><h2>${t('באיזה מגזר?','Which community?')}</h2><div class="sub">${t('כל התינוקות בשם, בכל המגזרים','All babies with this name, all communities')}</div></div></div><div class="hb" id="secs"></div></div>`}
     <div class="card ${S?'wide':''}"><div class="head"><div><h2>${t('השנה שלך','Your year')}</h2><div class="sub">${t(`בחרו שנת לידה וגלו כמה ${esc(nm)} נולדו איתכם`,`Pick a birth year to see how many were born with you`)}</div></div></div>
       <div class="yr"><select id="ysel" aria-label="${t('שנת לידה','Birth year')}">${YEARS.slice().reverse().map(y=>`<option ${y===store.get('yr',1990)?'selected':''}>${y}</option>`).join('')}</select></div><div class="yrout" id="yout"></div></div>
@@ -873,7 +875,7 @@ function renderName(){
      else if(v>0){const k=Math.round(1/v);head=t(`${gw('ילדה אחת','ילד אחד','ילד/ה אחד/ת')} בכל <b>${fmt(k)}</b> כיתות`,`One in every <b>${fmt(k)}</b> classes`);viz=k<=24?`<div class="classes" aria-hidden="true">${Array.from({length:k},(_,j)=>`<i class="${j===0?'on':''}"></i>`).join('')}</div>`:`<div class="sub">${t('פחות מכיתה אחת בכל בית ספר','Less than one per school')}</div>`}
      else head=t('כמעט אף ילד בשם הזה','Almost no one');
      return `<div class="ctile"><div class="ck">${lab}</div><div class="cv">${head}</div>${viz}</div>`};
-   {const pf=$('#prof');if(pf)pf.innerHTML=profileHTML(i);drawFullBox(i);const ls=$('#lstage');if(ls)ls.innerHTML=lifeStagesHTML(nm,c);}
+   {const pf=$('#prof');if(pf)pf.innerHTML=profileHTML(i);drawFullBox(i);const sb=$('#sibbox');if(sb){sb.innerHTML=sibBoxHTML(i);openOn(sb)}const ls=$('#lstage');if(ls)ls.innerHTML=lifeStagesHTML(nm,c);}
    $('#classbox').innerHTML=classHTML(nm,c,st,pk,gw,dom);}
   {const q=LANG==='en'?[]:seoFAQ(i).map(([a,b])=>[esc(a),esc(b)]);let my=0;for(let y=1;y<NY;y++)if(c[y]>c[my])my=y;
    q.push([t(`באיזו שנה נולדו הכי הרבה ${esc(nm)}?`,`Which year had the most babies named ${dn}?`),my===pk?t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. זו גם שנת השיא שלו.`,`${Y0+my}, with ${fmt(c[my])} babies, also its peak year.`):t(`ב-${Y0+my}, עם ${fmt(c[my])} תינוקות. ${atStart(pk)?`אבל ביחס למספר התינוקות שנולדו, הוא היה הכי נפוץ כבר בתחילת הרישום, ב-${Y0}.`:`שנת השיא היא ${Y0+pk}, כי אז הוא היה הכי נפוץ ביחס למספר התינוקות שנולדו באותה שנה.`}`,`${Y0+my}, with ${fmt(c[my])} babies. Its peak year is ${Y0+pk}, when it was most common relative to all births that year.`)]);
@@ -1576,6 +1578,175 @@ function drawHomeSaved(){const el=$('#homesaved');if(!el)return;if(!FAV.length){
   $('#hscopy').onclick=()=>copy(favText());const c=$('#hscmp');if(c)c.onclick=favCompare;}
 
 /* =========================================================
+   The DNA of a name and names that go with it (siblings). Pure functions, no DOM.
+   Used three ways: in the app bundle (build_bundle.py strips "export"; p5b_dna.js builds the records from the app's data),
+   on /tools/siblings (tools/siblings.py joins this file into the page's module, with the records in data/seo.json), and at build for the static name pages
+   (the app's SEO export runs suggestSiblings for every name and build_site.py prints the result).
+   A record (DNA_FIELDS), from the CBS data and data/meanings.json:
+     syl     syllables (sylCount of fullname-core.mjs on the English spelling)
+     g       girls, % of all babies ever given the name
+     med     the typical birth year: half of the babies given the name were born by then
+     sec     [Jewish, Muslim, Christian-Arab, Druze], % of the babies given the name
+     origin  the origin in meanings.json ('' when not known)
+     th      themes (DNA_THEMES), a bitmask
+     y1      [girls, boys] given the name in the last year of the data
+     r3      babies given the name in the last three years of the data
+   ========================================================= */
+const DNA_THEMES = ['nature', 'light', 'strength', 'bible', 'intl'];
+const DNA_FIELDS = ['syl', 'g', 'med', 'sec', 'origin', 'th', 'y1', 'r3'];
+const THEME_HE = { nature: 'טבע', light: 'אור', strength: 'עוצמה' };   // bible and intl: the origin says it
+/* origins that sound alike for siblings: the Hebrew ones together (a biblical name is also Hebrew, see sameOrigin) */
+const ORIGIN_GROUP = { 'מקראי': 'bible', 'עברי': 'heb', 'מקום בישראל': 'heb', 'חודש/חג': 'heb', 'ארמי': 'aram', 'ערבי': 'arab',
+  'יידיש': 'yid', 'אמהרי': 'amh', 'לועזי': 'intl' };
+const ORIGIN_PL = { bible: 'מקראיים', heb: 'עבריים', aram: 'ארמיים', arab: 'ערביים', yid: 'ביידיש', amh: 'אמהריים', intl: 'לועזיים' };
+const ORIGIN_ONE = { bible: 'שם מקראי', heb: 'שם עברי', aram: 'שם ארמי', arab: 'שם ערבי', yid: 'שם ביידיש', amh: 'שם אמהרי', intl: 'שם לועזי' };
+const FINAL = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+const SIB_POOL_MIN = 15;     // a suggestion was given to at least this many babies of that sex in the last year
+const SIB_RARE = 100;        // "rare": fewer babies than this in the last year
+
+const heb = n => [...n].filter(c => c >= 'א' && c <= 'ת').map(c => FINAL[c] || c);
+
+function dnaOf(n, R) {
+  const r = Object.fromEntries(DNA_FIELDS.map((f, k) => [f, R[k]]));
+  const L = heb(n);
+  return { n, ...r, h: L.join(''), og: ORIGIN_GROUP[r.origin] || '', len: L.length, first: L[0] || '', end: L.slice(-2).join(''),
+    single: !/[\s-]/.test(n) };
+}
+
+/* same up to one letter changed, added or removed (נועה / נועם, יונתן / יהונתן) */
+function oneApart(a, b) {
+  if (a === b) return true;
+  if (Math.abs(a.length - b.length) > 1) return false;
+  if (a.length === b.length) { let d = 0; for (let i = 0; i < a.length; i++) if (a[i] !== b[i] && ++d > 1) return false; return true; }
+  const [s, l] = a.length < b.length ? [a, b] : [b, a];
+  for (let i = 0; i < l.length; i++) if (l.slice(0, i) + l.slice(i + 1) === s) return true;
+  return false;
+}
+
+const cosine = (a, b) => {
+  let ab = 0, aa = 0, bb = 0;
+  for (let k = 0; k < 4; k++) { ab += a[k] * b[k]; aa += a[k] * a[k]; bb += b[k] * b[k]; }
+  return aa && bb ? ab / Math.sqrt(aa * bb) : 0;
+};
+const bits = x => { let k = 0; for (; x; x &= x - 1) k++; return k; };
+const sameOrigin = (a, b) => !a.og || !b.og ? 0 : a.og === b.og ? 1 : (a.og === 'bible' && b.og === 'heb') || (a.og === 'heb' && b.og === 'bible') ? .5 : 0;
+
+/* how well b goes with a as siblings: null when they must not be paired (the same name, one letter apart, one inside the
+   other, or of different communities), else {score, parts} with the part each dimension adds */
+function affinity(a, b) {
+  const A = a.h, B = b.h;
+  if (oneApart(A, B) || (A.length > 2 && B.includes(A)) || (B.length > 2 && A.includes(B))) return null;
+  const cs = cosine(a.sec, b.sec);
+  if (cs < .6) return null;
+  const parts = {
+    sector: 2 * cs,
+    era: 2.2 * Math.exp(-Math.abs(a.med - b.med) / 10),
+    pop: 1.2 * Math.exp(-Math.abs(Math.log((a.r3 + 5) / (b.r3 + 5))) / 1.2),
+    origin: 1.4 * sameOrigin(a, b),
+    theme: .8 * Math.min(1, bits(a.th & b.th)),
+    length: a.syl && b.syl ? (a.syl === b.syl ? .6 : Math.abs(a.syl - b.syl) === 1 ? .25 : 0) : 0,
+    rhyme: a.end === b.end && a.end.length === 2 ? -1 : 0,
+    start: A.length > 2 && B.length > 2 && A.slice(0, 3) === B.slice(0, 3) ? -1.2 : 0,   // איתן / איתמר: too close
+  };
+  return { score: Object.values(parts).reduce((s, v) => s + v, 0), parts };
+}
+
+const decade = y => Math.floor(y / 10) * 10;
+const decHe = d => d >= 2000 ? `שנות ה-${d}` : `שנות ה-${String(d).slice(2)}`;
+const list = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' ו' + a[a.length - 1];
+
+/* why c goes with the siblings: up to three short reasons, the strongest first */
+function reasons(sibs, c) {
+  const out = [];
+  const og = sibs.every(s => s.og && s.og === sibs[0].og) ? sibs[0].og : '';
+  if (og && c.og === og) out.push([3, `${ORIGIN_ONE[og]}, כמו ${list(sibs.map(s => s.n))}`]);
+  const med = Math.round(sibs.reduce((s, x) => s + x.med, 0) / sibs.length);
+  if (Math.abs(c.med - med) <= 6) out.push([2.5, `מאותו דור: שנת הלידה הטיפוסית ${c.med}${sibs.length === 1 ? `, ול${sibs[0].n} ${sibs[0].med}` : ''}`]);
+  const th = sibs.reduce((m, s) => m & s.th, 31) & c.th;
+  const thl = DNA_THEMES.filter((t, k) => th & (1 << k) && THEME_HE[t]).map(t => THEME_HE[t]);
+  if (thl.length) out.push([2, `שם של ${thl.join(' ושל ')}, כמו ${list(sibs.map(s => s.n))}`]);
+  if (c.syl && sibs.every(s => s.syl === c.syl)) out.push([1.5, `אותו אורך: ${c.syl === 1 ? 'הברה אחת' : `${c.syl} הברות`}`]);
+  const r = Math.exp(sibs.reduce((s, x) => s + Math.log(x.r3 + 5), 0) / sibs.length);
+  if (Math.abs(Math.log((c.r3 + 5) / r)) < .5) out.push([1, c.r3 < 3 * SIB_RARE ? 'נדיר באותה מידה' : 'נפוץ באותה מידה']);
+  return out.sort((x, y) => y[0] - x[0]).slice(0, 3).map(x => x[1]);
+}
+
+/* suggestions for a sibling of sibs (DNA records), from pool (DNA records):
+   opts.sex 0 girls, 1 boys; opts.k how many (12); opts.style 'classic' (typical birth year before 2000) or 'new' (2005 on);
+   opts.rarity 'rare' (fewer than SIB_RARE babies of that sex in the last year) or 'common'; opts.letter 'same' (start with
+   the letter of a sibling) or 'other' (with none of them). Every suggestion goes with every sibling (see affinity);
+   no two suggestions are one letter apart. [{n, score, why}], the best first */
+function suggestSiblings(sibs, pool, opts = {}) {
+  const { sex = 1, k = 12, style = '', rarity = '', letter = '' } = opts;
+  if (!sibs.length) return [];
+  const firsts = new Set(sibs.map(s => s.first));
+  const scored = [];
+  for (const c of pool) {
+    const y = c.y1[sex];
+    if (!c.single || y < SIB_POOL_MIN || (sex === 0 ? c.g < 50 : c.g > 50)) continue;
+    if (sibs.some(s => s.n === c.n)) continue;
+    if (style === 'classic' && c.med >= 2000) continue;
+    if (style === 'new' && c.med < 2005) continue;
+    if (rarity === 'rare' && y >= SIB_RARE) continue;
+    if (rarity === 'common' && y < SIB_RARE) continue;
+    if (letter === 'same' && !firsts.has(c.first)) continue;
+    if (letter === 'other' && firsts.has(c.first)) continue;
+    let s = 0, ok = true;
+    for (const b of sibs) { const f = affinity(b, c); if (!f) { ok = false; break; } s += f.score; }
+    if (ok) scored.push({ c, score: s / sibs.length });
+  }
+  scored.sort((x, y) => y.score - x.score || y.c.y1[sex] - x.c.y1[sex] || (x.c.n < y.c.n ? -1 : 1));
+  const out = [];
+  for (const { c, score } of scored) {
+    if (out.some(o => oneApart(o.h, c.h))) continue;
+    out.push({ n: c.n, h: c.h, score: Math.round(score * 100) / 100, why: reasons(sibs, c) });
+    if (out.length >= k) break;
+  }
+  return out;
+}
+
+/* the family's style in a few words, from what all the names share: "משפחה של שמות מקראיים קצרים, בסגנון שנות ה-2010",
+   or for one name "שם עברי קצר ונפוץ היום, בסגנון שנות ה-2010" (rare or common: in the last three years) */
+function familyStyle(sibs) {
+  if (!sibs.length) return '';
+  const one = sibs.length === 1, adj = [];
+  const og = sibs.every(s => s.og && s.og === sibs[0].og) ? sibs[0].og : '';
+  const syl = sibs.map(s => s.syl).filter(Boolean);
+  if (syl.length === sibs.length && syl.every(v => v <= 2)) adj.push(one ? 'קצר' : 'קצרים');
+  else if (syl.length === sibs.length && syl.every(v => v >= 3)) adj.push(one ? 'ארוך' : 'ארוכים');
+  if (sibs.every(s => s.r3 < 3 * SIB_RARE)) adj.push(one ? 'נדיר היום' : 'נדירים היום');
+  else if (sibs.every(s => s.r3 >= 30 * SIB_RARE)) adj.push(one ? 'נפוץ היום' : 'נפוצים היום');
+  const head = one ? (og ? ORIGIN_ONE[og] : 'שם') : 'משפחה של שמות' + (og ? ' ' + ORIGIN_PL[og] : '');
+  const med = sibs.reduce((s, x) => s + x.med, 0) / sibs.length;
+  return `${head}${adj.length ? ' ' + list(adj) : ''}, בסגנון ${decHe(decade(med))}`;
+}
+
+/* =========================================================
+   NAME DNA: the records of app/dna-core.mjs from the app's data, and names for a sibling
+   (the name page card, and the SEO export of p9_persist.js for the static pages and /tools/siblings)
+   ========================================================= */
+function dnaRec(i){const st=stats(-1),w=SECTOT[i],s=(w[0]+w[1]+w[2]+w[3])||1,tot=T(st,i),th=themesOf(i);
+  let r3=0;for(let y=NY-3;y<NY;y++)r3+=st.Y[0][i*NY+y]+st.Y[1][i*NY+y];
+  return[sylCount(rom(i)),tot?Math.round(st.tot[0][i]/tot*100):50,st.med[i],w.map(v=>Math.round(v/s*100)),ORIGIN.get(NAMES[i])||'',
+    DNA_THEMES.reduce((m,k,b)=>th.has(k)?m|1<<b:m,0),[0,1].map(x=>Math.round(st.Y[x][i*NY+NY-1])),Math.round(r3)]}
+let DNA_ALL=null,DNA_POOL=null;
+function dnaAll(){if(!DNA_ALL)DNA_ALL=NAMES.map((n,i)=>dnaOf(n,dnaRec(i)));return DNA_ALL}
+/* the names a suggestion can come from: given to at least SIB_POOL_MIN babies of a sex in the last year */
+function dnaPool(){if(!DNA_POOL)DNA_POOL=dnaAll().filter(d=>Math.max(d.y1[0],d.y1[1])>=SIB_POOL_MIN);return DNA_POOL}
+/* [boys, girls] for a sibling of name i, k of each */
+function siblingsOf(i,k=6){const me=[dnaAll()[i]];return[1,0].map(sex=>suggestSiblings(me,dnaPool(),{sex,k}))}
+/* "אילו שמות מתאימים לאח או לאחות של X?" in the name page FAQ (seoFAQ), as on the static page (name_faq in tools/build_site.py) */
+const heList=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' ו'+a[a.length-1];
+function sibAnswer(i){const [b,g]=siblingsOf(i).map(L=>L.slice(0,3).map(x=>x.n));if(!b.length&&!g.length)return'';
+  return`שמות מאותו דור ומגזר ובסגנון דומה: ${[b.length?`לאח ${heList(b)}`:'',g.length?`לאחות ${heList(g)}`:''].filter(Boolean).join(', ו')}.`}
+const SIB_TOOL=()=>`${SITE.base}/tools/siblings`;
+function sibBoxHTML(i){const [b,g]=siblingsOf(i);if(!b.length&&!g.length)return'';const nm=NAMES[i];
+  const row=(lab,L)=>L.length?`<div class="sibrow"><span class="sibl">${lab}</span><div class="chips">${L.map(s=>nameLink(IDX.get(s.n),`<span title="${esc(s.why.join(' · '))}">${esc(s.n)}</span>`)).join('')}</div></div>`:'';
+  const top=(b[0]&&g[0])?(b[0].score>=g[0].score?b[0]:g[0]):(b[0]||g[0]);
+  return `${row('לאח',b)}${row('לאחות',g)}${top&&top.why.length?`<p class="sub sibwhy">למה ${esc(top.n)}? ${esc(top.why.join(' · '))}.</p>`:''}
+    <a class="fnlink" href="${SIB_TOOL()}?n=${encodeURIComponent(nm)}">יש עוד אחים? לכלי ההתאמה לאחים ${icon('arrow')}</a>`}
+
+/* =========================================================
    NAMEMATCH — choose a name together (swipe)
    Data layer: localStorage rooms + link exchange; live sync via the
    room capability when this viewer can connect.
@@ -2079,7 +2250,7 @@ if(window.SITE_CONFIG&&window.SITE_CONFIG.exportSEO)window.__bnilExport=()=>{con
     const g=tot?st.tot[0][i]/tot:.5;const sx=g>=.7?0:g<=.3?1:2;const x=g>=.5?0:1;const rk=st.rank[x][i*NY+NY-1]||0;
     const rel=(byDec[peakDec(st,i)+'_'+sx]||[]).filter(j=>j!==i).slice(0,8).map(j=>NAMES[j]);const E=enOf(i);
     out.push({n:NAMES[i],en:rom(i),tot:Math.round(tot),pk:Y0+pk,pkc:Math.round(c[pk]),start:pk===0,oneIn:c[pk]?Math.round(st.DD[pk]/c[pk]):0,my:Y0+my,myc:Math.round(c[my]),desc:peakDesc(i),last:Math.round(c[NY-1]),rk,x,g:Math.round(g*100),med:st.med[i],first:Y0+c.findIndex(v=>v>0),
-      sec:secShort(i),mean:MEAN.get(NAMES[i])||'',story:STORY.get(NAMES[i])||'',rel,enq:E.ans,env:E.vars.map(v=>[v.s,v.why]),ar:arabOf(i)?1:0})}
+      sec:secShort(i),mean:MEAN.get(NAMES[i])||'',story:STORY.get(NAMES[i])||'',rel,enq:E.ans,env:E.vars.map(v=>[v.s,v.why]),ar:arabOf(i)?1:0,dna:dnaRec(i),sib:siblingsOf(i).map(L=>L.map(x=>x.n))})}
   return{y0:Y0,y1:Y1,dd:Math.round(st.DD[NY-1]),names:out}};
 
 /* =========================================================
