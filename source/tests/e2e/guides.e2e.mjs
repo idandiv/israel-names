@@ -118,24 +118,3 @@ test('the Hebrew months guide: a name list for every month and holiday, and the 
   assert.equal(await page.locator('a.pcta[href="/pregnancy/calculator"]').count(), 1);
   await page.close();
 });
-
-test('the forecast guide: four top-10 tables with the Authority column, the risers and fallers, and the backtest', async () => {
-  const F = JSON.parse(readFileSync(new URL('../../data/forecast-2025.json', import.meta.url), 'utf-8'));
-  const page = await browser.newPage();
-  await page.goto(`${server.url}/guides/names-forecast-2025`);
-  assert.equal(await page.locator('table.gfc').count(), 4);
-  assert.equal(await page.locator('table.gfc tbody tr').count(), 40);
-  assert.equal(await page.locator('table.gvals').count(), 8);
-  const rows = await page.locator('table.gvals tbody tr').count();
-  assert.equal(await page.locator('table.gvals tbody tr td:first-child a[href^="/names/"]').count(), rows);
-  // the first girls' row: the forecast's first name, with its 2024 count and its place on the Authority's list
-  const first = Object.entries(F.forecast.all['0']).sort((a, b) => b[1][1] - a[1][1])[0];
-  const cells = await page.locator('table.gfc').first().locator('tbody tr').first().locator('td').allInnerTexts();
-  assert.ok(cells[0].includes(first[0]));
-  assert.equal(cells[1], first[1][1].toLocaleString('en-US'));
-  assert.ok(cells[2].startsWith(first[1][0].toLocaleString('en-US')));
-  assert.equal(cells[3], '1');
-  assert.equal(await page.locator('table.gnum tbody tr').count(), new Set(Object.keys(F.backtest).map(k => k.split(':')[0])).size);
-  assert.ok((await page.locator('.docbody').innerText()).includes('תחזית'));
-  await page.close();
-});

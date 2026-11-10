@@ -1,20 +1,22 @@
-"""The names forecast for the year after the CBS data (/guides/names-forecast-2025), and how well the same method did before.
+"""The names forecast for the year after the CBS data, and how well the same method did before. Internal: no page shows it yet;
+it is kept for the report on the CBS 2025 data (milestone 0b), and tools/guides.py can show it in a guide (the forecast markers).
 
 The method, for every name given to at least MIN babies of a sex in the base year:
   1. its share of the babies of that sex in each of the SPAN years up to the base year (all sectors, or the Jewish sector)
   2. a straight line through the log of those shares (least squares): the yearly rate of change
-  3. the share of the next year: the base year's share, moved by DAMP of that rate (half the trend: trends slow down)
+  3. the share of the next year: the base year's share, moved by DAMP of that rate (half the trend: the whole trend erred more in the backtest)
   4. times the babies of that sex in the base year (the forecast assumes as many births as in the base year)
 The backtest runs the same method from earlier base years and compares it with what the CBS published, and with the naive
 forecast "the same share as last year".
 
-The forecast is kept in data/forecast-<target>.json, made once from the data up to the base year, so the guide still shows
-the same forecast after the CBS publishes the target year, and the target year's data can grade it (milestone 0b).
-While the data ends with the base year, the build checks that the file is what this method gives (python3 tools/forecast.py
+The forecast is kept in data/forecast-<target>.json, made once from the data up to the base year, so it stays the
+same forecast after the CBS publishes the target year, and the target year's data can grade it (milestone 0b).
+While the data ends with the base year, the tests (and the build of a guide that shows it) check that the file is what
+this method gives (python3 tools/forecast.py
 writes it again).
 Population Authority lists (data/pa.json) are not mixed into the numbers: its counts for the same names are far from the
 CBS counts (דוד: 1,842 boys in the CBS 2024 data, 1,036 in the Authority's 2025 list), so the two count in different ways.
-The guide shows them beside the forecast as a second opinion.
+A guide can show them beside the forecast as a second opinion.
 """
 import csv, json, math, os, statistics, sys
 
