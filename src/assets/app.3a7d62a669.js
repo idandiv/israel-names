@@ -613,8 +613,23 @@ function pregWeek(){const v=store.get('pregnancy',null),m=v&&/^(\d{4})-(\d{2})-(
   const day=Date.UTC(+m[1],+m[2]-1,+m[3])/864e5,n=new Date(),now=Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())/864e5;
   const due=v.m==='lmp'?day+280+((+v.c||28)-28):v.m==='conception'?day+266:v.m==='ivf'?day+266-(+v.e||5):null;
   if(due==null||day>now)return null;const w=Math.floor((now-due+280)/7);return w>=4&&w<=42?w:null}
+IC.calendar='<rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>';
+/* "what brings you here?": one tap sends the visitor to the right place; the choice is kept (key bnil_intent)
+   and shown as pressed on the next visit. baby opens the finder's quiz, couple the swipe, mine the name search. */
+const INTENTS=()=>[['baby','gen',t('מחפשים שם לתינוק','Looking for a baby name'),t('5 שאלות קצרות ויש רשימה','5 quick questions, then a list')],
+  ['couple','users',t('בוחרים שם בזוג','Choosing as a couple'),t('כל אחד מחליק לבד, רואים התאמות','Swipe apart, see what you share')],
+  ['mine','search',t('סקרנים לגבי השם שלי','Curious about my name'),t('כמה, ממתי ומה הפירוש','How many, since when, what it means')],
+  ...(SITE.routing==='path'?[['preg','calendar',t('בהריון','Expecting'),t('השבוע שלכם והתאריך המשוער','Your week and due date')]]:[])];
+function intentHTML(cur){return `<div class="intent" role="group" aria-labelledby="intenth"><h2 class="intenth" id="intenth">${t('מה מביא אתכם לכאן?','What brings you here?')}</h2>
+  <div class="intents">${INTENTS().map(([k,ic,l,s])=>`<button data-int="${k}" aria-pressed="${cur===k}"><span class="gl">${icon(ic)}</span><span><b>${l}</b><small>${s}</small></span></button>`).join('')}</div></div>`}
+function goIntent(k){store.set('intent',k);
+  if(k==='baby'){GEN.mode='wiz';saveGen();PUSH_ONCE=true;setTab('gen');window.scrollTo(0,0);return}
+  if(k==='couple'){PUSH_ONCE=true;setTab('match');return}
+  if(k==='preg'){const w=pregWeek();location.href=w?`/pregnancy/week-${w}`:'/pregnancy/calculator';return}
+  document.querySelectorAll('#tab-home [data-int]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.int===k));
+  const q=$('#hq');if(q){q.scrollIntoView({block:'center',behavior:'smooth'});q.focus({preventScroll:true})}}
 function renderHome(){
-  const st=stats(-1), sec=$('#tab-home');
+  const st=stats(-1), sec=$('#tab-home'), intent=store.get('intent','');
   let babies=0;for(const v of st.DD)babies+=v;
   const n1=[0,1].map(x=>st.top[x][NY-1][0]);
   const popular=[...st.top[0][NY-1].slice(0,4),...st.top[1][NY-1].slice(0,4)];
@@ -626,6 +641,7 @@ function renderHome(){
     <div class="search bigsearch">${icon('search')}<input id="hq" type="search" placeholder="${t('הקלידו שם…','Type a name…')}" autocomplete="off" aria-label="${t('חיפוש שם','Search a name')}"><div class="sugg" id="hsugg" hidden></div></div>
     <div class="chips quick">${popular.map(i=>nameLink(i,nmh(i))).join('')}<button class="ghost" id="rnd2">${icon('dice')}${t('שם אקראי','Random')}</button></div>
   </div>
+  ${intentHTML(intent)}
   <div class="card homesaved" id="homesaved" hidden></div>
   <div class="ctapair ctahero">
   <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
@@ -643,6 +659,7 @@ function renderHome(){
   openOn(sec.querySelector('.quick'));
   $('#rnd2').onclick=()=>{const pool=[];for(let i=0;i<N;i++)if(T(st,i)>=400&&MEAN.has(NAMES[i]))pool.push(i);pick(rand(pool))};
   drawHomeSaved();
+  sec.querySelector('.intents').onclick=e=>{const b=e.target.closest('[data-int]');if(b)goIntent(b.dataset.int)};
   $('#gencta').onclick=()=>setTab('gen');$('#matchcta').onclick=()=>setTab('match');{const nr=$('#nmnewroom');if(nr)nr.onclick=()=>{NMX.showRooms=true;NMX.newRoom=true;setTab('match')}}{const ar=$('#nmallrooms');if(ar)ar.onclick=()=>{NMX.showRooms=true;setTab('match')}}
 
 }
@@ -1246,7 +1263,8 @@ const isFav=n=>FAV.includes(n);
 function favBtn(n,cls=''){const on=isFav(n);return `<button class="favbtn ${cls} ${on?'on':''}" data-fav="${esc(n)}" aria-pressed="${on}" aria-label="${on?t('הסרה מהשמות ששמרתי','Remove from saved'):t('שמירה לרשימה','Save to list')}" title="${on?t('שמור ברשימה','Saved'):t('שמירה לרשימה','Save')}">${icon('save',on)}${cls.includes('lbl')?`<span>${on?t('נשמר','Saved'):t('שמירה','Save')}</span>`:''}</button>`}
 function toggleFav(n){if(isFav(n))FAV=FAV.filter(x=>x!==n);else{FAV.push(n);toast(t(`${n} נשמר. תמצאו אותו ב״שמורים״ למעלה`,`${NM(IDX.get(n))} saved. Find it under Saved, top of the page`));const ft=$('#favtop');if(ft){ft.classList.remove('bump');void ft.offsetWidth;ft.classList.add('bump')}}store.set('fav',FAV);
   document.querySelectorAll('[data-fav]').forEach(b=>{if(b.dataset.fav===n){const on=isFav(n);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);b.innerHTML=icon('save',on)+(b.classList.contains('lbl')?`<span>${on?t('נשמר','Saved'):t('שמירה','Save')}</span>`:'')}});
-  renderFavBar();if(!$('#modal').hidden&&$('#favpanel'))openFavPanel();}
+  renderFavBar();if(!$('#modal').hidden&&$('#favpanel'))openFavPanel();
+  const wn=$('.wznext');if(wn){wn.outerHTML=wzNextHTML();wireWzNext()}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-fav]');if(b){e.stopPropagation();e.preventDefault();toggleFav(b.dataset.fav)}},true);
 function favText(){return t(`השמות המובילים שבחרנו מתוך מחולל השמות:\n${FAV.map((n,k)=>`${k+1}. ${n}`).join('\n')}\nמה אתם חושבים?\n\nלפתוח את הרשימה באתר: ${favLink()}`,
   `Our top picks from the name finder:\n${FAV.map((n,k)=>`${k+1}. ${NM(IDX.get(n))} (${n})`).join('\n')}\nWhat do you think?\n\nOpen the list: ${favLink()}`)}
@@ -1266,7 +1284,7 @@ function openFavPanel(){const m=$('#modal');m.hidden=false;const st=stats(-1);
   const fl=$('#fplink');if(fl)fl.onclick=()=>copy(favLink());
   const fm=$('#fpmatch');if(fm)fm.onclick=()=>{close();favToMatch()};
   const cl=$('#fpclear');if(cl)cl.onclick=()=>{if(cl.dataset.sure){FAV=[];store.set('fav',FAV);renderFavBar();openFavPanel();rerenderCards()}else{cl.dataset.sure=1;cl.textContent=t('לחצו שוב לאישור','Tap again to confirm')}};}
-function rerenderCards(){if(TAB==='gen')drawGenResults()}
+function rerenderCards(){if(TAB!=='gen')return;if(GEN.mode==='free')drawGenResults();else if(GEN.mode==='wiz'&&WZ.step>=5)genWizard()}
 /* the saved list into the couple room (nmAddNames in p8_match.js): your saved names count as your likes there */
 function favToMatch(){nmAddNames(FAV.map(n=>IDX.get(n)).filter(i=>i!=null))}
 function favMatchLabel(){const r=R();return r&&r.me?t(`להוסיף את השמורים ${nmRoomWith(r)}`,`Add them ${nmRoomWith(r)}`):t('לבחור מתוכם בזוג: להחליק עם בן או בת הזוג','Choose together: swipe them with your partner')}
@@ -1313,7 +1331,7 @@ function quickView(i){const st=stats(-1),n=NAMES[i],inf=nameInfo(st,i),tag=charT
 /* =========================================================
    GENERATOR
    ========================================================= */
-let GEN=Object.assign({mode:'free',sex:'F',theme:'any',vibe:'any',len:'any',fl:'',sort:'pop',more:false,like:'אריאל'},store.get('gen2',{}));
+let GEN=Object.assign({mode:'wiz',sex:'F',theme:'any',vibe:'any',len:'any',fl:'',sort:'pop',more:false,like:'אריאל'},store.get('gen2',{}));
 let GEN_SHOWN=24, GEN_LIST=[], WZ={step:0,themes:[],letter:'',nogut:false,shown:5,hide:[],seed:Math.random()*1e9|0,world:store.get('wzworld','heb')};
 {const w=store.get('wz',null);if(w&&typeof w==='object'&&Array.isArray(w.themes)&&Array.isArray(w.hide))WZ=Object.assign(WZ,w)}
 const saveGen=()=>store.set('gen2',GEN);
@@ -1331,7 +1349,7 @@ function genLikeOf(i){GEN.mode='like';GEN.like=NAMES[i];saveGen();PUSH_ONCE=true
 function renderGen(){const sec=$('#tab-gen');
   sec.innerHTML=`${namesSubnavHTML('gen')}<div class="pagehead"><h2>${t('מחולל השמות','The name finder')}</h2><p>${t(`שמות אמיתיים שניתנו בישראל, לפי משמעות, אופי ומגמה. שמרו את מה שאהבתם ושתפו את הרשימה.`,`Real names given in Israel, by meaning, vibe and trend. Save the ones you like and share your list.`)}</p>
     <button class="matchlink" id="gomatch">${icon('users')}<span>${t('בוחרים בזוג? נסו את התאמת השמות','Choosing together? Try NameMatch')}</span></button>
-    <div class="seg modes" id="gmode">${[['free',t('סינון חופשי','Free filter')],['wiz',t('שאלון מותאם אישית','Guided quiz')],['like',t('שמות דומים לשם שאהבנו','Names like one we love')]].map(([k,l])=>`<button data-m="${k}" aria-pressed="${GEN.mode===k}">${l}</button>`).join('')}</div></div>
+    <div class="seg modes" id="gmode">${[['wiz',t('שאלון מותאם אישית','Guided quiz')],['free',t('סינון חופשי','Free filter')],['like',t('שמות דומים לשם שאהבנו','Names like one we love')]].map(([k,l])=>`<button data-m="${k}" aria-pressed="${GEN.mode===k}">${l}</button>`).join('')}</div></div>
     <div id="gbody"></div>`;
   $('#gomatch').onclick=()=>setTab('match');wireNamesSubnav(sec);
   $('#gmode').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;GEN.mode=b.dataset.m;saveGen();renderGen()};
@@ -1437,10 +1455,17 @@ function genWizard(){store.set('wz',WZ);const body=$('#gbody');const TL=THEME_LA
     <h3 class="wzq">${all.length?t(`${shown.length} השמות שהכי מתאימים לכם`,`Your ${shown.length} best matches`):t('לא מצאנו התאמה מדויקת','No exact match')}</h3>
     ${all.length?`<p class="wzsub">${t(`מתוך ${fmt(all.length)} שמות שעונים על כל הבחירות. לא אהבתם שם? החליפו רק אותו.`,`Out of ${fmt(all.length)} names that fit. Don’t like one? Swap just that one.`)}</p>`:`<p class="wzsub">${t('נסו לוותר על אחת הבחירות, למשל אורך השם או האות.','Try relaxing one choice, like length or letter.')}</p>`}</div>
     <div class="gencards2" id="gcards">${shown.map(o=>genCard(st,o[0],`${o[2]>1?`<span class="why">${t(`מתאים ל-${o[2]} סגנונות`,`fits ${o[2]} styles`)}</span>`:''}<button class="swapbtn" data-swap="${o[0]}">${icon('undo')}<span>${t('החלפת השם','Swap')}</span></button>`)).join('')}</div>
-    <div class="loadmore">${all.length>WZ.shown?`<button class="copybtn" id="wzmore">${t('עוד 5 הצעות','5 more ideas')}</button>`:''}<button class="linkbtn" id="wzagain">${t('להתחיל מחדש','Start over')}</button></div>`;
+    <div class="loadmore">${all.length>WZ.shown?`<button class="copybtn" id="wzmore">${t('עוד 5 הצעות','5 more ideas')}</button>`:''}<button class="linkbtn" id="wzagain">${t('להתחיל מחדש','Start over')}</button></div>
+    ${all.length?wzNextHTML():''}`;
   const gc=$('#gcards');gc.addEventListener('click',e=>{const sw=e.target.closest('[data-swap]');if(sw){e.stopPropagation();WZ.hide.push(+sw.dataset.swap);const card=sw.closest('.gcard2');card.classList.add('out');setTimeout(genWizard,180)}},true);
   wireCards(gc);const mo=$('#wzmore');if(mo)mo.onclick=()=>{WZ.shown+=5;genWizard()};
-  $('#wzagain').onclick=()=>{WZ={step:0,themes:[],letter:'',nogut:false,shown:5,hide:[],seed:Math.random()*1e9|0,world:store.get('wzworld','heb')};genWizard()};$('#wzedit').onclick=()=>{WZ.step=1;genWizard()};}
+  $('#wzagain').onclick=()=>{WZ={step:0,themes:[],letter:'',nogut:false,shown:5,hide:[],seed:Math.random()*1e9|0,world:store.get('wzworld','heb')};genWizard()};$('#wzedit').onclick=()=>{WZ.step=1;genWizard()};wireWzNext();}
+/* after the quiz: what to do with the list. Hearts save a name; the saved names go to the couple room as likes */
+function wzNextHTML(){const n=FAV.length;return `<div class="card wznext"><h3>${t('ומה עכשיו?','What next?')}</h3>
+  <ol class="wzsteps"><li class="${n?'ok':''}"><b>${t('שומרים את מה שאהבתם','Save the ones you like')}</b><span>${n?t(`${n} ${n===1?'שם שמור':'שמות שמורים'} אצלכם`,`${n} saved`):t('לחיצה על הלב שבפינת השם','Tap the heart on a name')}</span></li>
+  <li><b>${t('בוחרים ביחד','Choose together')}</b><span>${t('בן או בת הזוג מחליקים על השמות, ורואים רק מה ששניכם אהבתם','Your partner swipes them, and you see only what you both liked')}</span></li></ol>
+  <div class="wzctas"><button class="next" id="wzmatch">${icon('users')} ${n?t(`להחליק בזוג על ${n} השמות`,`Swipe the ${n} names together`):t('להחליק בזוג','Swipe together')}</button>${n?`<button class="copybtn" id="wzcopy">${icon('copy')} ${t('העתקת הרשימה','Copy the list')}</button>`:''}</div></div>`}
+function wireWzNext(){const m=$('#wzmatch');if(m)m.onclick=()=>{if(FAV.length)favToMatch();else{PUSH_ONCE=true;setTab('match')}};const c=$('#wzcopy');if(c)c.onclick=()=>copy(favText())}
 function genLike(){const body=$('#gbody');const st=stats(-1);let base=IDX.get(GEN.like);if(base==null)base=IDX.get('אריאל');
   body.innerHTML=`<div class="card genpanel"><div class="gstep"><div class="gsl">${t('איזה שם אתם אוהבים?','Which name do you love?')}</div>
     <div class="cmpin" style="margin:0"><input class="inp" id="lq" value="${esc(NM(base))}" autocomplete="off" aria-label="${t('שם שאהבתם','A name you love')}"><div class="sugg" id="lsugg" hidden></div></div>
