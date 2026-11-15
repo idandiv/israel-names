@@ -7,8 +7,8 @@ Writes: <repo>/src/   (pages with the __BASE_URL__ placeholder, filled at deploy
 Only src/ is replaced; the other repo-root files (vercel.json, finalize.mjs, supabase/...) are kept as they are.
 """
 import gzip, base64, json, hashlib, os, shutil, html as H
-import meanings, guides, pregnancy, fullname, siblings
-FULLNAME, SIBLINGS = fullname.PATH, siblings.PATH
+import meanings, guides, pregnancy, fullname, siblings, couples
+FULLNAME, SIBLINGS, COUPLES = fullname.PATH, siblings.PATH, couples.PATH
 
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..') + '/'
 D = S
@@ -520,7 +520,7 @@ KIND_HUB = {('שם מקראי', 1): 'biblical-boys', ('שם מקראי', 0): 'bi
 
 
 def nav_links():
-    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">' + guides.SECTION + '</a> · <a href="/pregnancy/calculator">מחשבון הריון</a> · <a href="/tools/full-name">בדיקת שם מלא</a> · <a href="/tools/siblings">שם לאח או לאחות</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
+    return ('<p><a href="/">לדף הבית</a> · <a href="/names">כל השמות</a> · <a href="/guides">' + guides.SECTION + '</a> · <a href="/pregnancy/calculator">מחשבון הריון</a> · <a href="/#gen">מחולל שמות</a> · <a href="' + COUPLES + '">בוחרים שם בזוג</a> · <a href="/tools/full-name">בדיקת שם מלא</a> · <a href="/tools/siblings">שם לאח או לאחות</a> · <a href="/about">אודות</a> · <a href="/privacy">מדיניות פרטיות</a> · <a href="/terms">תנאי שימוש</a> · <a href="/accessibility">הצהרת נגישות</a></p>'
             '<p>' + ' · '.join(f'<a href="/names/{k}">{v}</a>' for k, v in COLLS + HUBS) + '</p>')
 
 
@@ -666,6 +666,7 @@ for x in NAMES:
 <p>{e(x['enq'])}</p>
 {('<ul>' + ''.join(f'<li><bdi dir="ltr">{e(s)}</bdi>: {e(w)}</li>' for s, w in x['env']) + '</ul>') if x['env'] else ''}
 <p><a href="{FULLNAME}?n={enc(n)}">איך {e(n)} נשמע עם שם המשפחה שלכם? לבדיקת השם המלא</a></p>
+<p><a href="/?nmadd={enc(n)}#match">בוחרים שם בזוג? להוסיף את {e(n)} לחדר משותף ולהחליק שמות יחד</a> · <a href="{COUPLES}">איך זה עובד</a></p>
 <h2>שאלות נפוצות על השם {e(n)}</h2>
 {''.join(f'<h3>{e(a)}</h3><p>{e(b)}</p>' for a, b in faq)}
 {sib_block(x)}
@@ -1234,6 +1235,10 @@ TOOL_PATHS, TOOLS = TOOL_PATHS + FN_PATHS, TOOLS + FN_TOOLS
 SB_PATHS, SB_TOOLS = siblings.build({'page': page, 'static_shell': static_shell, 'hashed': hashed, 'by_name': by_name, 'NAMES': NAMES, 'enc': enc,
                                      'Y1': Y1, 'SRC': SRC, 'PH': PH, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
 TOOL_PATHS, TOOLS = TOOL_PATHS + SB_PATHS, TOOLS + SB_TOOLS
+# ---- the couple tool's landing page: /tools/couple-names (tools/couples.py; the tool itself is the app's /#match) ----
+CP_PATHS, CP_TOOLS = couples.build({'page': page, 'static_shell': static_shell, 'ic_users': ic(IC_USERS), 'ic_arrow': ic(IC_ARROW),
+                                    'SRC': SRC, 'PH': PH, 'LD_SITE': LD_SITE, 'LD_ORG': LD_ORG})
+TOOL_PATHS, TOOLS = TOOL_PATHS + CP_PATHS, TOOLS + CP_TOOLS
 
 # ---- home + 404 ----
 top = [x['n'] for x in sorted(NAMES, key=lambda x: -x['last'])[:40]]

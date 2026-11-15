@@ -133,6 +133,7 @@ const IC={
  gen:'<path d="M5 19 19 5M14 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1zM6 8l.7 1.3L8 10l-1.3.7L6 12l-.7-1.3L4 10l1.3-.7zM17 15l.7 1.3 1.3.7-1.3.7L17 19l-.7-1.3L15 17l1.3-.7z"/>',
  trends:'<path d="M4 19V5M4 19h16M7 15l4-4 3 3 5-6"/>',
  games:'<rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 11v3M6.5 12.5h3M15.5 12h.01M18 14h.01"/>',
+ match:'<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a4.5 4.5 0 0 1 5 4.8"/>',
  save:'<path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/>',
  copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
  chart:'<path d="M4 19h16M6 15l4-5 4 3 4-6"/>',
@@ -142,8 +143,8 @@ const IC={
  dice:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h.01M15 15h.01M15 9h.01M9 15h.01"/>',
  arrow:'<path d="M15 6l-6 6 6 6"/>'};
 const icon=(k,fill)=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="${fill?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
-function tabShort(k){return{home:t('ראשי','Home'),names:t('שמות','Names'),gen:t('מחולל','Finder'),trends:t('מגמות','Trends'),games:t('משחקים','Games')}[k]}
-function tabLabel(k){return{home:t('ראשי','Home'),names:t('חקר שמות','Explore names'),gen:t('מחולל שמות','Name finder'),trends:t('מגמות ודאטה','Trends & data'),games:t('משחקים','Games')}[k]}
+function tabShort(k){return{home:t('ראשי','Home'),names:t('שמות','Names'),gen:t('מחולל','Finder'),match:t('בזוג','Together'),trends:t('מגמות','Trends'),games:t('משחקים','Games')}[k]}
+function tabLabel(k){return{home:t('ראשי','Home'),names:t('חקר שמות','Explore names'),gen:t('מחולל שמות','Name finder'),match:t('בוחרים בזוג','Choose together'),trends:t('מגמות ודאטה','Trends & data'),games:t('משחקים','Games')}[k]}
 function renderShell(){
   document.documentElement.lang=LANG==='en'?'en':'he';
   const app=$('#app');app.dir=LANG==='en'?'ltr':'rtl';
@@ -156,7 +157,7 @@ function renderShell(){
       <button class="srchbtn" id="srchbtn" aria-label="${t('חיפוש שם','Search')}">${icon('search')}</button>
       <button class="langbtn" id="lang" aria-label="${t('EN – Switch to English','עב – מעבר לעברית')}">${LANG==='en'?'עב':'EN'}</button>
     </div>
-    <nav class="mainnav" role="tablist">${['home','names','gen','trends','games'].map(k=>`<button role="tab" data-tab="${k}" class="${k==='gen'?'hl':''}" aria-selected="${k===TAB}">${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
+    <nav class="mainnav" role="tablist">${['home','names','match','trends','games'].map(k=>`<button role="tab" data-tab="${k}" class="${k==='match'?'hl':''}" aria-selected="${k===TAB}">${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
   </div>
   ${TABS.map(k=>`<section id="tab-${k}" ${k===TAB?'':'hidden'}></section>`).join('')}
   <details class="note"><summary>${t('על הנתונים והמקורות','About the data')}</summary><p>${t('המקור: הלשכה המרכזית לסטטיסטיקה, דרך חבילת babynamesIL. הנתונים כוללים כל שם שניתן לפחות ל-5 תינוקות באותה שנה, באותו מגדר ובאותו מגזר. לכן שמות נדירים חסרים, ו״אחוז מהתינוקות״ מחושב מתוך התינוקות שנרשמו בשמות שבנתונים. ה״גיל הטיפוסי״ מבוסס על שנות הלידה בלבד, בלי תמותה והגירה. פירושי השמות הם הפירושים המקובלים, ולחלק מהשמות יש יותר מפירוש אחד. תגיות ״עדכון 2025״ ו״תשפ״ו״ מבוססות על רשימות 10 השמות המובילים שפרסמה רשות האוכלוסין וההגירה, ואינן חלק מנתוני הלמ״ס.',
@@ -180,7 +181,9 @@ function secChips(){const opts=[[-1,t('כל המגזרים','All')],...SECT().ma
 function setMode(m){if(m===MODE)return;MODE=m;store.set('mode',MODE);rerender()}
 function setF(v){F=v;store.set('F',F);GAME_BUILT=null;rerender()}
 const LEGACY={name:['names','file'],me:['names','me'],compare:['names','compare'],explore:['trends'],game:['games']};
-function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
+/* the tab to go back to when leaving the couple screen (its back button) */
+let PREV_TAB='home';
+function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(k==='match'&&TAB!=='match')PREV_TAB=TAB;if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
   TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
   if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=NMX.showRooms?null:R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}

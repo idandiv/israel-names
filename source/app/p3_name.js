@@ -64,6 +64,7 @@ function renderName(){
     <div class="meter"><div class="row"><span class="g">${t('בנות','Girls')} ${gp.toFixed(gp>99||gp<1?1:0)}%</span><span class="b">${t('בנים','Boys')} ${(100-gp).toFixed(gp>99||gp<1?1:0)}%</span></div>
       <div class="track"><i style="width:${gp}%;background:var(--girl)"></i><i style="width:${100-gp}%;background:var(--boy)"></i></div></div>
     <div class="actions">${favBtn(nm,'lbl big')}<button class="next" id="shlink">${icon('link')}${t(' שיתוף העמוד',' Share page')}</button><button class="copybtn" id="card">${t('כרטיס לשיתוף','Share card')}</button><button class="copybtn" id="cpy">${t('העתקת סיכום','Copy summary')}</button><button class="copybtn" id="tocmp">${t('הוספה להשוואה','Add to compare')}</button></div>
+    <div class="nmaddwrap" id="nmaddwrap"></div>
   </div>
   <div class="grid">
     <div class="card wide"><div class="head"><div><h2>${t(`הסיפור של ${esc(nm)} לאורך השנים`,`${dn} through the years`)}</h2><div class="sub" id="tsub"></div></div>
@@ -88,7 +89,7 @@ function renderName(){
   </div>`;
   $('#card').onclick=()=>shareCard(i);
 
-  $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);
+  $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);{const nw=$('#nmaddwrap');if(nw)nw.replaceChildren(nmAddBtn(i))}
   $('#tocmp').onclick=()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')};
   if(!S){$('#mseg').onclick=e=>{const bt=e.target.closest('[data-m]');if(bt){metric=bt.dataset.m;renderName();}};
   $('#tseg').onclick=e=>{const bt=e.target.closest('[data-t]');if(bt){tmode=bt.dataset.t;store.set('tmode',tmode);renderName();}};}
