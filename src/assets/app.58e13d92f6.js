@@ -613,23 +613,8 @@ function pregWeek(){const v=store.get('pregnancy',null),m=v&&/^(\d{4})-(\d{2})-(
   const day=Date.UTC(+m[1],+m[2]-1,+m[3])/864e5,n=new Date(),now=Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())/864e5;
   const due=v.m==='lmp'?day+280+((+v.c||28)-28):v.m==='conception'?day+266:v.m==='ivf'?day+266-(+v.e||5):null;
   if(due==null||day>now)return null;const w=Math.floor((now-due+280)/7);return w>=4&&w<=42?w:null}
-IC.calendar='<rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>';
-/* "what brings you here?": one tap sends the visitor to the right place; the choice is kept (key bnil_intent)
-   and shown as pressed on the next visit. baby opens the finder's quiz, couple the swipe, mine the name search. */
-const INTENTS=()=>[['baby','gen',t('מחפשים שם לתינוק','Looking for a baby name'),t('5 שאלות קצרות ויש רשימה','5 quick questions, then a list')],
-  ['couple','users',t('בוחרים שם בזוג','Choosing as a couple'),t('כל אחד מחליק לבד, רואים התאמות','Swipe apart, see what you share')],
-  ['mine','search',t('סקרנים לגבי השם שלי','Curious about my name'),t('כמה, ממתי ומה הפירוש','How many, since when, what it means')],
-  ...(SITE.routing==='path'?[['preg','calendar',t('בהריון','Expecting'),t('השבוע שלכם והתאריך המשוער','Your week and due date')]]:[])];
-function intentHTML(cur){return `<div class="intent" role="group" aria-labelledby="intenth"><h2 class="intenth" id="intenth">${t('מה מביא אתכם לכאן?','What brings you here?')}</h2>
-  <div class="intents">${INTENTS().map(([k,ic,l,s])=>`<button data-int="${k}" aria-pressed="${cur===k}"><span class="gl">${icon(ic)}</span><span><b>${l}</b><small>${s}</small></span></button>`).join('')}</div></div>`}
-function goIntent(k){store.set('intent',k);
-  if(k==='baby'){GEN.mode='wiz';saveGen();PUSH_ONCE=true;setTab('gen');window.scrollTo(0,0);return}
-  if(k==='couple'){PUSH_ONCE=true;setTab('match');return}
-  if(k==='preg'){const w=pregWeek();location.href=w?`/pregnancy/week-${w}`:'/pregnancy/calculator';return}
-  document.querySelectorAll('#tab-home [data-int]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.int===k));
-  const q=$('#hq');if(q){q.scrollIntoView({block:'center',behavior:'smooth'});q.focus({preventScroll:true})}}
 function renderHome(){
-  const st=stats(-1), sec=$('#tab-home'), intent=store.get('intent','');
+  const st=stats(-1), sec=$('#tab-home');
   let babies=0;for(const v of st.DD)babies+=v;
   const n1=[0,1].map(x=>st.top[x][NY-1][0]);
   const popular=[...st.top[0][NY-1].slice(0,4),...st.top[1][NY-1].slice(0,4)];
@@ -641,7 +626,6 @@ function renderHome(){
     <div class="search bigsearch">${icon('search')}<input id="hq" type="search" placeholder="${t('הקלידו שם…','Type a name…')}" autocomplete="off" aria-label="${t('חיפוש שם','Search a name')}"><div class="sugg" id="hsugg" hidden></div></div>
     <div class="chips quick">${popular.map(i=>nameLink(i,nmh(i))).join('')}<button class="ghost" id="rnd2">${icon('dice')}${t('שם אקראי','Random')}</button></div>
   </div>
-  ${intentHTML(intent)}
   <div class="card homesaved" id="homesaved" hidden></div>
   <div class="ctapair ctahero">
   <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
@@ -659,7 +643,6 @@ function renderHome(){
   openOn(sec.querySelector('.quick'));
   $('#rnd2').onclick=()=>{const pool=[];for(let i=0;i<N;i++)if(T(st,i)>=400&&MEAN.has(NAMES[i]))pool.push(i);pick(rand(pool))};
   drawHomeSaved();
-  sec.querySelector('.intents').onclick=e=>{const b=e.target.closest('[data-int]');if(b)goIntent(b.dataset.int)};
   $('#gencta').onclick=()=>setTab('gen');$('#matchcta').onclick=()=>setTab('match');{const nr=$('#nmnewroom');if(nr)nr.onclick=()=>{NMX.showRooms=true;NMX.newRoom=true;setTab('match')}}{const ar=$('#nmallrooms');if(ar)ar.onclick=()=>{NMX.showRooms=true;setTab('match')}}
 
 }

@@ -1188,21 +1188,6 @@ body.docopen{overflow:hidden}
 /* explore names: four views (the name finder joined them), short labels on a phone so all four fit */
 .subnav .ls{display:none}
 @media (max-width:560px){.subnav .lf{display:none}.subnav .ls{display:inline}}
-/* home: "what brings you here?" (p2_home.js intentHTML); a compact 2×2 on a phone, one row on wider screens */
-.intent{margin-top:14px}
-.intenth{font-size:15px;font-weight:700;margin:0 2px 8px;color:var(--ink)}
-.intents{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.intents button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);color:var(--ink);text-align:start;min-width:0}
-.intents button:hover{border-color:var(--accent)}
-.intents button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.intents button[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
-.intents .gl{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
-.intents .gl .ic{width:19px;height:19px}
-.intents button>span:last-child{display:flex;flex-direction:column;gap:1px;min-width:0}
-.intents b{font-size:14px;line-height:1.25}
-.intents small{font-size:12px;color:var(--muted);line-height:1.3}
-@media (max-width:860px){.intents{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:400px){.intents button{flex-direction:column;align-items:flex-start;gap:6px;padding:10px}.intents .gl{width:30px;height:30px}}
 /* finder quiz: the next steps under the results (p5_tools.js wzNextHTML) */
 .wznext{margin-top:16px}
 .wznext h3{margin:0 0 10px}
