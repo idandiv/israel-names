@@ -450,6 +450,7 @@ const IC={
  gen:'<path d="M5 19 19 5M14 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1zM6 8l.7 1.3L8 10l-1.3.7L6 12l-.7-1.3L4 10l1.3-.7zM17 15l.7 1.3 1.3.7-1.3.7L17 19l-.7-1.3L15 17l1.3-.7z"/>',
  trends:'<path d="M4 19V5M4 19h16M7 15l4-4 3 3 5-6"/>',
  games:'<rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 11v3M6.5 12.5h3M15.5 12h.01M18 14h.01"/>',
+ match:'<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a4.5 4.5 0 0 1 5 4.8"/>',
  save:'<path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/>',
  copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
  chart:'<path d="M4 19h16M6 15l4-5 4 3 4-6"/>',
@@ -459,8 +460,8 @@ const IC={
  dice:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h.01M15 15h.01M15 9h.01M9 15h.01"/>',
  arrow:'<path d="M15 6l-6 6 6 6"/>'};
 const icon=(k,fill)=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="${fill?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
-function tabShort(k){return{home:t('ראשי','Home'),names:t('שמות','Names'),gen:t('מחולל','Finder'),trends:t('מגמות','Trends'),games:t('משחקים','Games')}[k]}
-function tabLabel(k){return{home:t('ראשי','Home'),names:t('חקר שמות','Explore names'),gen:t('מחולל שמות','Name finder'),trends:t('מגמות ודאטה','Trends & data'),games:t('משחקים','Games')}[k]}
+function tabShort(k){return{home:t('ראשי','Home'),names:t('שמות','Names'),gen:t('מחולל','Finder'),match:t('בזוג','Together'),trends:t('מגמות','Trends'),games:t('משחקים','Games')}[k]}
+function tabLabel(k){return{home:t('ראשי','Home'),names:t('חקר שמות','Explore names'),gen:t('מחולל שמות','Name finder'),match:t('בוחרים בזוג','Choose together'),trends:t('מגמות ודאטה','Trends & data'),games:t('משחקים','Games')}[k]}
 function renderShell(){
   document.documentElement.lang=LANG==='en'?'en':'he';
   const app=$('#app');app.dir=LANG==='en'?'ltr':'rtl';
@@ -473,7 +474,7 @@ function renderShell(){
       <button class="srchbtn" id="srchbtn" aria-label="${t('חיפוש שם','Search')}">${icon('search')}</button>
       <button class="langbtn" id="lang" aria-label="${t('EN – Switch to English','עב – מעבר לעברית')}">${LANG==='en'?'עב':'EN'}</button>
     </div>
-    <nav class="mainnav" role="tablist">${['home','names','gen','trends','games'].map(k=>`<button role="tab" data-tab="${k}" class="${k==='gen'?'hl':''}" aria-selected="${k===TAB}">${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
+    <nav class="mainnav" role="tablist">${['home','names','match','trends','games'].map(k=>`<button role="tab" data-tab="${k}" class="${k==='match'?'hl':''}" aria-selected="${k===TAB}">${icon(k)}<span class="lf">${tabLabel(k)}</span><span class="ls">${tabShort(k)}</span></button>`).join('')}</nav>
   </div>
   ${TABS.map(k=>`<section id="tab-${k}" ${k===TAB?'':'hidden'}></section>`).join('')}
   <details class="note"><summary>${t('על הנתונים והמקורות','About the data')}</summary><p>${t('המקור: הלשכה המרכזית לסטטיסטיקה, דרך חבילת babynamesIL. הנתונים כוללים כל שם שניתן לפחות ל-5 תינוקות באותה שנה, באותו מגדר ובאותו מגזר. לכן שמות נדירים חסרים, ו״אחוז מהתינוקות״ מחושב מתוך התינוקות שנרשמו בשמות שבנתונים. ה״גיל הטיפוסי״ מבוסס על שנות הלידה בלבד, בלי תמותה והגירה. פירושי השמות הם הפירושים המקובלים, ולחלק מהשמות יש יותר מפירוש אחד. תגיות ״עדכון 2025״ ו״תשפ״ו״ מבוססות על רשימות 10 השמות המובילים שפרסמה רשות האוכלוסין וההגירה, ואינן חלק מנתוני הלמ״ס.',
@@ -497,16 +498,22 @@ function secChips(){const opts=[[-1,t('כל המגזרים','All')],...SECT().ma
 function setMode(m){if(m===MODE)return;MODE=m;store.set('mode',MODE);rerender()}
 function setF(v){F=v;store.set('F',F);GAME_BUILT=null;rerender()}
 const LEGACY={name:['names','file'],me:['names','me'],compare:['names','compare'],explore:['trends'],game:['games']};
-function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
-  TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
+/* the tab to go back to when leaving the couple screen (its back button) */
+let PREV_TAB='home';
+function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(k==='match'&&TAB!=='match')PREV_TAB=TAB;if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
+  TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k||(k==='gen'&&b.dataset.tab==='names')));
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
   if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=NMX.showRooms?null:R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
   stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
+/* the views under "explore names"; the name finder (its own tab, gen) sits here too since it left the main nav */
+function namesSubnavHTML(cur){return `<div class="subnav seg" role="group" aria-label="${t('תצוגת שמות','Names view')}">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says'),t('מה השם אומר','My name')],['compare',t('השוואת שמות','Compare'),t('השוואה','Compare')],['gen',t('מחולל שמות','Name finder'),t('מחולל','Finder')]].map(([k,l,s])=>`<button data-sub="${k}" aria-pressed="${cur===k}">${s?`<span class="lf">${l}</span><span class="ls">${s}</span>`:l}</button>`).join('')}</div>`}
+function wireNamesSubnav(sec){sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(!b)return;const k=b.dataset.sub;PUSH_ONCE=true;
+  if(k==='gen'){if(TAB!=='gen')setTab('gen');return}NSUB=k;store.set('nsub',NSUB);if(TAB!=='names'){setTab('names',k);return}renderNames();syncURL()}}
 function renderNames(){const sec=$('#tab-names');
-  sec.innerHTML=`<div class="subnav seg" role="group" aria-label="${t('תצוגת שמות','Names view')}">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
+  sec.innerHTML=`${namesSubnavHTML(NSUB)}
     <div id="tab-name"></div><div id="tab-me"></div><div id="tab-compare"></div>`;
-  sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();PUSH_ONCE=true;syncURL()}};
+  wireNamesSubnav(sec);
   ({file:renderName,me:renderMe,compare:renderCompare})[NSUB]();}
 function renderTrends(){$('#tab-trends').innerHTML=`<div class="pagehead"><h2>${t('מגמות ודאטה','Trends & data')}</h2><p>${t(`${NY} שנים של שמות: מי הוביל בכל תקופה, מי עולה ומי יורד, ומה מאפיין כל מגזר.`,`${NY} years of names: who led each era, who\u2019s rising and falling, and what sets each community apart.`)}</p>${secChips()}</div><div id="tab-explore"></div>`;renderExplore()}
 function renderGames(){if(!$('#tab-game')){$('#tab-games').innerHTML=`<div class="pagehead"><h2>${t('משחקים','Games')}</h2><p>${t('השם הסודי של היום, ועוד משחקי טריוויה קצרים על שמות.','Today’s secret name, plus quick name trivia games.')}</p></div><div id="tab-game"></div>`;GAME_BUILT=null}renderGame()}
@@ -620,9 +627,9 @@ function renderHome(){
     <div class="chips quick">${popular.map(i=>nameLink(i,nmh(i))).join('')}<button class="ghost" id="rnd2">${icon('dice')}${t('שם אקראי','Random')}</button></div>
   </div>
   <div class="card homesaved" id="homesaved" hidden></div>
-  <div class="ctapair">
+  <div class="ctapair ctahero">
   <button class="matchcta" id="matchcta"><span class="gl1">${icon('users')}</span>${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<span><b>${r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('להמשיך בהתאמת השמות','Continue NameMatch')}</b><span>${t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`)}</span></span><span class="go">${t('להמשיך','Continue')} ${icon('arrow')}</span>`:`<span><b>${t('בוחרים שם ביחד','Choosing a name together')}</b><span>${t('מחליקים שמות בנפרד – רואים רק מה ששניכם אהבתם','Swipe separately – see only the names you both loved')}</span></span><span class="go">${t('להתחיל','Start')} ${icon('arrow')}</span>`})()}<span class="nmdemo" aria-hidden="true"><i class="c2"></i><i class="c1"><em>${t('נועה','Noa')}</em></i><b class="mk">${icon('heart',1)}</b></span></button>
-  <button class="gencta" id="gencta"><span class="gl1">${icon('gen')}</span><span><b>${t('מחפשים שם לתינוק?','Looking for a baby name?')}</b><span>${t('פתחו את מחולל השמות: לפי משמעות, אופי ומגמה, עם רשימת מועדפים לשיתוף.','Open the name finder: by meaning, vibe and trend, with a shareable shortlist.')}</span></span><span class="go">${t('למחולל','Open')} ${icon('arrow')}</span></button>
+  <button class="gencta" id="gencta"><span class="gl1">${icon('gen')}</span><span><b>${t('מחולל השמות','The name finder')}</b><span>${t('מחפשים רעיונות? שמות לפי משמעות, אופי ומגמה, עם רשימת מועדפים לשיתוף.','Looking for ideas? Names by meaning, vibe and trend, with a shareable shortlist.')}</span></span><span class="go">${t('למחולל','Open')} ${icon('arrow')}</span></button>
   </div>
   ${(()=>{const r=NMX.active&&NMX.rooms[NMX.active];return r&&r.me?`<div class="nmnewwrap"><button class="linkbtn" id="nmnewroom">${t('+ חדר חדש','+ New room')}</button><span aria-hidden="true">·</span><button class="linkbtn" id="nmallrooms">${t(`החדרים שלי (${nmRoomCount()})`,`My rooms (${nmRoomCount()})`)}</button></div>`:''})()}
   ${SITE.routing==='path'?`<div class="tiles3">
@@ -794,6 +801,7 @@ function renderName(){
     <div class="meter"><div class="row"><span class="g">${t('בנות','Girls')} ${gp.toFixed(gp>99||gp<1?1:0)}%</span><span class="b">${t('בנים','Boys')} ${(100-gp).toFixed(gp>99||gp<1?1:0)}%</span></div>
       <div class="track"><i style="width:${gp}%;background:var(--girl)"></i><i style="width:${100-gp}%;background:var(--boy)"></i></div></div>
     <div class="actions">${favBtn(nm,'lbl big')}<button class="next" id="shlink">${icon('link')}${t(' שיתוף העמוד',' Share page')}</button><button class="copybtn" id="card">${t('כרטיס לשיתוף','Share card')}</button><button class="copybtn" id="cpy">${t('העתקת סיכום','Copy summary')}</button><button class="copybtn" id="tocmp">${t('הוספה להשוואה','Add to compare')}</button></div>
+    <div class="namepills"><button class="matchlink" id="genlike">${icon('gen')}<span>${t(`שמות בסגנון של ${esc(nm)}`,`Names like ${esc(NM(i))}`)}</span></button><span class="nmaddwrap" id="nmaddwrap"></span></div>
   </div>
   <div class="grid">
     <div class="card wide"><div class="head"><div><h2>${t(`הסיפור של ${esc(nm)} לאורך השנים`,`${dn} through the years`)}</h2><div class="sub" id="tsub"></div></div>
@@ -818,7 +826,7 @@ function renderName(){
   </div>`;
   $('#card').onclick=()=>shareCard(i);
 
-  $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);
+  $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);{const nw=$('#nmaddwrap');if(nw)nw.replaceChildren(nmAddBtn(i))}$('#genlike').onclick=()=>genLikeOf(i);
   $('#tocmp').onclick=()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')};
   if(!S){$('#mseg').onclick=e=>{const bt=e.target.closest('[data-m]');if(bt){metric=bt.dataset.m;renderName();}};
   $('#tseg').onclick=e=>{const bt=e.target.closest('[data-t]');if(bt){tmode=bt.dataset.t;store.set('tmode',tmode);renderName();}};}
@@ -1248,6 +1256,7 @@ function openFavPanel(){const m=$('#modal');m.hidden=false;const st=stats(-1);
   m.innerHTML=`<div class="mbox favpanel" id="favpanel" role="dialog" aria-label="${t('השמות ששמרתי','Saved names')}"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>
     <h3>${t('השמות ששמרתי','Saved names')} <span class="cnt">${FAV.length}</span></h3>
     ${FAV.length?`<div class="favlist">${FAV.map(n=>{const i=IDX.get(n);return `<div class="favrow"><button class="fvname" data-q="${i}"><b>${nmh(i)}</b><span>${esc(shortMean(i))||secShort(i)}</span></button>${spark(share(st,i),70,22)}<button class="iconbtn" data-rm="${esc(n)}" aria-label="${t('הסרה','Remove')}">${icon('close')}</button></div>`}).join('')}</div>
+      <button class="matchlink fpmatch" id="fpmatch">${icon('match')}<span>${favMatchLabel()}</span></button>
       <div class="mrow"><button class="next" id="fpcopy">${icon('copy')}${t(' העתקת הרשימה לוואטסאפ',' Copy list')}</button>${FAV.length>1?`<button class="copybtn" id="fpcmp">${icon('chart')}${t(' השוואה בגרף',' Compare')}</button>`:''}<button class="copybtn" id="fplink">${icon('link')}${t(' קישור לרשימה',' Link to list')}</button><button class="copybtn danger" id="fpclear">${t('ניקוי הרשימה','Clear list')}</button></div>`
       :`<p class="sub">${t('עוד לא שמרתם שמות. לחצו על סימן השמירה בכרטיס שם כדי להוסיף.','No saved names yet. Tap the bookmark on a name card to add one.')}</p>`}</div>`;
   const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};
@@ -1255,8 +1264,12 @@ function openFavPanel(){const m=$('#modal');m.hidden=false;const st=stats(-1);
   m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>quickView(+b.dataset.q));
   const fc=$('#fpcopy');if(fc)fc.onclick=()=>copy(favText());const fp=$('#fpcmp');if(fp)fp.onclick=favCompare;
   const fl=$('#fplink');if(fl)fl.onclick=()=>copy(favLink());
+  const fm=$('#fpmatch');if(fm)fm.onclick=()=>{close();favToMatch()};
   const cl=$('#fpclear');if(cl)cl.onclick=()=>{if(cl.dataset.sure){FAV=[];store.set('fav',FAV);renderFavBar();openFavPanel();rerenderCards()}else{cl.dataset.sure=1;cl.textContent=t('לחצו שוב לאישור','Tap again to confirm')}};}
 function rerenderCards(){if(TAB==='gen')drawGenResults()}
+/* the saved list into the couple room (nmAddNames in p8_match.js): your saved names count as your likes there */
+function favToMatch(){nmAddNames(FAV.map(n=>IDX.get(n)).filter(i=>i!=null))}
+function favMatchLabel(){const r=R();return r&&r.me?t(`להוסיף את השמורים ${nmRoomWith(r)}`,`Add them ${nmRoomWith(r)}`):t('לבחור מתוכם בזוג: להחליק עם בן או בת הזוג','Choose together: swipe them with your partner')}
 
 /* =========================================================
    QUICK VIEW
@@ -1313,12 +1326,14 @@ function genCard(st,i,extra=''){const inf=nameInfo(st,i);const tag=charTag(st,i,
 function wireCards(el){el.addEventListener('click',e=>{if(e.target.closest('[data-fav]'))return;const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)});
   el.addEventListener('keydown',e=>{if(e.key==='Enter'){const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)}})}
 function sexOk(st,i,sx){const s=T(st,i);if(!s)return false;const gp=st.tot[0][i]/s;return sx==='F'?gp>=.85:sx==='M'?gp<=.15:sx==='U'?(gp>=.25&&gp<=.75&&s>=150):true}
+/* the name page's "names like X": the finder's like mode with that name */
+function genLikeOf(i){GEN.mode='like';GEN.like=NAMES[i];saveGen();PUSH_ONCE=true;setTab('gen')}
 function renderGen(){const sec=$('#tab-gen');
-  sec.innerHTML=`<div class="pagehead"><h2>${t('מחולל השמות','The name finder')}</h2><p>${t(`שמות אמיתיים שניתנו בישראל, לפי משמעות, אופי ומגמה. שמרו את מה שאהבתם ושתפו את הרשימה.`,`Real names given in Israel, by meaning, vibe and trend. Save the ones you like and share your list.`)}</p>
+  sec.innerHTML=`${namesSubnavHTML('gen')}<div class="pagehead"><h2>${t('מחולל השמות','The name finder')}</h2><p>${t(`שמות אמיתיים שניתנו בישראל, לפי משמעות, אופי ומגמה. שמרו את מה שאהבתם ושתפו את הרשימה.`,`Real names given in Israel, by meaning, vibe and trend. Save the ones you like and share your list.`)}</p>
     <button class="matchlink" id="gomatch">${icon('users')}<span>${t('בוחרים בזוג? נסו את התאמת השמות','Choosing together? Try NameMatch')}</span></button>
     <div class="seg modes" id="gmode">${[['free',t('סינון חופשי','Free filter')],['wiz',t('שאלון מותאם אישית','Guided quiz')],['like',t('שמות דומים לשם שאהבנו','Names like one we love')]].map(([k,l])=>`<button data-m="${k}" aria-pressed="${GEN.mode===k}">${l}</button>`).join('')}</div></div>
     <div id="gbody"></div>`;
-  $('#gomatch').onclick=()=>setTab('match');
+  $('#gomatch').onclick=()=>setTab('match');wireNamesSubnav(sec);
   $('#gmode').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;GEN.mode=b.dataset.m;saveGen();renderGen()};
   ({free:genFree,wiz:genWizard,like:genLike})[GEN.mode]();}
 function genFree(){const body=$('#gbody');const opt=(k,v,l,ex)=>`<button data-k="${k}" data-v="${v}" aria-pressed="${GEN[k]===v}" class="${ex?'rich':''}">${l}${ex?`<small>${ex}</small>`:''}</button>`;
@@ -1572,10 +1587,10 @@ function drawFam(){
 }
 
 function drawHomeSaved(){const el=$('#homesaved');if(!el)return;if(!FAV.length){el.hidden=true;return}el.hidden=false;
-  el.innerHTML=`<div class="head"><div><h3>${t('השמות ששמרתי','My saved names')} <span class="cnt">${FAV.length}</span></h3></div><div class="ctrls"><button class="copybtn" id="hscopy">${icon('copy')} ${t('העתקה','Copy')}</button>${FAV.length>1?`<button class="copybtn" id="hscmp">${icon('chart')} ${t('השוואה','Compare')}</button>`:''}</div></div>
+  el.innerHTML=`<div class="head"><div><h3>${t('השמות ששמרתי','My saved names')} <span class="cnt">${FAV.length}</span></h3></div><div class="ctrls"><button class="copybtn" id="hscopy">${icon('copy')} ${t('העתקה','Copy')}</button>${FAV.length>1?`<button class="copybtn" id="hscmp">${icon('chart')} ${t('השוואה','Compare')}</button>`:''}<button class="copybtn" id="hsmatch">${icon('match')} ${t('להחליק בזוג','Swipe together')}</button></div></div>
     <div class="chips savedchips">${FAV.map(n=>`<button data-q="${IDX.get(n)}">${nmh(IDX.get(n))}</button>`).join('')}</div>`;
   el.querySelector('.savedchips').onclick=e=>{const b=e.target.closest('[data-q]');if(b)quickView(+b.dataset.q)};
-  $('#hscopy').onclick=()=>copy(favText());const c=$('#hscmp');if(c)c.onclick=favCompare;}
+  $('#hscopy').onclick=()=>copy(favText());const c=$('#hscmp');if(c)c.onclick=favCompare;$('#hsmatch').onclick=favToMatch;}
 
 /* =========================================================
    The DNA of a name and names that go with it (siblings). Pure functions, no DOM.
@@ -1756,7 +1771,9 @@ IC.v='<path d="M5 12.5l4.5 4.5L19 7.5"/>';
 IC.star='<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/>';
 IC.undo='<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>';
 IC.heart='<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>';
-IC.users='<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a4.5 4.5 0 0 1 5 4.8"/>';
+IC.users=IC.match;   /* the same drawing as the nav tab (p1_core.js) */
+/* the back button: to the tab the couple screen was opened from */
+function nmExit(){document.body.classList.remove('matchmode');setTab(PREV_TAB&&PREV_TAB!=='match'?PREV_TAB:'home')}
 IC.link='<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>';
 IC.back='<path d="M9 6l6 6-6 6"/>';
 IC.useradd='<circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6M16 11h6"/>';
@@ -1836,11 +1853,50 @@ function boostPartner(r,rem){if(!r.plikes||!r.plikes.length||rem.length<4)return
   const front=[],rest=[];rem.forEach(i=>(pl.has(i)?front:rest).push(i));if(!front.length)return rem;
   /* every 3rd slot counted from the start of the deck, so a boosted name keeps moving forward as you swipe */
   const ph=mine.size;const out=[];let a=0,b=0;while(a<front.length||b<rest.length){if(a<front.length&&((out.length+ph)%3===2||b>=rest.length))out.push(front[a++]);else out.push(rest[b++])}return out}
-function remaining(r){if(NMX.deckFor!==r.code){NMX.deck=deckOrder(r);NMX.deckFor=r.code}let done=new Set([...r.likes,...r.passes]);let rem=NMX.deck.filter(i=>!done.has(i));
-  if(!rem.length&&r.passes.length){r.round=(r.round||1)+1;r.passes=[];nmSave();toast(t('סבב חדש: השמות שדילגתם עליהם חוזרים','New round: skipped names are back'));done=new Set(r.likes);rem=NMX.deck.filter(i=>!done.has(i))}
+function remaining(r){if(NMX.deckFor!==r.code||!NMX.deckSet){NMX.deck=deckOrder(r);NMX.deckSet=new Set(NMX.deck);NMX.deckFor=r.code}
+  /* the deck, plus names the partner added from outside the swipe (nmAddNames) that this room's filters leave out */
+  const left=done=>NMX.deck.filter(i=>!done.has(i)).concat([...new Set(r.plikes.filter(i=>!NMX.deckSet.has(i)&&!done.has(i)))]);
+  let done=new Set([...r.likes,...r.passes]);let rem=left(done);
+  if(!rem.length&&r.passes.length){r.round=(r.round||1)+1;r.passes=[];nmSave();toast(t('סבב חדש: השמות שדילגתם עליהם חוזרים','New round: skipped names are back'));done=new Set(r.likes);rem=left(done)}
   rem=boostPartner(r,rem);
   const pin=NMX.pin&&NMX.pin.code===r.code?NMX.pin.ids.filter(i=>rem.includes(i)):[];if(pin.length)rem=[...pin,...rem.filter(i=>!pin.includes(i))];
   return rem}
+
+/* ---------- names added from outside the swipe (the saved list, a name page) ---------- */
+/* They count as your likes: they sync like a swipe, so they come up sooner in the partner's deck (boostPartner),
+   and remaining() puts them in the partner's deck even when the room's filters leave them out.
+   With no room yet they wait in nm_pending (a day at most) and go into the next room you create, join or open. */
+const NM_PEND_MS=864e5;
+function nmLikeAll(r,ids){let n=0;const fresh=[];
+  for(const i of ids){if(r.likes.includes(i))continue;const k=r.passes.indexOf(i);if(k>=0)r.passes.splice(k,1);
+    r.likes.push(i);n++;if(r.cloud)(r.q=r.q||[]).push([NAMES[i],'like']);
+    if(r.plikes.includes(i)&&!r.seen.includes(i)){r.seen.push(i);fresh.push(i)}}
+  if(!n)return 0;nmSave();nmPresence();if(r.cloud)cloudFlush(r);if(fresh.length)setTimeout(()=>matchModal(fresh),400);return n}
+function nmRoomWith(r){return r.pname?t(`לחדר עם ${esc(r.pname)}`,`to your room with ${esc(r.pname)}`):t('לחדר הזוגי','to your couple room')}
+function nmAddNames(ids,go=true){ids=[...new Set(ids)].filter(i=>Number.isInteger(i)&&i>=0&&i<N);if(!ids.length)return;
+  const r=R();
+  if(!r||!r.me){const p=store.get('nm_pending',null);const L=p&&Date.now()-(p.t||0)<NM_PEND_MS&&Array.isArray(p.n)?p.n:[];
+    store.set('nm_pending',{t:Date.now(),n:[...new Set([...L,...ids.map(i=>NAMES[i])])].slice(-300)});
+    if(go){NMX.showRooms=!r;setTab('match')}
+    toast(ids.length>1?t(`${ids.length} השמות ייכנסו לחדר שתפתחו`,`The ${ids.length} names will go into the room you open`):t(`${NAMES[ids[0]]} ייכנס לחדר שתפתחו`,`${NM(ids[0])} will go into the room you open`),3500);return}
+  const n=nmLikeAll(r,ids);
+  toast(n?(n>1?t(`${n} שמות נוספו ${nmRoomWith(r)}`,`${n} names added ${nmRoomWith(r)}`):t(`${NAMES[ids.find(i=>r.likes.includes(i))]} נוסף ${nmRoomWith(r)}`,`Added ${nmRoomWith(r)}`))
+    :t('השמות האלה כבר בחדר','These names are already in the room'),3500);
+  if(go){NMX.showRooms=false;setTab('match')}}
+/* the pending names go into a room once you are in it (renderMatch) */
+function nmApplyPending(r){const p=store.get('nm_pending',null);if(!p)return;store.set('nm_pending',null);
+  if(Date.now()-(p.t||0)>=NM_PEND_MS||!Array.isArray(p.n))return;const n=nmLikeAll(r,p.n.map(x=>IDX.get(x)).filter(i=>i!=null));
+  if(n)setTimeout(()=>toast(n>1?t(`${n} השמות שבחרתם נכנסו לחדר, כשמות שאהבתם`,`Your ${n} names are in the room as likes`):t('השם שבחרתם נכנס לחדר, כשם שאהבתם','Your name is in the room as a like'),3500),500)}
+/* the line on a name page: add this name, or it is already in */
+function nmAddLine(i){const r=R();const nm=esc(NAMES[i]);
+  if(r&&r.me&&r.likes.includes(i))return t(`${nm} כבר ברשימה שלכם בחדר${r.pname?` עם ${esc(r.pname)}`:''} · להמשיך להחליק`,`Already in your room · keep swiping`);
+  return r&&r.me?t(`אהבתם את ${nm}? להוסיף ${nmRoomWith(r)}`,`Love it? Add it ${nmRoomWith(r)}`):t(`בוחרים בזוג? להוסיף את ${nm} לחדר משותף`,`Choosing together? Add it to a shared room`)}
+function nmAddBtn(i){const r=R();const on=!!(r&&r.me&&r.likes.includes(i));
+  const b=document.createElement('button');b.className='matchlink nmaddname';b.innerHTML=`${icon('match')}<span>${nmAddLine(i)}</span>`;
+  b.onclick=()=>{if(on){NMX.showRooms=false;setTab('match')}else nmAddNames([i])};return b}
+/* ?nmadd=<name>: the link on the static name pages (for visitors without the app's buttons) */
+function nmAddParam(){try{const u=new URL(location.href);const v=u.searchParams.get('nmadd');if(v==null)return null;u.searchParams.delete('nmadd');history.replaceState(null,'',u.pathname+u.search+u.hash);
+  const n=normQ(v);return IDX.has(n)?IDX.get(n):null}catch(e){return null}}
 
 /* ---------- live sync (when the room capability can connect) ---------- */
 async function nmLive(){const r=R();if(!r||!r.me)return;if(NMX.joinTried===r.code)return;NMX.joinTried=r.code;
@@ -1859,6 +1915,7 @@ function renderMatch(){document.body.classList.add('matchmode');const sec=$('#ta
   const r=R();
   if(!r||NMX.showRooms){nmOnboard(sec);return}
   if(!r.me){nmJoin(sec,r);return}
+  nmApplyPending(r);
   sec.innerHTML=`<div class="nmapp"><div class="nmtop" id="nmtop"></div><div class="nmstage" id="nmstage"></div>
     <div class="nmbtns" dir="ltr"><button class="nmb sm" id="nb-undo" aria-label="${t('ביטול הפעולה האחרונה','Undo')}">${icon('undo')}</button><button class="nmb no" id="nb-no" aria-label="${t('לא בשבילנו','Pass')}">${icon('x')}</button><button class="nmb sup" id="nb-sup" aria-label="${t('מועדף עליון','Super like')}">${icon('star',1)}</button><button class="nmb yes" id="nb-yes" aria-label="${t('אהבתי','Like')}">${icon('v')}</button></div>
     <div class="nmhint">${t('ימינה: אהבתי · שמאלה: לא · למעלה: מועדף עליון','Right: like · Left: pass · Up: super like')}</div></div>`;
@@ -1879,7 +1936,7 @@ function nmTop(){const r=R(),el=$('#nmtop');if(!el||!r)return;const ms=matchesOf
   el.innerHTML=`<button class="nmback" id="nmback" aria-label="${t('חזרה לאתר הראשי','Back to main site')}">${icon('back')}<span>${t('לאתר','Site')}</span></button><button class="nmrooms" id="nmrooms" aria-label="${t('החדרים שלי','My rooms')}">${icon('list')}<span>${t('חדרים','Rooms')}</span><b>${nmRoomCount()}</b></button>
     <button class="nmstatus" id="nmstat" aria-label="${r.pname?t(`החדר של ${esc(r.me)} ו${esc(r.pname)}`,`${esc(r.me)} & ${esc(r.pname)}`):r.cloud?t('הזמנת בן/בת הזוג','Invite your partner'):t('שליחה לבן/בת הזוג','Send to your partner')}">${r.pname?`<i class="dot ${live?'on':''}"></i><span><b>${esc(r.me)}</b> ${t('ו','& ')}<b>${esc(r.pname)}</b>${live?'':r.cloud?'':` · <small>${ago(r.pupd)}</small>`}</span>`:`${icon('useradd')}<span>${r.cloud?t('הזמנה','Invite'):t('שליחה','Send')}</span>`}</button>
     <button class="nmmatches" id="nmms" aria-label="${t('ההתאמות שלנו','Our matches')}">${icon('heart',ms>0)}<span>${t('התאמות','Matches')}</span><b>${ms}</b></button>`;
-  $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};$('#nmstat').onclick=nmInvite;$('#nmms').onclick=nmMatches;$('#nmrooms').onclick=nmRooms;}
+  $('#nmback').onclick=nmExit;$('#nmstat').onclick=nmInvite;$('#nmms').onclick=nmMatches;$('#nmrooms').onclick=nmRooms;}
 function nmNudge(r){if(r.cloud&&r.pname)return'';if(r.cloud){const n=r.likes.length;return n>=3&&n%3===0?`<button class="nmnudge" id="nmnudge">${icon('link')}<span>${t('בן/בת הזוג עוד לא בחדר. שלחו להם את הקישור','Your partner hasn’t joined yet. Send them the link')}</span></button>`:''}const fresh=r.likes.length-(r.sent||0);if(fresh<8)return'';return `<button class="nmnudge" id="nmnudge">${icon('link')}<span>${r.pname?t(`יש לך ${fresh} בחירות חדשות. שלחו ל${esc(r.pname)} כדי לגלות התאמות`,`${fresh} new picks. Send them to ${esc(r.pname)}`):t(`בחרת ${fresh} שמות. שלחו לבן/בת הזוג כדי שיצטרפו`,`You picked ${fresh}. Send them to your partner`)}</span></button>`}
 function nmCardHTML(i,cls){const st=stats(-1),c=comb(st,i);const pd=peakDec(st,i);const m=MEAN.get(NAMES[i])||'';
   return `<div class="nmcard ${cls}" data-i="${i}"><div class="stampl like">${t('אהבתי','LIKE')}</div><div class="stampl pass">${t('לא','NOPE')}</div><div class="stampl sup">${t('מועדף','SUPER')}</div>
@@ -1957,7 +2014,7 @@ function nmOnboard(sec){const rooms=Object.values(NMX.rooms).filter(x=>x.me).sor
       ${nmSetupForm({})}
       <button class="next nmgo" id="nmcreate">${t('יצירת חדר משותף','Create a shared room')}</button>
     </div></div>`;
-  $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};nmWireForm();
+  $('#nmback').onclick=nmExit;nmWireForm();
   $('#nmcreate').onclick=()=>{const me=$('#nmme').value.trim();if(!me){toast(t('כתבו את השם שלכם','Enter your name'));$('#nmme').focus();return}store.set('nm_me',me);
     if(nmRecount()<NM_MIN){toast(t(`צריך לפחות ${NM_MIN} שמות בחדר. כדאי לבטל חלק מההגדרות`,`At least ${NM_MIN} names are needed`));return}
     const o=nmReadForm();const btn=$('#nmcreate');btn.dataset.busy=1;btn.disabled=true;btn.textContent=t('יוצרים חדר…','Creating…');
@@ -1972,7 +2029,7 @@ function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k))
   /* a shared room link: first ask who is connecting, so a returning participant is never added twice */
   if(r.cloudInvite&&cloudOn()&&roster===undefined){
     sec.innerHTML=`<div class="nmapp"><div class="nmtop"><button class="nmback" id="nmback">${icon('back')}<span>${t('לאתר הראשי','Main site')}</span></button></div><div class="nmwelcome"><p class="sub">${t('טוענים את החדר…','Loading the room…')}</p></div></div>`;
-    $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};
+    $('#nmback').onclick=nmExit;
     cloudRoster(r.code).then(L=>{if(TAB==='match'&&R()===r&&!r.me)nmJoin(sec,r,L||[])});return}
   const names=roster||[];const who=names.length>0;
   sec.innerHTML=`<div class="nmapp"><div class="nmtop"><button class="nmback" id="nmback">${icon('back')}<span>${t('לאתר הראשי','Main site')}</span></button></div>
@@ -1986,7 +2043,7 @@ function nmJoin(sec,r,roster){const secs=SECT().filter((_,k)=>(r.sec||1)&(1<<k))
     <p>${t(`${fLabel(r.f)} · ${secs}${r.uni?' · כולל יוניסקס':''}. החליקו ימינה על שמות שאתם אוהבים${r.plikes.length?`, ו${esc(r.pname||'בן/בת הזוג')} כבר בחר/ה ${r.plikes.length} שמות. נגלה איפה אתם מסכימים`:''}.`,`${fLabel(r.f)} · ${secs}. Swipe right on names you love.`)}</p>
     <label class="nml" for="nmme">${t('השם שלך','Your name')}</label><input class="inp nmin" id="nmme" maxlength="30" autocomplete="off" value="${who?'':esc(store.get('nm_me',''))}">
     <button class="next nmgo" id="nmjoin">${t('הצטרפות לחדר','Join the room')}</button></div></div></div>`;
-  $('#nmback').onclick=()=>{document.body.classList.remove('matchmode');setTab('home')};
+  $('#nmback').onclick=nmExit;
   const done=()=>{r.invShown=1;delete r.cloudInvite;try{history.replaceState(null,'',HREF('match.'+r.code+'.'+rTok(r)))}catch(e){}nmSave();renderMatch()};
   const claim=async name=>{sec.querySelectorAll('button').forEach(b=>b.disabled=true);const res=await cloudClaim(r,name);
     if(res==='ok'){store.set('nm_me',name);done();toast(t(`שמחים שחזרת, ${name}. ממשיכים מאיפה שעצרת.`,`Welcome back, ${name}.`));return}
@@ -2295,6 +2352,8 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 /* name collections (/names/boys etc.) are plain static pages, so these are ordinary links; the preview build has no such pages */
 const COLLS=[['boys','שמות לבנים'],['girls','שמות לבנות'],['unisex','שמות יוניסקס'],['popular','השמות הנפוצים בישראל']];
 function docLinksHTML(){return `<nav class="doclinks">${DOCS.map(d=>`<a href="${docHref(d)}" data-doc="${d}">${PAGES[d].title}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`
+  /* the tools: the name finder left the main nav for the couple tab, so it stays one click away here */
+  +`<nav class="doclinks" aria-label="${t('כלים','Tools')}">${[[HREF('gen'),t('מחולל שמות','Name finder')],...(SITE.routing==='path'?[['/tools/couple-names',t('בוחרים שם בזוג','Choosing together')],['/tools/full-name',t('בדיקת שם מלא','Full name check')],['/tools/siblings',t('שם לאח או לאחות','Sibling names')]]:[])].map(([h,v])=>`<a href="${h}">${v}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`
   +(SITE.routing==='path'?`<nav class="doclinks" aria-label="אוספי שמות">${COLLS.map(([k,v])=>`<a href="/names/${k}">${v}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`:'')}
 
 /* =========================================================
@@ -2481,8 +2540,8 @@ function renderDec(){const el=$('#g-dec');if(!G.q)newQ();
   const qn=$('#qn');if(qn)qn.onclick=()=>{newQ();renderDec()};const qo=$('#qopen');if(qo)qo.onclick=()=>pick(G.q.i);}
 
 /* ---------- boot ---------- */
-(function boot(){const H0=(location.hash||'').slice(1);let t0=H0;if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0='home';   /* a plain visit always opens the home page */TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
-  const isSaved=/^saved\./.test(H0);if(isSaved){t0='home';TAB='home'}const miss=URL_MISS;if(miss){t0='home';TAB='home'}renderShell();setTab(t0);if(isSaved)checkSavedHash(H0);if(miss)notFound(miss);try{document.activeElement&&document.activeElement.blur()}catch(e){}
+(function boot(){const nmQ=nmAddParam();const H0=(location.hash||'').slice(1);let t0=H0;if(/^match/.test(t0))t0='match';else if(/^compare=/.test(t0)){const L=compareFromHash(t0);if(L){CMP=L;store.set('cmp',CMP)}NSUB='compare';t0='names'}else if(!/^saved\./.test(t0)){const ni=nameFromURL();if(ni!=null){CUR=ni;store.set('name',NAMES[ni]);NSUB='file';t0='names'}}if(!TABS.includes(t0)&&!LEGACY[t0])t0='home';   /* a plain visit always opens the home page */TAB=TABS.includes(t0)?t0:(LEGACY[t0]?LEGACY[t0][0]:'home');
+  const isSaved=/^saved\./.test(H0);if(isSaved){t0='home';TAB='home'}const miss=URL_MISS;if(miss){t0='home';TAB='home'}renderShell();setTab(t0);if(nmQ!=null)nmAddNames([nmQ]);if(isSaved)checkSavedHash(H0);if(miss)notFound(miss);try{document.activeElement&&document.activeElement.blur()}catch(e){}
   const mq=matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',()=>{GAME_BUILT=null;rerender()});
   new MutationObserver(()=>{GAME_BUILT=null;rerender()}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});})();
 

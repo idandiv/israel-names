@@ -55,6 +55,7 @@ function openFavPanel(){const m=$('#modal');m.hidden=false;const st=stats(-1);
   m.innerHTML=`<div class="mbox favpanel" id="favpanel" role="dialog" aria-label="${t('השמות ששמרתי','Saved names')}"><button class="mclose" id="mclose" aria-label="${t('סגירה','Close')}">${icon('close')}</button>
     <h3>${t('השמות ששמרתי','Saved names')} <span class="cnt">${FAV.length}</span></h3>
     ${FAV.length?`<div class="favlist">${FAV.map(n=>{const i=IDX.get(n);return `<div class="favrow"><button class="fvname" data-q="${i}"><b>${nmh(i)}</b><span>${esc(shortMean(i))||secShort(i)}</span></button>${spark(share(st,i),70,22)}<button class="iconbtn" data-rm="${esc(n)}" aria-label="${t('הסרה','Remove')}">${icon('close')}</button></div>`}).join('')}</div>
+      <button class="matchlink fpmatch" id="fpmatch">${icon('match')}<span>${favMatchLabel()}</span></button>
       <div class="mrow"><button class="next" id="fpcopy">${icon('copy')}${t(' העתקת הרשימה לוואטסאפ',' Copy list')}</button>${FAV.length>1?`<button class="copybtn" id="fpcmp">${icon('chart')}${t(' השוואה בגרף',' Compare')}</button>`:''}<button class="copybtn" id="fplink">${icon('link')}${t(' קישור לרשימה',' Link to list')}</button><button class="copybtn danger" id="fpclear">${t('ניקוי הרשימה','Clear list')}</button></div>`
       :`<p class="sub">${t('עוד לא שמרתם שמות. לחצו על סימן השמירה בכרטיס שם כדי להוסיף.','No saved names yet. Tap the bookmark on a name card to add one.')}</p>`}</div>`;
   const close=()=>m.hidden=true;$('#mclose').onclick=close;m.onclick=e=>{if(e.target===m)close()};
@@ -62,8 +63,12 @@ function openFavPanel(){const m=$('#modal');m.hidden=false;const st=stats(-1);
   m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>quickView(+b.dataset.q));
   const fc=$('#fpcopy');if(fc)fc.onclick=()=>copy(favText());const fp=$('#fpcmp');if(fp)fp.onclick=favCompare;
   const fl=$('#fplink');if(fl)fl.onclick=()=>copy(favLink());
+  const fm=$('#fpmatch');if(fm)fm.onclick=()=>{close();favToMatch()};
   const cl=$('#fpclear');if(cl)cl.onclick=()=>{if(cl.dataset.sure){FAV=[];store.set('fav',FAV);renderFavBar();openFavPanel();rerenderCards()}else{cl.dataset.sure=1;cl.textContent=t('לחצו שוב לאישור','Tap again to confirm')}};}
 function rerenderCards(){if(TAB==='gen')drawGenResults()}
+/* the saved list into the couple room (nmAddNames in p8_match.js): your saved names count as your likes there */
+function favToMatch(){nmAddNames(FAV.map(n=>IDX.get(n)).filter(i=>i!=null))}
+function favMatchLabel(){const r=R();return r&&r.me?t(`להוסיף את השמורים ${nmRoomWith(r)}`,`Add them ${nmRoomWith(r)}`):t('לבחור מתוכם בזוג: להחליק עם בן או בת הזוג','Choose together: swipe them with your partner')}
 
 /* =========================================================
    QUICK VIEW
@@ -120,12 +125,14 @@ function genCard(st,i,extra=''){const inf=nameInfo(st,i);const tag=charTag(st,i,
 function wireCards(el){el.addEventListener('click',e=>{if(e.target.closest('[data-fav]'))return;const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)});
   el.addEventListener('keydown',e=>{if(e.key==='Enter'){const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)}})}
 function sexOk(st,i,sx){const s=T(st,i);if(!s)return false;const gp=st.tot[0][i]/s;return sx==='F'?gp>=.85:sx==='M'?gp<=.15:sx==='U'?(gp>=.25&&gp<=.75&&s>=150):true}
+/* the name page's "names like X": the finder's like mode with that name */
+function genLikeOf(i){GEN.mode='like';GEN.like=NAMES[i];saveGen();PUSH_ONCE=true;setTab('gen')}
 function renderGen(){const sec=$('#tab-gen');
-  sec.innerHTML=`<div class="pagehead"><h2>${t('מחולל השמות','The name finder')}</h2><p>${t(`שמות אמיתיים שניתנו בישראל, לפי משמעות, אופי ומגמה. שמרו את מה שאהבתם ושתפו את הרשימה.`,`Real names given in Israel, by meaning, vibe and trend. Save the ones you like and share your list.`)}</p>
+  sec.innerHTML=`${namesSubnavHTML('gen')}<div class="pagehead"><h2>${t('מחולל השמות','The name finder')}</h2><p>${t(`שמות אמיתיים שניתנו בישראל, לפי משמעות, אופי ומגמה. שמרו את מה שאהבתם ושתפו את הרשימה.`,`Real names given in Israel, by meaning, vibe and trend. Save the ones you like and share your list.`)}</p>
     <button class="matchlink" id="gomatch">${icon('users')}<span>${t('בוחרים בזוג? נסו את התאמת השמות','Choosing together? Try NameMatch')}</span></button>
     <div class="seg modes" id="gmode">${[['free',t('סינון חופשי','Free filter')],['wiz',t('שאלון מותאם אישית','Guided quiz')],['like',t('שמות דומים לשם שאהבנו','Names like one we love')]].map(([k,l])=>`<button data-m="${k}" aria-pressed="${GEN.mode===k}">${l}</button>`).join('')}</div></div>
     <div id="gbody"></div>`;
-  $('#gomatch').onclick=()=>setTab('match');
+  $('#gomatch').onclick=()=>setTab('match');wireNamesSubnav(sec);
   $('#gmode').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;GEN.mode=b.dataset.m;saveGen();renderGen()};
   ({free:genFree,wiz:genWizard,like:genLike})[GEN.mode]();}
 function genFree(){const body=$('#gbody');const opt=(k,v,l,ex)=>`<button data-k="${k}" data-v="${v}" aria-pressed="${GEN[k]===v}" class="${ex?'rich':''}">${l}${ex?`<small>${ex}</small>`:''}</button>`;
@@ -379,7 +386,7 @@ function drawFam(){
 }
 
 function drawHomeSaved(){const el=$('#homesaved');if(!el)return;if(!FAV.length){el.hidden=true;return}el.hidden=false;
-  el.innerHTML=`<div class="head"><div><h3>${t('השמות ששמרתי','My saved names')} <span class="cnt">${FAV.length}</span></h3></div><div class="ctrls"><button class="copybtn" id="hscopy">${icon('copy')} ${t('העתקה','Copy')}</button>${FAV.length>1?`<button class="copybtn" id="hscmp">${icon('chart')} ${t('השוואה','Compare')}</button>`:''}</div></div>
+  el.innerHTML=`<div class="head"><div><h3>${t('השמות ששמרתי','My saved names')} <span class="cnt">${FAV.length}</span></h3></div><div class="ctrls"><button class="copybtn" id="hscopy">${icon('copy')} ${t('העתקה','Copy')}</button>${FAV.length>1?`<button class="copybtn" id="hscmp">${icon('chart')} ${t('השוואה','Compare')}</button>`:''}<button class="copybtn" id="hsmatch">${icon('match')} ${t('להחליק בזוג','Swipe together')}</button></div></div>
     <div class="chips savedchips">${FAV.map(n=>`<button data-q="${IDX.get(n)}">${nmh(IDX.get(n))}</button>`).join('')}</div>`;
   el.querySelector('.savedchips').onclick=e=>{const b=e.target.closest('[data-q]');if(b)quickView(+b.dataset.q)};
-  $('#hscopy').onclick=()=>copy(favText());const c=$('#hscmp');if(c)c.onclick=favCompare;}
+  $('#hscopy').onclick=()=>copy(favText());const c=$('#hscmp');if(c)c.onclick=favCompare;$('#hsmatch').onclick=favToMatch;}

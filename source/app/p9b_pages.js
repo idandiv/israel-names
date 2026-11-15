@@ -40,4 +40,6 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 /* name collections (/names/boys etc.) are plain static pages, so these are ordinary links; the preview build has no such pages */
 const COLLS=[['boys','שמות לבנים'],['girls','שמות לבנות'],['unisex','שמות יוניסקס'],['popular','השמות הנפוצים בישראל']];
 function docLinksHTML(){return `<nav class="doclinks">${DOCS.map(d=>`<a href="${docHref(d)}" data-doc="${d}">${PAGES[d].title}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`
+  /* the tools: the name finder left the main nav for the couple tab, so it stays one click away here */
+  +`<nav class="doclinks" aria-label="${t('כלים','Tools')}">${[[HREF('gen'),t('מחולל שמות','Name finder')],...(SITE.routing==='path'?[['/tools/couple-names',t('בוחרים שם בזוג','Choosing together')],['/tools/full-name',t('בדיקת שם מלא','Full name check')],['/tools/siblings',t('שם לאח או לאחות','Sibling names')]]:[])].map(([h,v])=>`<a href="${h}">${v}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`
   +(SITE.routing==='path'?`<nav class="doclinks" aria-label="אוספי שמות">${COLLS.map(([k,v])=>`<a href="/names/${k}">${v}</a>`).join('<span aria-hidden="true">·</span>')}</nav>`:'')}
