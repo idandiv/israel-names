@@ -432,6 +432,10 @@ body.docopen{overflow:hidden}
   .ctahero .gencta{flex-direction:row;flex-wrap:nowrap}
   .ctahero .gencta .go{display:none}}
 /* couple: the add-to-room line on a name page and in the saved names panel */
-.nmaddwrap .matchlink{margin-top:12px;text-align:start}
-.nmaddwrap:empty{display:none}
+.namepills{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.namepills .matchlink{margin-top:0;text-align:start}
+.nmaddwrap{display:contents}
 .fpmatch{margin:4px 0 12px;text-align:start}
+/* explore names: four views (the name finder joined them), short labels on a phone so all four fit */
+.subnav .ls{display:none}
+@media (max-width:560px){.subnav .lf{display:none}.subnav .ls{display:inline}}

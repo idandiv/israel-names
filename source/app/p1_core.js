@@ -184,15 +184,19 @@ const LEGACY={name:['names','file'],me:['names','me'],compare:['names','compare'
 /* the tab to go back to when leaving the couple screen (its back button) */
 let PREV_TAB='home';
 function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(k==='match'&&TAB!=='match')PREV_TAB=TAB;if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
-  TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
+  TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k||(k==='gen'&&b.dataset.tab==='names')));
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
   if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=NMX.showRooms?null:R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
   stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
+/* the views under "explore names"; the name finder (its own tab, gen) sits here too since it left the main nav */
+function namesSubnavHTML(cur){return `<div class="subnav seg" role="group" aria-label="${t('תצוגת שמות','Names view')}">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says'),t('מה השם אומר','My name')],['compare',t('השוואת שמות','Compare'),t('השוואה','Compare')],['gen',t('מחולל שמות','Name finder'),t('מחולל','Finder')]].map(([k,l,s])=>`<button data-sub="${k}" aria-pressed="${cur===k}">${s?`<span class="lf">${l}</span><span class="ls">${s}</span>`:l}</button>`).join('')}</div>`}
+function wireNamesSubnav(sec){sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(!b)return;const k=b.dataset.sub;PUSH_ONCE=true;
+  if(k==='gen'){if(TAB!=='gen')setTab('gen');return}NSUB=k;store.set('nsub',NSUB);if(TAB!=='names'){setTab('names',k);return}renderNames();syncURL()}}
 function renderNames(){const sec=$('#tab-names');
-  sec.innerHTML=`<div class="subnav seg" role="group" aria-label="${t('תצוגת שמות','Names view')}">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
+  sec.innerHTML=`${namesSubnavHTML(NSUB)}
     <div id="tab-name"></div><div id="tab-me"></div><div id="tab-compare"></div>`;
-  sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();PUSH_ONCE=true;syncURL()}};
+  wireNamesSubnav(sec);
   ({file:renderName,me:renderMe,compare:renderCompare})[NSUB]();}
 function renderTrends(){$('#tab-trends').innerHTML=`<div class="pagehead"><h2>${t('מגמות ודאטה','Trends & data')}</h2><p>${t(`${NY} שנים של שמות: מי הוביל בכל תקופה, מי עולה ומי יורד, ומה מאפיין כל מגזר.`,`${NY} years of names: who led each era, who\u2019s rising and falling, and what sets each community apart.`)}</p>${secChips()}</div><div id="tab-explore"></div>`;renderExplore()}
 function renderGames(){if(!$('#tab-game')){$('#tab-games').innerHTML=`<div class="pagehead"><h2>${t('משחקים','Games')}</h2><p>${t('השם הסודי של היום, ועוד משחקי טריוויה קצרים על שמות.','Today’s secret name, plus quick name trivia games.')}</p></div><div id="tab-game"></div>`;GAME_BUILT=null}renderGame()}

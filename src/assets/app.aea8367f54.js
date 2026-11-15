@@ -501,15 +501,19 @@ const LEGACY={name:['names','file'],me:['names','me'],compare:['names','compare'
 /* the tab to go back to when leaving the couple screen (its back button) */
 let PREV_TAB='home';
 function setTab(k,sub){if(TAB==='match'&&k!=='match'&&typeof cloudClose==='function')cloudClose();if(k==='match'&&TAB!=='match')PREV_TAB=TAB;if(LEGACY[k]){sub=sub||LEGACY[k][1];k=LEGACY[k][0]}if(!TABS.includes(k))k='home';if(sub){NSUB=sub;store.set('nsub',NSUB)}
-  TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
+  TAB=k;document.querySelectorAll('.mainnav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k||(k==='gen'&&b.dataset.tab==='names')));
   TABS.forEach(q=>{const el=$('#tab-'+q);el.hidden=q!==k;if(q!==k)el.innerHTML=''});GAME_BUILT=null;
   if(k!=='match'){document.body.classList.remove('matchmode');store.set('tab',k);syncURL()}else if(!/^#match/.test(location.hash)){const r=NMX.showRooms?null:R();try{history.replaceState(null,'',HREF(r?`match.${r.code}.${rTok(r)}`:'match'))}catch(e){}}
   stopRace();rerender();window.scrollTo({top:0});}
 function rerender(){({home:renderHome,names:renderNames,gen:renderGen,trends:renderTrends,games:renderGames,match:renderMatch})[TAB]();renderFavBar();}
+/* the views under "explore names"; the name finder (its own tab, gen) sits here too since it left the main nav */
+function namesSubnavHTML(cur){return `<div class="subnav seg" role="group" aria-label="${t('תצוגת שמות','Names view')}">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says'),t('מה השם אומר','My name')],['compare',t('השוואת שמות','Compare'),t('השוואה','Compare')],['gen',t('מחולל שמות','Name finder'),t('מחולל','Finder')]].map(([k,l,s])=>`<button data-sub="${k}" aria-pressed="${cur===k}">${s?`<span class="lf">${l}</span><span class="ls">${s}</span>`:l}</button>`).join('')}</div>`}
+function wireNamesSubnav(sec){sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(!b)return;const k=b.dataset.sub;PUSH_ONCE=true;
+  if(k==='gen'){if(TAB!=='gen')setTab('gen');return}NSUB=k;store.set('nsub',NSUB);if(TAB!=='names'){setTab('names',k);return}renderNames();syncURL()}}
 function renderNames(){const sec=$('#tab-names');
-  sec.innerHTML=`<div class="subnav seg" role="group" aria-label="${t('תצוגת שמות','Names view')}">${[['file',t('תיק שם','Name file')],['me',t('מה השם שלי אומר עליי','What my name says')],['compare',t('השוואת שמות','Compare')]].map(([k,l])=>`<button data-sub="${k}" aria-pressed="${NSUB===k}">${l}</button>`).join('')}</div>
+  sec.innerHTML=`${namesSubnavHTML(NSUB)}
     <div id="tab-name"></div><div id="tab-me"></div><div id="tab-compare"></div>`;
-  sec.querySelector('.subnav').onclick=e=>{const b=e.target.closest('[data-sub]');if(b){NSUB=b.dataset.sub;store.set('nsub',NSUB);renderNames();PUSH_ONCE=true;syncURL()}};
+  wireNamesSubnav(sec);
   ({file:renderName,me:renderMe,compare:renderCompare})[NSUB]();}
 function renderTrends(){$('#tab-trends').innerHTML=`<div class="pagehead"><h2>${t('מגמות ודאטה','Trends & data')}</h2><p>${t(`${NY} שנים של שמות: מי הוביל בכל תקופה, מי עולה ומי יורד, ומה מאפיין כל מגזר.`,`${NY} years of names: who led each era, who\u2019s rising and falling, and what sets each community apart.`)}</p>${secChips()}</div><div id="tab-explore"></div>`;renderExplore()}
 function renderGames(){if(!$('#tab-game')){$('#tab-games').innerHTML=`<div class="pagehead"><h2>${t('משחקים','Games')}</h2><p>${t('השם הסודי של היום, ועוד משחקי טריוויה קצרים על שמות.','Today’s secret name, plus quick name trivia games.')}</p></div><div id="tab-game"></div>`;GAME_BUILT=null}renderGame()}
@@ -797,7 +801,7 @@ function renderName(){
     <div class="meter"><div class="row"><span class="g">${t('בנות','Girls')} ${gp.toFixed(gp>99||gp<1?1:0)}%</span><span class="b">${t('בנים','Boys')} ${(100-gp).toFixed(gp>99||gp<1?1:0)}%</span></div>
       <div class="track"><i style="width:${gp}%;background:var(--girl)"></i><i style="width:${100-gp}%;background:var(--boy)"></i></div></div>
     <div class="actions">${favBtn(nm,'lbl big')}<button class="next" id="shlink">${icon('link')}${t(' שיתוף העמוד',' Share page')}</button><button class="copybtn" id="card">${t('כרטיס לשיתוף','Share card')}</button><button class="copybtn" id="cpy">${t('העתקת סיכום','Copy summary')}</button><button class="copybtn" id="tocmp">${t('הוספה להשוואה','Add to compare')}</button></div>
-    <div class="nmaddwrap" id="nmaddwrap"></div>
+    <div class="namepills"><button class="matchlink" id="genlike">${icon('gen')}<span>${t(`שמות בסגנון של ${esc(nm)}`,`Names like ${esc(NM(i))}`)}</span></button><span class="nmaddwrap" id="nmaddwrap"></span></div>
   </div>
   <div class="grid">
     <div class="card wide"><div class="head"><div><h2>${t(`הסיפור של ${esc(nm)} לאורך השנים`,`${dn} through the years`)}</h2><div class="sub" id="tsub"></div></div>
@@ -822,7 +826,7 @@ function renderName(){
   </div>`;
   $('#card').onclick=()=>shareCard(i);
 
-  $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);{const nw=$('#nmaddwrap');if(nw)nw.replaceChildren(nmAddBtn(i))}
+  $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);{const nw=$('#nmaddwrap');if(nw)nw.replaceChildren(nmAddBtn(i))}$('#genlike').onclick=()=>genLikeOf(i);
   $('#tocmp').onclick=()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')};
   if(!S){$('#mseg').onclick=e=>{const bt=e.target.closest('[data-m]');if(bt){metric=bt.dataset.m;renderName();}};
   $('#tseg').onclick=e=>{const bt=e.target.closest('[data-t]');if(bt){tmode=bt.dataset.t;store.set('tmode',tmode);renderName();}};}
@@ -1322,12 +1326,14 @@ function genCard(st,i,extra=''){const inf=nameInfo(st,i);const tag=charTag(st,i,
 function wireCards(el){el.addEventListener('click',e=>{if(e.target.closest('[data-fav]'))return;const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)});
   el.addEventListener('keydown',e=>{if(e.key==='Enter'){const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)}})}
 function sexOk(st,i,sx){const s=T(st,i);if(!s)return false;const gp=st.tot[0][i]/s;return sx==='F'?gp>=.85:sx==='M'?gp<=.15:sx==='U'?(gp>=.25&&gp<=.75&&s>=150):true}
+/* the name page's "names like X": the finder's like mode with that name */
+function genLikeOf(i){GEN.mode='like';GEN.like=NAMES[i];saveGen();PUSH_ONCE=true;setTab('gen')}
 function renderGen(){const sec=$('#tab-gen');
-  sec.innerHTML=`<div class="pagehead"><h2>${t('מחולל השמות','The name finder')}</h2><p>${t(`שמות אמיתיים שניתנו בישראל, לפי משמעות, אופי ומגמה. שמרו את מה שאהבתם ושתפו את הרשימה.`,`Real names given in Israel, by meaning, vibe and trend. Save the ones you like and share your list.`)}</p>
+  sec.innerHTML=`${namesSubnavHTML('gen')}<div class="pagehead"><h2>${t('מחולל השמות','The name finder')}</h2><p>${t(`שמות אמיתיים שניתנו בישראל, לפי משמעות, אופי ומגמה. שמרו את מה שאהבתם ושתפו את הרשימה.`,`Real names given in Israel, by meaning, vibe and trend. Save the ones you like and share your list.`)}</p>
     <button class="matchlink" id="gomatch">${icon('users')}<span>${t('בוחרים בזוג? נסו את התאמת השמות','Choosing together? Try NameMatch')}</span></button>
     <div class="seg modes" id="gmode">${[['free',t('סינון חופשי','Free filter')],['wiz',t('שאלון מותאם אישית','Guided quiz')],['like',t('שמות דומים לשם שאהבנו','Names like one we love')]].map(([k,l])=>`<button data-m="${k}" aria-pressed="${GEN.mode===k}">${l}</button>`).join('')}</div></div>
     <div id="gbody"></div>`;
-  $('#gomatch').onclick=()=>setTab('match');
+  $('#gomatch').onclick=()=>setTab('match');wireNamesSubnav(sec);
   $('#gmode').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;GEN.mode=b.dataset.m;saveGen();renderGen()};
   ({free:genFree,wiz:genWizard,like:genLike})[GEN.mode]();}
 function genFree(){const body=$('#gbody');const opt=(k,v,l,ex)=>`<button data-k="${k}" data-v="${v}" aria-pressed="${GEN[k]===v}" class="${ex?'rich':''}">${l}${ex?`<small>${ex}</small>`:''}</button>`;

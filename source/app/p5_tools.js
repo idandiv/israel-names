@@ -125,12 +125,14 @@ function genCard(st,i,extra=''){const inf=nameInfo(st,i);const tag=charTag(st,i,
 function wireCards(el){el.addEventListener('click',e=>{if(e.target.closest('[data-fav]'))return;const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)});
   el.addEventListener('keydown',e=>{if(e.key==='Enter'){const c=e.target.closest('[data-q]');if(c)quickView(+c.dataset.q)}})}
 function sexOk(st,i,sx){const s=T(st,i);if(!s)return false;const gp=st.tot[0][i]/s;return sx==='F'?gp>=.85:sx==='M'?gp<=.15:sx==='U'?(gp>=.25&&gp<=.75&&s>=150):true}
+/* the name page's "names like X": the finder's like mode with that name */
+function genLikeOf(i){GEN.mode='like';GEN.like=NAMES[i];saveGen();PUSH_ONCE=true;setTab('gen')}
 function renderGen(){const sec=$('#tab-gen');
-  sec.innerHTML=`<div class="pagehead"><h2>${t('מחולל השמות','The name finder')}</h2><p>${t(`שמות אמיתיים שניתנו בישראל, לפי משמעות, אופי ומגמה. שמרו את מה שאהבתם ושתפו את הרשימה.`,`Real names given in Israel, by meaning, vibe and trend. Save the ones you like and share your list.`)}</p>
+  sec.innerHTML=`${namesSubnavHTML('gen')}<div class="pagehead"><h2>${t('מחולל השמות','The name finder')}</h2><p>${t(`שמות אמיתיים שניתנו בישראל, לפי משמעות, אופי ומגמה. שמרו את מה שאהבתם ושתפו את הרשימה.`,`Real names given in Israel, by meaning, vibe and trend. Save the ones you like and share your list.`)}</p>
     <button class="matchlink" id="gomatch">${icon('users')}<span>${t('בוחרים בזוג? נסו את התאמת השמות','Choosing together? Try NameMatch')}</span></button>
     <div class="seg modes" id="gmode">${[['free',t('סינון חופשי','Free filter')],['wiz',t('שאלון מותאם אישית','Guided quiz')],['like',t('שמות דומים לשם שאהבנו','Names like one we love')]].map(([k,l])=>`<button data-m="${k}" aria-pressed="${GEN.mode===k}">${l}</button>`).join('')}</div></div>
     <div id="gbody"></div>`;
-  $('#gomatch').onclick=()=>setTab('match');
+  $('#gomatch').onclick=()=>setTab('match');wireNamesSubnav(sec);
   $('#gmode').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;GEN.mode=b.dataset.m;saveGen();renderGen()};
   ({free:genFree,wiz:genWizard,like:genLike})[GEN.mode]();}
 function genFree(){const body=$('#gbody');const opt=(k,v,l,ex)=>`<button data-k="${k}" data-v="${v}" aria-pressed="${GEN[k]===v}" class="${ex?'rich':''}">${l}${ex?`<small>${ex}</small>`:''}</button>`;
