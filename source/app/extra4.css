@@ -439,3 +439,15 @@ body.docopen{overflow:hidden}
 /* explore names: four views (the name finder joined them), short labels on a phone so all four fit */
 .subnav .ls{display:none}
 @media (max-width:560px){.subnav .lf{display:none}.subnav .ls{display:inline}}
+/* finder quiz: the next steps under the results (p5_tools.js wzNextHTML) */
+.wznext{margin-top:16px}
+.wznext h3{margin:0 0 10px}
+.wzsteps{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:wz}
+.wzsteps li{counter-increment:wz;display:grid;grid-template-columns:28px 1fr;column-gap:10px;align-items:start}
+.wzsteps li::before{content:counter(wz);grid-row:span 2;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--accent-soft);color:var(--accent)}
+.wzsteps li.ok::before{content:"✓";background:var(--accent);color:var(--surface)}
+.wzsteps b{font-size:15px}
+.wzsteps span{font-size:13.5px;color:var(--ink-2)}
+.wzctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
+.wzctas .next{display:inline-flex;align-items:center;gap:8px;margin:0}
+.wzctas .copybtn{display:inline-flex;align-items:center;gap:6px}
