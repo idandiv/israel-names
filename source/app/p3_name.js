@@ -86,8 +86,9 @@ function renderName(){
     <div class="card wide"><div class="head"><div><h2>${t(`שמות קרובים ל${esc(nm)}`,`Names related to ${dn}`)}</h2><div class="sub" id="relsub"></div></div>
       <div class="seg" id="relseg">${[['tw',t('תאומי זהות','Twins')],['var',t('כתיבים','Spellings')],['rhy',t('חרוזים','Rhymes')],['gem',t('גימטריה','Gematria')]].map(([k,l])=>`<button data-r="${k}" aria-pressed="${REL===k}">${l}</button>`).join('')}</div></div>
       <div class="rel" id="rel"></div></div>
-  </div>`;
-  $('#card').onclick=()=>shareCard(i);
+  </div>
+  <div id="nextstep"></div>`;
+  $('#card').onclick=()=>shareCard(i);drawNextStep(i);
 
   $('#cpy').onclick=()=>copy(summary+'\n'+nameURL(i));$('#shlink').onclick=()=>shareName(i);{const nw=$('#nmaddwrap');if(nw)nw.replaceChildren(nmAddBtn(i))}$('#genlike').onclick=()=>genLikeOf(i);
   $('#tocmp').onclick=()=>{if(!CMP.includes(nm)){if(CMP.length>=4)CMP.shift();CMP.push(nm);store.set('cmp',CMP)}setTab('compare')};

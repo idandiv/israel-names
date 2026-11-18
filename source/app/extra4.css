@@ -451,3 +451,10 @@ body.docopen{overflow:hidden}
 .wzctas{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
 .wzctas .next{display:inline-flex;align-items:center;gap:8px;margin:0}
 .wzctas .copybtn{display:inline-flex;align-items:center;gap:6px}
+/* name page: the next step card at the end (p5_tools.js drawNextStep) */
+.nextstep{margin-top:16px}
+.nextstep h2{margin:0}
+.nextstep p{margin:6px 0 0;color:var(--ink-2);font-size:14.5px}
+.nextstep .nsrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:14px}
+.nextstep .nsrow .next{margin:0}
+.nextstep .nsrow .matchlink{margin:0}

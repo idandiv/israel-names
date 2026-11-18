@@ -46,7 +46,8 @@ function favBtn(n,cls=''){const on=isFav(n);return `<button class="favbtn ${cls}
 function toggleFav(n){if(isFav(n))FAV=FAV.filter(x=>x!==n);else{FAV.push(n);toast(t(`${n} נשמר. תמצאו אותו ב״שמורים״ למעלה`,`${NM(IDX.get(n))} saved. Find it under Saved, top of the page`));const ft=$('#favtop');if(ft){ft.classList.remove('bump');void ft.offsetWidth;ft.classList.add('bump')}}store.set('fav',FAV);
   document.querySelectorAll('[data-fav]').forEach(b=>{if(b.dataset.fav===n){const on=isFav(n);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);b.innerHTML=icon('save',on)+(b.classList.contains('lbl')?`<span>${on?t('נשמר','Saved'):t('שמירה','Save')}</span>`:'')}});
   renderFavBar();if(!$('#modal').hidden&&$('#favpanel'))openFavPanel();
-  const wn=$('.wznext');if(wn){wn.outerHTML=wzNextHTML();wireWzNext()}}
+  const wn=$('.wznext');if(wn){wn.outerHTML=wzNextHTML();wireWzNext()}
+  const ns=$('#nextstep');if(ns&&ns.dataset.i)drawNextStep(+ns.dataset.i)}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-fav]');if(b){e.stopPropagation();e.preventDefault();toggleFav(b.dataset.fav)}},true);
 function favText(){return t(`השמות המובילים שבחרנו מתוך מחולל השמות:\n${FAV.map((n,k)=>`${k+1}. ${n}`).join('\n')}\nמה אתם חושבים?\n\nלפתוח את הרשימה באתר: ${favLink()}`,
   `Our top picks from the name finder:\n${FAV.map((n,k)=>`${k+1}. ${NM(IDX.get(n))} (${n})`).join('\n')}\nWhat do you think?\n\nOpen the list: ${favLink()}`)}
@@ -241,12 +242,31 @@ function genWizard(){store.set('wz',WZ);const body=$('#gbody');const TL=THEME_LA
     ${all.length?wzNextHTML():''}`;
   const gc=$('#gcards');gc.addEventListener('click',e=>{const sw=e.target.closest('[data-swap]');if(sw){e.stopPropagation();WZ.hide.push(+sw.dataset.swap);const card=sw.closest('.gcard2');card.classList.add('out');setTimeout(genWizard,180)}},true);
   wireCards(gc);const mo=$('#wzmore');if(mo)mo.onclick=()=>{WZ.shown+=5;genWizard()};
-  $('#wzagain').onclick=()=>{WZ={step:0,themes:[],letter:'',nogut:false,shown:5,hide:[],seed:Math.random()*1e9|0,world:store.get('wzworld','heb')};genWizard()};$('#wzedit').onclick=()=>{WZ.step=1;genWizard()};wireWzNext();}
+  $('#wzagain').onclick=()=>{wzReset();genWizard()};$('#wzedit').onclick=()=>{WZ.step=1;genWizard()};wireWzNext();}
 /* after the quiz: what to do with the list. Hearts save a name; the saved names go to the couple room as likes */
 function wzNextHTML(){const n=FAV.length;return `<div class="card wznext"><h3>${t('ומה עכשיו?','What next?')}</h3>
   <ol class="wzsteps"><li class="${n?'ok':''}"><b>${t('שומרים את מה שאהבתם','Save the ones you like')}</b><span>${n?t(`${n} ${n===1?'שם שמור':'שמות שמורים'} אצלכם`,`${n} saved`):t('לחיצה על הלב שבפינת השם','Tap the heart on a name')}</span></li>
   <li><b>${t('בוחרים ביחד','Choose together')}</b><span>${t('בן או בת הזוג מחליקים על השמות, ורואים רק מה ששניכם אהבתם','Your partner swipes them, and you see only what you both liked')}</span></li></ol>
   <div class="wzctas"><button class="next" id="wzmatch">${icon('users')} ${n?t(`להחליק בזוג על ${n} השמות`,`Swipe the ${n} names together`):t('להחליק בזוג','Swipe together')}</button>${n?`<button class="copybtn" id="wzcopy">${icon('copy')} ${t('העתקת הרשימה','Copy the list')}</button>`:''}</div></div>`}
+function wzReset(){WZ={step:0,themes:[],letter:'',nogut:false,shown:5,hide:[],seed:Math.random()*1e9|0,world:store.get('wzworld','heb')}}
+/* the finder's quiz from elsewhere: carries on a quiz half done or shows its results; otherwise a new quiz */
+function quizFromName(){if(!(WZ.step>0))wzReset();GEN.mode='wiz';saveGen();PUSH_ONCE=true;setTab('gen');window.scrollTo(0,0)}
+/* the name page's last card: one next step that fits where the visitor is, first match wins:
+   a couple room → keep choosing there; 2+ saved names → swipe them together; a finished quiz → back to its list;
+   otherwise → the quiz. One main button and at most one small link (p3_name.js #nextstep) */
+function drawNextStep(i){const el=$('#nextstep');if(!el)return;el.dataset.i=i;const nm=NAMES[i],r=R(),n=FAV.length;
+  let h,p,main,go,second='';
+  if(r&&r.me){h=t('הצעד הבא','Next step');p=t(`${r.likes.length} שמות שאהבת · ${matchesOf(r).length} התאמות`,`${r.likes.length} liked · ${matchesOf(r).length} matches`);
+    main=r.pname?t(`להמשיך לבחור עם ${esc(r.pname)}`,`Keep choosing with ${esc(r.pname)}`):t('לחזור לחדר הזוגי','Back to your couple room');go=()=>{NMX.showRooms=false;PUSH_ONCE=true;setTab('match')};second='room'}
+  else if(n>=2){h=t('יש לכם כבר רשימה','You already have a list');p=t(`${n} שמות שמורים. בן או בת הזוג מחליקים עליהם, ורואים רק מה ששניכם אהבתם.`,`${n} saved names. Your partner swipes them, and you see only what you both liked.`);
+    main=t(`להחליק בזוג על ${n} השמות`,`Swipe the ${n} names together`);go=favToMatch;second='quiz'}
+  else if(WZ.step>=5){h=t('הרשימה שלכם מחכה','Your list is waiting');p=t('השמות שהשאלון מצא לכם, לפי מה שבחרתם.','The names the quiz found for you, from your answers.');
+    main=t('חזרה לרשימה מהשאלון','Back to your quiz list');go=quizFromName;second='fav'}
+  else{h=t('מחפשים שם לתינוק?','Looking for a baby name?');p=t('5 שאלות קצרות בלחיצה, ומקבלים רשימת שמות שמתאימה לכם.','5 quick one-tap questions, and you get a list that fits you.');
+    main=t('לשאלון הקצר','Take the short quiz');go=quizFromName;second='fav'}
+  el.innerHTML=`<div class="card wide nextstep"><h2>${h}</h2><p>${p}</p><div class="nsrow"><button class="next" id="nsgo">${main}</button>${
+    second==='quiz'?`<button class="linkbtn" id="nsquiz">${t('או שאלון של 5 שאלות','Or a 5-question quiz')}</button>`:second==='fav'?favBtn(nm,'lbl'):'<span id="nsroom"></span>'}</div></div>`;
+  $('#nsgo').onclick=go;const q=$('#nsquiz');if(q)q.onclick=quizFromName;const rm=$('#nsroom');if(rm)rm.replaceWith(nmAddBtn(i))}
 function wireWzNext(){const m=$('#wzmatch');if(m)m.onclick=()=>{if(FAV.length)favToMatch();else{PUSH_ONCE=true;setTab('match')}};const c=$('#wzcopy');if(c)c.onclick=()=>copy(favText())}
 function genLike(){const body=$('#gbody');const st=stats(-1);let base=IDX.get(GEN.like);if(base==null)base=IDX.get('אריאל');
   body.innerHTML=`<div class="card genpanel"><div class="gstep"><div class="gsl">${t('איזה שם אתם אוהבים?','Which name do you love?')}</div>
