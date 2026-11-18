@@ -1,4 +1,4 @@
-// Browser tests of the name page's next-step card (p5_tools.js drawNextStep, shown at the end of p3_name.js).
+// Browser tests of the name page's next-step card (p5_tools.js drawNextStep, after the first card in p3_name.js).
 // Run: npm run e2e (from source/).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -32,16 +32,16 @@ async function open(path, { width = 375, seed = {} } = {}) {
   return page;
 }
 
-test('a new visitor: the card offers the quiz, after every other card, with no side scroll', async () => {
+test('a new visitor: the card offers the quiz, right after the first card, with no side scroll', async () => {
   for (const width of [375, 1200]) {
     const page = await open(NAME, { width });
     assert.match(await page.textContent('.nextstep h2'), /מחפשים שם לתינוק/);
     assert.equal(await page.$$eval('.nextstep button.next', els => els.length), 1);
-    // the last thing in the name view, after the related names card
-    assert.ok(await page.evaluate(() => {
-      const ns = document.querySelector('#nextstep'), rel = document.querySelector('#rel');
-      return !!(rel.compareDocumentPosition(ns) & Node.DOCUMENT_POSITION_FOLLOWING);
-    }));
+    // right after the first card (the name over the years), full width
+    assert.deepEqual(await page.evaluate(() => {
+      const ns = document.querySelector('#nextstep'), prev = ns.previousElementSibling;
+      return [prev.querySelector('h2').textContent.startsWith('הסיפור של'), Math.abs(ns.offsetWidth - ns.parentElement.clientWidth) < 2];
+    }), [true, true]);
     const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     assert.ok(over <= 0, `side scroll ${over}px at ${width}`);
     await page.done();
